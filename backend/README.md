@@ -1,4 +1,4 @@
-## Deploying the Backend Properly on Apache
+## Interacting with the Backend Properly
 Because the frontend and the backend are on different ports and the backend does not support SSL [https] (yet..): \
 it is easier to proxy the requests through Apache webserver.
 
@@ -21,3 +21,9 @@ Then, restart apache:
 ```
 sudo systemctl restart apache2
 ```
+## Deploying the app with pm2
+```
+cd into the backend app directory
+pm2 start app.js --watch
+```
+The --watch will monitor for file changes and automatically restart the server.
