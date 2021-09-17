@@ -27,3 +27,13 @@ cd into the backend app directory
 pm2 start app.js --watch
 ```
 The --watch will monitor for file changes and automatically restart the server.
+
+You can view the status of all apps running with:
+```
+pm2 list
+```
+
+You can view the details of the app with:
+```
+pm2 show [app-name]
+```
