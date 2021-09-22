@@ -13,7 +13,7 @@ const PatentForm = (props) => {
     // This is using axios to make a post request to our backend and send {name,email,password}
     // and store it in mongoDB
     axios({
-      url: "/patents/labels", // route in backend
+      url: "/patents-api/labels", // route in backend
       method: "POST",
       data: {
         documentId: props.patents[0].documentId,

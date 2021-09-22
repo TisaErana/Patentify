@@ -11,7 +11,7 @@ const cookieSession = require('cookie-session');
 
 // Routes
 const usersRouter = require('./routes/users');
-const patentsRouter = require('./routes/patents');
+const patentsRouter = require('./routes/patents-api');
 
 
 const app = express();
