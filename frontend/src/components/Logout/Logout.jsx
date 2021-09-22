@@ -1,14 +1,10 @@
 import React from 'react';
 
 const Logout = (props) => {
-    localStorage.clear();
-    props.history.push('/Login')
-    // Triggers a refresh need to find a better way to change login and logout;
-    window.location.reload(false);
+    localStorage.clear(); // log the user out.
+    window.location = '/'; // send user to the home page; triggers a refresh to update navbar.
     return (
-        <div>
-            
-        </div>
+        <div></div>
     );
 };
 
