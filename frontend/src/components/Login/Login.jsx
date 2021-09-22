@@ -26,11 +26,13 @@ const Login = (props) => {
           const ISAUTHENTICATED = response.data.isAuthenticated;
           const ROLE = response.data.role
 
+          // log user in:
           window.localStorage.setItem("isAuthenticated", ISAUTHENTICATED);
           window.localStorage.setItem("role",ROLE);
 
-          // Triggers a refresh need to find a better way to change login and logout
-          window.location.reload(false);
+          window.location = '/'; // send user to the home page; triggers refresh to update navbar.
+          /* sending user anywhere else causes 404 because Apache wants physical files (ex: Login.html) 
+          and React acts as an abstraction layer so there never is a /Login as far as Apache is concerned. */ 
 
           // console.log(response.data);
         }
