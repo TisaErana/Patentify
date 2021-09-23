@@ -49,7 +49,7 @@ app.use(passport.session());
 
 // MiddleWare // Here is where we let our application use the route that has been created
 app.use('/users', usersRouter);
-app.use('/patents', patentsRouter);
+app.use('/patents-api', patentsRouter);
 
 
 // catch 404 and forward to error handler
