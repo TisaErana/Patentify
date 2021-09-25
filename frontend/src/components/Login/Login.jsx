@@ -30,43 +30,29 @@ const Login = (props) => {
           window.localStorage.setItem("isAuthenticated", ISAUTHENTICATED);
           window.localStorage.setItem("role",ROLE);
 
-          window.location = '/'; // send user to the home page; triggers refresh to update navbar.
-          /* sending user anywhere else causes 404 because Apache wants physical files (ex: Login.html) 
-          and React acts as an abstraction layer so there never is a /Login as far as Apache is concerned. */ 
+          if(ISAUTHENTICATED)
+          {
+            if(ROLE === 'admin')
+            {
+              window.location = '/Dashboard';
+            }
+            else if(ROLE === 'annotator')
+            {
+              window.location = '/Patents';
+            }
+          }
 
           // console.log(response.data);
         }
       })
       .catch((error) => {
+        alert(error.response.data.message);
         console.log("Error", error.response.data.message);
       });
   };
 
-  // This function checks localstorage to see if the user is already logged in and then redirects them if they try to relogin
-  const isAuthedRedirect = () => {
-    
-    const ISAUTHENTICATED = window.localStorage.getItem("isAuthenticated");
-    const ROLE = window.localStorage.getItem("role");
-
-    if (ISAUTHENTICATED) {
-    
-      if(ROLE === 'admin')
-      {
-        return <Redirect to="/Dashboard" />;
-
-      }
-      else if(ROLE === 'annotator')
-      {
-        return <Redirect to="/Patents"/>;
-      }
-
-    }
-    
-  };
-
   return (
     <div>
-      {isAuthedRedirect()}
       <div className="d-flex justify-content-center ">
         <div className="login-box">
           <div className="login-logo">
