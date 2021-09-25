@@ -21,19 +21,10 @@ Then, restart apache:
 ```
 sudo systemctl restart apache2
 ```
-## Deploying the app with pm2
+## Starting the backend
+The backend can be started with: 
 ```
-cd into the backend app directory
-pm2 start app.js --watch
-```
-The --watch will monitor for file changes and automatically restart the server.
-
-You can view the status of all apps running with:
-```
-pm2 list
+npm start
 ```
 
-You can view the details of the app with:
-```
-pm2 show [app-name]
-```
+A systemd service can be created to run the app in the long-term.
