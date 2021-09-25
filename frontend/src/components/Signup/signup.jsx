@@ -26,7 +26,7 @@ const Signup = (props) => {
     })
       .then((response) => {
         if (response.status === 200) {
-         props.history.push('/login')
+         props.history.push('/Login')
         }
       })
       .catch((error) => {
