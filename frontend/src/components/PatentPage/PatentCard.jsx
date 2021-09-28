@@ -32,7 +32,8 @@ function checkID(patents){
   {
     // console.log(patents)
     
-    var id = patents[0].documentId;
+    // pdfpiw.uspto.gov: expects 'RE' is converted -> '00' for API call
+    var id = patents[0].documentId.replace('RE', '00');
     
     if(patents[0].patentCorpus === "USPAT") // ex: 04021701 
     {
