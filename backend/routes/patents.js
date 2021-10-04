@@ -55,4 +55,15 @@ router.get("/labels", async function (req, res, next) {
     res.json({ message: err });
   }
 });
+
+//Search for Patents by documentID
+router.get("/search/:ID", async function (req, res, next) {
+  try {
+    const patent = await Patent.find({"documentId":req.params.ID})
+    res.json(patent);
+  } catch (err) {
+    res.json({ message: "No Patent found with the given patent number" });
+  }
+});
+
 module.exports = router;
