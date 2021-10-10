@@ -16,8 +16,8 @@ const ViewUser = () => {
   useEffect(() => {
     async function fetchData() {
       try {
-        // we are using fetch to call the backend endpoint that contains all 368 patents.
-        const response = await fetch("/users");
+        // fetch all users in the database:
+        const response = await fetch("/users/");
 
         const body = await response.json();
         // body is an object with the response

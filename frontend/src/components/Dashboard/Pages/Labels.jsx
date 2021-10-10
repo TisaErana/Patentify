@@ -26,7 +26,7 @@ const Table = () => {
       async function fetchData() {
         try {
           
-          // we are using fetch to call the backend endpoint that contains all 368 patents.
+          // we are using fetch to call the backend endpoint that contains all 300 patents.
           const response = await fetch("/patents-api/labels");
   
           const body = await response.json();
