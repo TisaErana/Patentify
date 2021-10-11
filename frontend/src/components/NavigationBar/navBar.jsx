@@ -2,6 +2,9 @@ import React from "react";
 import { Navbar, Nav } from "react-bootstrap";
 import { Link } from "react-router-dom";
 
+
+import  SearchBar  from '../SearchBar/searchBar';
+
 const navBar = (props) => {
   return (
     <div>
@@ -30,6 +33,9 @@ function displayLogout(AuthStatus, Role) {
         <Nav.Link as={Link} to="/Dashboard">
           Dashboard
         </Nav.Link>
+        <Nav.Link>
+          <SearchBar></SearchBar>
+        </Nav.Link>
         <Nav.Link as={Link} to="/Logout">
           Logout
         </Nav.Link>
@@ -49,12 +55,16 @@ function displayLogout(AuthStatus, Role) {
         <Nav.Link as={Link} to="/Logout">
           Logout
         </Nav.Link>
+        <Nav.Link>
+        <SearchBar></SearchBar>
+        </Nav.Link>
       </Nav>
       );
     }
     
   } 
   else {
+    console.log("sadsd")
     return (
       <Nav className="ml-auto">
       <Nav.Link className="active" as={Link} to="/Home">
@@ -65,6 +75,9 @@ function displayLogout(AuthStatus, Role) {
         </Nav.Link>
         <Nav.Link as={Link} to="/Login">
           Login
+        </Nav.Link>
+        <Nav.Link>
+        <SearchBar></SearchBar>
         </Nav.Link>
       </Nav>
     );

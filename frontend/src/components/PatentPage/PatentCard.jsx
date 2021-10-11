@@ -28,11 +28,12 @@ const PatentCard = (props) => {
 
 function checkID(patents){
 
-  if(patents !== undefined)
-  {
+    if(patents !== undefined && patents !== [] )
+      {
     // console.log(patents)
     
       const id = patents[0].documentId
+
     
           if(patents[0].patentCorpus === "USPAT")
           {
@@ -43,7 +44,9 @@ function checkID(patents){
           {
             return ("http://appft.uspto.gov/netacgi/nph-Parser?Sect1=PTO2&Sect2=HITOFF&u=%2Fnetahtml%2FPTO%2Fsearch-adv.html&r=1&f=G&l=50&d=PG01&p=1&S1="+id+".PGNR.&OS=DN/"+id+"&RS=DN/"+id);
           }
-        }
+      }else{
+        <div>No Patents were found in the system</div>
+      }
     
   }
 
