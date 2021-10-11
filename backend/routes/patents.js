@@ -10,6 +10,7 @@ const Label = require("../models/label_model");
 // This is the route to retrive the patents from the mongoDB database
 
 router.get("/", async function (req, res, next) {
+  
   try {
     const patents = await Patent.aggregate([{ $sample: { size: 1 } }]); // returns a random document from MongoDB
     res.json(patents);

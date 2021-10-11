@@ -33,9 +33,9 @@ function displayLogout(AuthStatus, Role) {
         <Nav.Link as={Link} to="/Dashboard">
           Dashboard
         </Nav.Link>
-        <Nav.Link>
+        
           <SearchBar></SearchBar>
-        </Nav.Link>
+       
         <Nav.Link as={Link} to="/Logout">
           Logout
         </Nav.Link>
@@ -55,9 +55,9 @@ function displayLogout(AuthStatus, Role) {
         <Nav.Link as={Link} to="/Logout">
           Logout
         </Nav.Link>
-        <Nav.Link>
+       
         <SearchBar></SearchBar>
-        </Nav.Link>
+      
       </Nav>
       );
     }
@@ -76,9 +76,9 @@ function displayLogout(AuthStatus, Role) {
         <Nav.Link as={Link} to="/Login">
           Login
         </Nav.Link>
-        <Nav.Link>
+     
         <SearchBar></SearchBar>
-        </Nav.Link>
+
       </Nav>
     );
   }
