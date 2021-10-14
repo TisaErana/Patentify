@@ -50,7 +50,7 @@ const PatentForm = (props) => {
       >
         <Form.Group>
           <Form.Label>
-            Is this a Machine Learning Patent?
+            Machine Learning Patent
           </Form.Label>
           <div className='row-2'>
           <FormCheck name="mal" inline type="radio" label="Yes" value='Yes' ref={register}/>
@@ -60,7 +60,7 @@ const PatentForm = (props) => {
 
         <Form.Group>
           <Form.Label>
-          Is this a AI hardware Patent?
+          AI hardware Patent
           </Form.Label>
           <div className='row-2'>
           <FormCheck  name="hdw" inline type="radio" label="Yes"  value='Yes' ref={register}/>
@@ -70,7 +70,7 @@ const PatentForm = (props) => {
         
         <Form.Group>
           <Form.Label>
-          Is this a Evolutionary computation Patent?
+          Evolutionary computation Patent
           </Form.Label>
           <div className='row-2'>
           <FormCheck  name="evo" inline type="radio" label="Yes" value='Yes' ref={register}/>
@@ -80,7 +80,7 @@ const PatentForm = (props) => {
 
         <Form.Group>
           <Form.Label>
-          Is this a Natural Language Processing Patent?
+          Natural Language Processing Patent
           </Form.Label>
           <div className='row-2'>
           <FormCheck name="nlp" inline type="radio" label="Yes" value='Yes' ref={register}/>
@@ -90,7 +90,7 @@ const PatentForm = (props) => {
 
         <Form.Group>
           <Form.Label>
-          Is this a Speech Patent?
+          Speech Patent
           </Form.Label>
           <div className='row-2'>
           <FormCheck name="spc" inline type="radio" label="Yes" value='Yes' ref={register}/>
@@ -100,7 +100,7 @@ const PatentForm = (props) => {
 
         <Form.Group>
           <Form.Label>
-          Is this a Vision Patent?
+          Vision Patent
           </Form.Label>
           <div className='row-2'>
           <FormCheck name="vis" inline type="radio" label="Yes" value='Yes' ref={register}/>
@@ -110,7 +110,7 @@ const PatentForm = (props) => {
 
         <Form.Group>
           <Form.Label>
-          Is this a Knowledge Processing Patent?
+          Knowledge Processing Patent
           </Form.Label>
           <div className='row-2'>
           <FormCheck name="kpr" inline type="radio" label="Yes" value='Yes' ref={register}/>
@@ -120,7 +120,17 @@ const PatentForm = (props) => {
 
         <Form.Group>
           <Form.Label>
-          Is this a Planning/Control Patent?
+          Planning/Control Patent
+          </Form.Label>
+          <div className='row-2'>
+          <FormCheck  name="pln" inline type="radio" label="Yes" value='Yes' ref={register}/>
+          <FormCheck  name="pln" inline type="radio" label="No"  value= 'No' ref={register} defaultChecked/>
+          </div>
+        </Form.Group>
+
+        <Form.Group>
+          <Form.Label>
+          None of the Above
           </Form.Label>
           <div className='row-2'>
           <FormCheck  name="pln" inline type="radio" label="Yes" value='Yes' ref={register}/>
