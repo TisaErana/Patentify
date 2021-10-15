@@ -13,11 +13,11 @@ const labelSchema = new Schema(
     nlp:{type:String},
     pln:{type:String},
     kpr:{type:String},
-  },
-  
-    {timestamps: true}
-  
-
+    none:{type:String}
+  }, 
+  {
+    timestamps: true
+  }
 );
 
 module.exports = model("Label", labelSchema);
