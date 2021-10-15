@@ -50,7 +50,7 @@ const PatentForm = (props) => {
       >
         <Form.Group>
           <Form.Label>
-            Machine Learning Patent
+          Machine Learning Patent
           </Form.Label>
           <div className='row-2'>
           <FormCheck name="mal" inline type="radio" label="Yes" value='Yes' ref={register}/>
@@ -60,7 +60,7 @@ const PatentForm = (props) => {
 
         <Form.Group>
           <Form.Label>
-          AI hardware Patent
+          AI Hardware Patent
           </Form.Label>
           <div className='row-2'>
           <FormCheck  name="hdw" inline type="radio" label="Yes"  value='Yes' ref={register}/>
@@ -70,7 +70,7 @@ const PatentForm = (props) => {
         
         <Form.Group>
           <Form.Label>
-          Evolutionary computation Patent
+          Evolutionary Computation Patent
           </Form.Label>
           <div className='row-2'>
           <FormCheck  name="evo" inline type="radio" label="Yes" value='Yes' ref={register}/>
