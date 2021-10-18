@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
-
+const mongoose = require("mongoose");
+const db = mongoose.connection.db
 // This is the model of the patents
 const Patent = require("../models/patent_model");
 
@@ -59,12 +60,29 @@ router.get("/labels", async function (req, res, next) {
 
 //Search for Patents by documentID
 router.get("/search/:ID", async function (req, res, next) {
-  try {
-    const patent = await Patent.find({"documentId":req.params.ID})
-    res.json(patent);
-  } catch (err) {
-    res.json({ message: "No Patent found with the given patent number" });
-  }
+
+    let val = req.params.ID 
+    // check that parameter string contains only numbers
+    let isnum = /^\d+$/.test(val); 
+    if (isnum) {
+      val = parseInt(val)
+    }
+    console.log("here ", val)
+    mongoose.connection.db.collection("Patents", function(err,collection){
+      collection.find({"documentId": val}).toArray(function(err,data){
+        if(data.length > 0 ){
+          console.log('data',data)
+          res.json(data)
+        }else{
+          res.json({message:`patent for the given id ${val} not found`})
+        }
+      })
+    });
+
+    // DOESN'T WORK FOR SOME REASON
+    // const patent = await Label.find({document:val}).exec()
+    // console.log(patent)
+    // res.json(patent)
 });
 
 module.exports = router;

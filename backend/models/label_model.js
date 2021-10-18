@@ -15,10 +15,11 @@ const labelSchema = new Schema(
     kpr:{type:String},
   },
   
-    {timestamps: true}
+    {timestamps: true},
+    
   
 
 );
 
-module.exports = model("Label", labelSchema);
+module.exports = model("Label", labelSchema, "labels");
 
