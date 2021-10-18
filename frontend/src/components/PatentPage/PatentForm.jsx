@@ -25,6 +25,7 @@ const PatentForm = (props) => {
         nlp: data.nlp,
         pln: data.pln,
         kpr: data.kpr,
+        none: data.none
       },
     })
       .then((response) => {
@@ -50,7 +51,7 @@ const PatentForm = (props) => {
       >
         <Form.Group>
           <Form.Label>
-            Machine Learning Patent
+          Machine Learning Patent
           </Form.Label>
           <div className='row-2'>
           <FormCheck name="mal" inline type="radio" label="Yes" value='Yes' ref={register}/>
@@ -60,7 +61,7 @@ const PatentForm = (props) => {
 
         <Form.Group>
           <Form.Label>
-          AI hardware Patent
+          AI Hardware Patent
           </Form.Label>
           <div className='row-2'>
           <FormCheck  name="hdw" inline type="radio" label="Yes"  value='Yes' ref={register}/>
@@ -70,7 +71,7 @@ const PatentForm = (props) => {
         
         <Form.Group>
           <Form.Label>
-          Evolutionary computation Patent
+          Evolutionary Computation Patent
           </Form.Label>
           <div className='row-2'>
           <FormCheck  name="evo" inline type="radio" label="Yes" value='Yes' ref={register}/>
@@ -133,8 +134,8 @@ const PatentForm = (props) => {
           None of the Above
           </Form.Label>
           <div className='row-2'>
-          <FormCheck  name="pln" inline type="radio" label="Yes" value='Yes' ref={register}/>
-          <FormCheck  name="pln" inline type="radio" label="No"  value= 'No' ref={register} defaultChecked/>
+          <FormCheck  name="none" inline type="radio" label="Yes" value='Yes' ref={register}/>
+          <FormCheck  name="none" inline type="radio" label="No"  value= 'No' ref={register} defaultChecked/>
           </div>
         </Form.Group>
 
