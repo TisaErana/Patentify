@@ -12,14 +12,15 @@ const Table = () => {
       { title:'Document ID', field:'document', defaultGroupOrder:0},
       { title:'User', field:'user', defaultGroupOrder:1},
       { title:'Date', field:'createdAt'},
-      { title:'Mal', field:'mal'},
-      { title:'Hdw', field:'hdw'},
-      { title:'Spc', field:'spc'},
-      { title:'Vis', field:'vis'},
-      { title:'Nlp', field:'nlp'},
-      { title:'Pln', field:'pln'},
-      { title:'Evo', field:'evo'},
-      { title:'Kpr', field:'kpr'},
+      { title:'Machine Learning', field:'mal'},
+      { title:'AI Hardware', field:'hdw'},
+      { title:'Speech', field:'spc'},
+      { title:'Vision', field:'vis'},
+      { title:'Natural Language Processing', field:'nlp'},
+      { title:'Planning/Control', field:'pln'},
+      { title:'Evolutionary Computation', field:'evo'},
+      { title:'Knowledge Processing', field:'kpr'},
+      { title:'None', field:'none'}
   ]
   
     useEffect(() => {
@@ -80,8 +81,8 @@ const Table = () => {
                  
                     let array = Object.keys(group).map((key) => group[key])
 
-                    let user1 = array[0].map((x) => [x.mal, x.hdw ,x.evo ,x.spc ,x.vis, x.nlp ,x.pln, x.kpr]).flat()
-                    let user2 = array[1].map((x) => [x.mal, x.hdw ,x.evo ,x.spc ,x.vis, x.nlp ,x.pln, x.kpr]).flat()
+                    let user1 = array[0].map((x) => [x.mal, x.hdw ,x.evo ,x.spc ,x.vis, x.nlp ,x.pln, x.kpr, x.none]).flat()
+                    let user2 = array[1].map((x) => [x.mal, x.hdw ,x.evo ,x.spc ,x.vis, x.nlp ,x.pln, x.kpr, x.none]).flat()
                 
                     console.log(user1, user2)
 
