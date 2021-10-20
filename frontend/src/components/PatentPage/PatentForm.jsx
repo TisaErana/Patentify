@@ -139,8 +139,15 @@ const PatentForm = (props) => {
           </div>
         </Form.Group>
 
-        <div className="row justify-content-around mt-5">
-          <Button disabled={!isDirty} type="submit" variant="primary" size="lg" className="col-3">
+        <div className="justify-content-around mt-5">
+          <Button 
+            disabled={!isDirty} 
+            type="submit" 
+            variant="primary" 
+            size="lg" 
+            className="col-3" 
+            style={{marginRight: "2%"}}
+          >
             {" "}
             Submit
           </Button>
