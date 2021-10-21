@@ -26,45 +26,33 @@ const Login = (props) => {
           const ISAUTHENTICATED = response.data.isAuthenticated;
           const ROLE = response.data.role
 
+          // log user in:
           window.localStorage.setItem("isAuthenticated", ISAUTHENTICATED);
           window.localStorage.setItem("role",ROLE);
 
-          // Triggers a refresh need to find a better way to change login and logout
-          window.location.reload(false);
+          if(ISAUTHENTICATED)
+          {
+            if(ROLE === 'admin')
+            {
+              window.location = '/Dashboard';
+            }
+            else if(ROLE === 'annotator')
+            {
+              window.location = '/Patents';
+            }
+          }
 
           // console.log(response.data);
         }
       })
       .catch((error) => {
+        alert(error.response.data.message);
         console.log("Error", error.response.data.message);
       });
   };
 
-  // This function checks localstorage to see if the user is already logged in and then redirects them if they try to relogin
-  const isAuthedRedirect = () => {
-    
-    const ISAUTHENTICATED = window.localStorage.getItem("isAuthenticated");
-    const ROLE = window.localStorage.getItem("role");
-
-    if (ISAUTHENTICATED) {
-    
-      if(ROLE === 'admin')
-      {
-        return <Redirect to="/Dashboard" />;
-
-      }
-      else if(ROLE === 'annotator')
-      {
-        return <Redirect to="/Patents"/>;
-      }
-
-    }
-    
-  };
-
   return (
     <div>
-      {isAuthedRedirect()}
       <div className="d-flex justify-content-center ">
         <div className="login-box">
           <div className="login-logo">

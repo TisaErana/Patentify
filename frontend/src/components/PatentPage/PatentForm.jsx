@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Button, Form, FormCheck} from "react-bootstrap";
 import { useForm } from "react-hook-form";
 import axios from "axios";
+import { AiFillQuestionCircle } from 'react-icons/ai';
 
 
 
@@ -13,7 +14,7 @@ const PatentForm = (props) => {
     // This is using axios to make a post request to our backend and send {name,email,password}
     // and store it in mongoDB
     axios({
-      url: "/patents/labels", // route in backend
+      url: "/patents-api/labels", // route in backend
       method: "POST",
       data: {
         documentId: props.patents[0].documentId,
@@ -25,6 +26,7 @@ const PatentForm = (props) => {
         nlp: data.nlp,
         pln: data.pln,
         kpr: data.kpr,
+        none: data.none
       },
     })
       .then((response) => {
@@ -44,13 +46,13 @@ const PatentForm = (props) => {
   return (
     <div>
       <Form
-        className="container-fluid mt-5"
+        className="container mt-5"
         method="POST"
         onSubmit={handleSubmit(onSubmit)}
       >
         <Form.Group>
           <Form.Label>
-            Is this a Machine Learning Patent?
+          Machine Learning Patent <AiFillQuestionCircle/>
           </Form.Label>
           <div className='row-2'>
           <FormCheck name="mal" inline type="radio" label="Yes" value='Yes' ref={register}/>
@@ -60,7 +62,7 @@ const PatentForm = (props) => {
 
         <Form.Group>
           <Form.Label>
-          Is this a AI hardware Patent?
+          AI Hardware Patent <AiFillQuestionCircle/>
           </Form.Label>
           <div className='row-2'>
           <FormCheck  name="hdw" inline type="radio" label="Yes"  value='Yes' ref={register}/>
@@ -70,7 +72,7 @@ const PatentForm = (props) => {
         
         <Form.Group>
           <Form.Label>
-          Is this a Evolutionary computation Patent?
+          Evolutionary Computation Patent <AiFillQuestionCircle/>
           </Form.Label>
           <div className='row-2'>
           <FormCheck  name="evo" inline type="radio" label="Yes" value='Yes' ref={register}/>
@@ -80,7 +82,7 @@ const PatentForm = (props) => {
 
         <Form.Group>
           <Form.Label>
-          Is this a Natural Language Processing Patent?
+          Natural Language Processing Patent <AiFillQuestionCircle/>
           </Form.Label>
           <div className='row-2'>
           <FormCheck name="nlp" inline type="radio" label="Yes" value='Yes' ref={register}/>
@@ -90,7 +92,7 @@ const PatentForm = (props) => {
 
         <Form.Group>
           <Form.Label>
-          Is this a Speech Patent?
+          Speech Patent <AiFillQuestionCircle/>
           </Form.Label>
           <div className='row-2'>
           <FormCheck name="spc" inline type="radio" label="Yes" value='Yes' ref={register}/>
@@ -100,7 +102,7 @@ const PatentForm = (props) => {
 
         <Form.Group>
           <Form.Label>
-          Is this a Vision Patent?
+          Vision Patent <AiFillQuestionCircle/>
           </Form.Label>
           <div className='row-2'>
           <FormCheck name="vis" inline type="radio" label="Yes" value='Yes' ref={register}/>
@@ -110,7 +112,7 @@ const PatentForm = (props) => {
 
         <Form.Group>
           <Form.Label>
-          Is this a Knowledge Processing Patent?
+          Knowledge Processing Patent <AiFillQuestionCircle/>
           </Form.Label>
           <div className='row-2'>
           <FormCheck name="kpr" inline type="radio" label="Yes" value='Yes' ref={register}/>
@@ -120,7 +122,7 @@ const PatentForm = (props) => {
 
         <Form.Group>
           <Form.Label>
-          Is this a Planning/Control Patent?
+          Planning/Control Patent <AiFillQuestionCircle/>
           </Form.Label>
           <div className='row-2'>
           <FormCheck  name="pln" inline type="radio" label="Yes" value='Yes' ref={register}/>
@@ -128,8 +130,25 @@ const PatentForm = (props) => {
           </div>
         </Form.Group>
 
-        <div className="row justify-content-around mt-5">
-          <Button disabled={!isDirty} type="submit" variant="primary" size="lg" className="col-3">
+        <Form.Group>
+          <Form.Label>
+          None of the Above 
+          </Form.Label>
+          <div className='row-2'>
+          <FormCheck  name="none" inline type="radio" label="Yes" value='Yes' ref={register}/>
+          <FormCheck  name="none" inline type="radio" label="No"  value= 'No' ref={register} defaultChecked/>
+          </div>
+        </Form.Group>
+
+        <div className="justify-content-around mt-5">
+          <Button 
+            disabled={!isDirty} 
+            type="submit" 
+            variant="primary" 
+            size="lg" 
+            className="col-3" 
+            style={{marginRight: "2%"}}
+          >
             {" "}
             Submit
           </Button>

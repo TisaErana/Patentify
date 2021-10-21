@@ -19,7 +19,7 @@ const PatentView = (props) => {
     try {
       
       // we are using fetch to call the backend endpoint that contains all 368 patents.
-      const response = await fetch("/patents");
+      const response = await fetch("/patents-api");
 
       const body = await response.json();
       // body is an object with the response 
@@ -39,7 +39,7 @@ const PatentView = (props) => {
   async function searchBar(){
     try {
      // we are using fetch to call the backend endpoint that contains all 368 patents.
-     const response = await fetch(`/patents/search/${params.ID}`);
+     const response = await fetch(`/patents-api/search/${params.ID}`);
 
      const body = await response.json();
      if(body.message){
