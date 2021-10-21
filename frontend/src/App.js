@@ -36,6 +36,7 @@ const App = () => {
           <Route path="/Signup" render={(props) => <SignUp {...props} />} />
           <Route path="/Login" render={(props) => <Login {...props} />} />
           <Route exact path="/Logout" render={(props) => <Logout {...props} />} />
+          <Route exact path="/search/:ID" render={(props) => <ViewPatent {...props} />} />
           <ProtectedRoute exact path="/Patents"   isAuthed = {Auth}  component = {ViewPatent}/> 
 
           {/* Only Admins can acess the pages below */}
