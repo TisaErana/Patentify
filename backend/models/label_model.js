@@ -20,5 +20,5 @@ const labelSchema = new Schema(
   }
 );
 
-module.exports = model("Label", labelSchema);
+module.exports = model("Label", labelSchema, "labels");
 

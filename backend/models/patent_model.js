@@ -10,4 +10,4 @@ const patentSchema = new Schema(
   { collection: "patents" }
 );
 
-module.exports = model("Patents", patentSchema);
+module.exports = model("Patents", patentSchema, "Patents");
