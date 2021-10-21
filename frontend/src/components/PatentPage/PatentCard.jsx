@@ -43,12 +43,12 @@ function checkID(patents){
         id = "0" + id;
       }
         
-      return ("https://pdfpiw.uspto.gov/"+id.substring(6, 8)+"/"+id.substring(3, 6)+"/"+id.substring(0, 3)+"/1.pdf")
+      return ("https://pdfpiw.uspto.gov/"+id.substring(6, 8)+"/"+id.substring(3, 6)+"/"+id.substring(0, 3)+"/5.pdf")
 
     }
     else if (patents[0].patentCorpus === "PGPUB") // ex: 20170205789
     {
-      return ("https://pdfaiw.uspto.gov/"+id.substring(9,11)+"/"+id.substring(0,4)+"/"+id.substring(7,9)+"/"+id.substring(4,7)+"/1.pdf")
+      return ("https://pdfaiw.uspto.gov/"+id.substring(9,11)+"/"+id.substring(0,4)+"/"+id.substring(7,9)+"/"+id.substring(4,7)+"/5.pdf")
         
       // DO NOT REMOVE: this website allows us to search for patents by number and extract the API by inspecting the frame URL.
       //return ("https://appft.uspto.gov/netacgi/nph-Parser?Sect1=PTO2&Sect2=HITOFF&u=%2Fnetahtml%2FPTO%2Fsearch-adv.html&r=1&f=G&l=50&d=PG01&p=1&S1="+id+".PGNR.&OS=DN/"+id+"&RS=DN/"+id);

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Button, Form, FormCheck} from "react-bootstrap";
 import { useForm } from "react-hook-form";
 import axios from "axios";
+import { AiFillQuestionCircle } from 'react-icons/ai';
 
 
 
@@ -45,13 +46,13 @@ const PatentForm = (props) => {
   return (
     <div>
       <Form
-        className="container-fluid mt-5"
+        className="container mt-5"
         method="POST"
         onSubmit={handleSubmit(onSubmit)}
       >
         <Form.Group>
           <Form.Label>
-          Machine Learning Patent
+          Machine Learning Patent <AiFillQuestionCircle/>
           </Form.Label>
           <div className='row-2'>
           <FormCheck name="mal" inline type="radio" label="Yes" value='Yes' ref={register}/>
@@ -61,7 +62,7 @@ const PatentForm = (props) => {
 
         <Form.Group>
           <Form.Label>
-          AI Hardware Patent
+          AI Hardware Patent <AiFillQuestionCircle/>
           </Form.Label>
           <div className='row-2'>
           <FormCheck  name="hdw" inline type="radio" label="Yes"  value='Yes' ref={register}/>
@@ -71,7 +72,7 @@ const PatentForm = (props) => {
         
         <Form.Group>
           <Form.Label>
-          Evolutionary Computation Patent
+          Evolutionary Computation Patent <AiFillQuestionCircle/>
           </Form.Label>
           <div className='row-2'>
           <FormCheck  name="evo" inline type="radio" label="Yes" value='Yes' ref={register}/>
@@ -81,7 +82,7 @@ const PatentForm = (props) => {
 
         <Form.Group>
           <Form.Label>
-          Natural Language Processing Patent
+          Natural Language Processing Patent <AiFillQuestionCircle/>
           </Form.Label>
           <div className='row-2'>
           <FormCheck name="nlp" inline type="radio" label="Yes" value='Yes' ref={register}/>
@@ -91,7 +92,7 @@ const PatentForm = (props) => {
 
         <Form.Group>
           <Form.Label>
-          Speech Patent
+          Speech Patent <AiFillQuestionCircle/>
           </Form.Label>
           <div className='row-2'>
           <FormCheck name="spc" inline type="radio" label="Yes" value='Yes' ref={register}/>
@@ -101,7 +102,7 @@ const PatentForm = (props) => {
 
         <Form.Group>
           <Form.Label>
-          Vision Patent
+          Vision Patent <AiFillQuestionCircle/>
           </Form.Label>
           <div className='row-2'>
           <FormCheck name="vis" inline type="radio" label="Yes" value='Yes' ref={register}/>
@@ -111,7 +112,7 @@ const PatentForm = (props) => {
 
         <Form.Group>
           <Form.Label>
-          Knowledge Processing Patent
+          Knowledge Processing Patent <AiFillQuestionCircle/>
           </Form.Label>
           <div className='row-2'>
           <FormCheck name="kpr" inline type="radio" label="Yes" value='Yes' ref={register}/>
@@ -121,7 +122,7 @@ const PatentForm = (props) => {
 
         <Form.Group>
           <Form.Label>
-          Planning/Control Patent
+          Planning/Control Patent <AiFillQuestionCircle/>
           </Form.Label>
           <div className='row-2'>
           <FormCheck  name="pln" inline type="radio" label="Yes" value='Yes' ref={register}/>
@@ -131,7 +132,7 @@ const PatentForm = (props) => {
 
         <Form.Group>
           <Form.Label>
-          None of the Above
+          None of the Above 
           </Form.Label>
           <div className='row-2'>
           <FormCheck  name="none" inline type="radio" label="Yes" value='Yes' ref={register}/>
