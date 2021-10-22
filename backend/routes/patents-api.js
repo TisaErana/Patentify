@@ -68,7 +68,7 @@ router.get("/search/:ID", async function (req, res, next) {
       val = parseInt(val)
     }
     console.log("here ", val)
-    mongoose.connection.db.collection("Patents", function(err,collection){
+    mongoose.connection.db.collection("patents", function(err,collection){
       collection.find({"documentId": val}).toArray(function(err,data){
         if(data.length > 0 ){
           console.log('data',data)
