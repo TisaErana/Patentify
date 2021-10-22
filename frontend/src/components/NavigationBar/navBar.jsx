@@ -64,7 +64,6 @@ function displayLogout(AuthStatus, Role) {
     
   } 
   else {
-    console.log("sadsd")
     return (
       <Nav className="ml-auto">
       <Nav.Link className="active" as={Link} to="/Home">
@@ -76,9 +75,6 @@ function displayLogout(AuthStatus, Role) {
         <Nav.Link as={Link} to="/Login">
           Login
         </Nav.Link>
-     
-        <SearchBar></SearchBar>
-
       </Nav>
     );
   }
