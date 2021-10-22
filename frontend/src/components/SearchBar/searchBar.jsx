@@ -9,8 +9,10 @@ const SearchBar = ()=> {
 
     const handleSubmit= (evt)=>{
        evt.preventDefault()
-       console.log(patentNumber)
-       history.push(`/search/${patentNumber}`)
+       history.push({
+        pathname: '/search',
+        state: { patentId: patentNumber }
+      })
        history.go(0)
     }
     

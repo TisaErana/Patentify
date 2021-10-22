@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Fragment } from "react";
-import { useParams } from "react-router";
+import { useHistory } from "react-router";
 import PatentCard from "../PatentPage/PatentCard";
 import PatentForm from "../PatentPage/PatentForm";
 
@@ -11,7 +11,7 @@ const PatentView = (props) => {
 
   const [patents, setPatents] = useState();
   const [error, setError] = useState();
-  const params = useParams();
+  const history = useHistory();
   
 
 
@@ -19,7 +19,7 @@ const PatentView = (props) => {
     try {
       
       // we are using fetch to call the backend endpoint that contains all 368 patents.
-      const response = await fetch("/patents-api/");
+      const response = await fetch("/patents-api/")
 
       const body = await response.json();
       // body is an object with the response 
@@ -38,8 +38,14 @@ const PatentView = (props) => {
 
   async function searchBar(){
     try {
+     const patentId = history.location.state['patentId']
+
      // we are using fetch to call the backend endpoint that contains all 368 patents.
-     const response = await fetch(`/patents-api/search/${params.ID}`);
+     const response = await fetch(`/patents-api/search`,{
+      method:'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({patentId})
+     });
 
      const body = await response.json();
      if(body.message){
@@ -66,7 +72,8 @@ const PatentView = (props) => {
   }
 
   useEffect(() => {
-    if(params.ID){
+    const areWeSearching = history.location.state['patentId']
+    if(areWeSearching){
 
       searchBar()
     }else{
