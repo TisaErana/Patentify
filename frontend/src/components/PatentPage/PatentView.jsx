@@ -9,12 +9,14 @@ const PatentView = (props) => {
   // Patents is an object that contains the documentID and the Patent Corpus
   // SetPatents is used to set the state for patents
 
+  const history = useHistory()
+  
   const [patents, setPatents] = useState();
   const [error, setError] = useState();
-  const history = useHistory();
   
-
-
+  const weAreSearching = history.location.state ? history.location.state['weAreSearching'] : false;
+  const patentId = history.location.state ? history.location.state['patentId'] : "";
+  
   async function fetchData() {
     try {
       
@@ -37,10 +39,8 @@ const PatentView = (props) => {
   }
 
   async function searchBar(){
-    try {
-     const patentId = history.location.state['patentId']
-
-     // we are using fetch to call the backend endpoint that contains all 368 patents.
+    try {     
+      // we are using fetch to call the backend endpoint that contains all 368 patents.
      const response = await fetch(`/patents-api/search`,{
       method:'POST',
       headers: {'Content-Type': 'application/json'},
@@ -72,11 +72,10 @@ const PatentView = (props) => {
   }
 
   useEffect(() => {
-    const areWeSearching = history.location.state['patentId']
-    if(areWeSearching){
-
-      searchBar()
-    }else{
+    if(weAreSearching) {
+      searchBar();
+    }
+    else {
       fetchData();
     }
 

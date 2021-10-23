@@ -61,14 +61,8 @@ router.get("/labels", async function (req, res, next) {
 //Search for Patents by documentID
 router.post("/search", async function (req, res, next) {
     let val = req.body.patentId
-
-    // check that parameter string contains only numbers
-    let isnum = /^\d+$/.test(val); 
-    if (isnum) {
-      val = parseInt(val)
-    }
-  
-    mongoose.connection.db.collection("Patents", function(err,collection){
+ 
+    mongoose.connection.db.collection("patents", function(err,collection){
       collection.find({"documentId": val}).toArray(function(err,data){  
         if(data.length > 0 ){
           res.json(data)
