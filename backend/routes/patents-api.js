@@ -59,14 +59,12 @@ router.get("/labels", async function (req, res, next) {
 });
 
 //Search for Patents by documentID
-router.get("/search/:ID", async function (req, res, next) {
-    let val = req.params.ID
-
-    console.log("here ", val)
+router.post("/search", async function (req, res, next) {
+    let val = req.body.patentId
+ 
     mongoose.connection.db.collection("patents", function(err,collection){
-      collection.find({"documentId": val}).toArray(function(err,data){
+      collection.find({"documentId": val}).toArray(function(err,data){  
         if(data.length > 0 ){
-          console.log('data',data)
           res.json(data)
         }else{
           res.json({message:`patent for the given id ${val} not found`})

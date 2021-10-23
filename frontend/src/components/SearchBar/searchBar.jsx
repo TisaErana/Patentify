@@ -1,17 +1,23 @@
 import React, {useState} from 'react';
 import Form from 'react-bootstrap/Form'
 import Button from 'react-bootstrap/Button'
-import { useHistory } from 'react-router';
+import { useHistory, useLocation } from 'react-router';
 
 const SearchBar = ()=> {
     const [patentNumber, setPatentNum] = useState("");
-    const history = useHistory()
+    const history = useHistory();
 
     const handleSubmit= (evt)=>{
-       evt.preventDefault()
-       console.log(patentNumber)
-       history.push(`/search/${patentNumber}`)
-       history.go(0)
+        evt.preventDefault()
+        history.push({
+            pathname: '/Search',
+            state: { 
+                patentId: patentNumber,
+                weAreSearching: true 
+            }
+        })
+
+        history.go(0)
     }
     
     
