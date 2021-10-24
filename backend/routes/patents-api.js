@@ -67,7 +67,7 @@ router.post("/search", async function (req, res, next) {
         if(data.length > 0 ){
           res.json(data)
         }else{
-          res.json({message:`patent for the given id ${val} not found`})
+          res.json({message:`Patent with the given id \'${val}\' not found.`})
         }
       })
     });
