@@ -78,7 +78,7 @@ const PatentView = (props) => {
 
     <div className="row" style={{width: "130%"}}>
       {error ? 
-      <div>{error}</div> : 
+      <div style={{marginLeft: "1%"}}><h2>{error}</h2></div> : 
       <Fragment>
         <div className="col-sm-2 col-lg-6 col-md-6">
           {
