@@ -81,6 +81,10 @@ const PatentView = (props) => {
       <div>{error}</div> : 
       <Fragment>
         <div className="col-sm-2 col-lg-6 col-md-6">
+          {
+            patentId != "" ? 
+            <h2>Patent ID: {patentId}</h2> : ""
+          }
           <PatentCard patents={patents} />
         </div>
         <div className="col-sm-2 col-lg-6 col-md-6">
