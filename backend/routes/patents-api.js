@@ -8,20 +8,47 @@ const Patent = require("../models/patent_model");
 // Import label model
 const Label = require("../models/label_model");
 
-// This is the route to retrive the patents from the mongoDB database
+// Import queue model
+const Queue = require("../models/queue_model");
 
+/**
+ * GETs patents from the database.
+ * IF the user has items in their queue:
+ *    the entire queue will be retrieved.
+ *    the first patent will be loaded.
+ * ELSE
+ *    the user will recieve a random patent.
+*/
 router.get("/", async function (req, res, next) {
-  
   try {
-    const patents = await Patent.aggregate([{ $sample: { size: 1 } }]); // returns a random document from MongoDB
-    res.json(patents);
+    console.log(req.body)
+    const queue = await Queue.find({ // fetch items from the queue for the current user.
+      "userId":  req.user._id
+    })
+
+    if (queue.length !== 0 && queue[0].items.length > 0) // a single user should not have more than one queue.
+    {
+      const first_patent = await Patent.find({ // find the patent corpus.
+          documentId: queue[0].items[0]
+      });
+
+      res.json((first_patent.length != 0) ?
+        [first_patent[0], queue[0].items] :
+        { error: 'patent with id ' + queue[0].items[0] + ", in queue at [0] is not in database."}
+      );
+    }
+    else // current user has no queued items:
+    {
+      console.log("current user does not have a queue, sending random patent")
+      const patents = await Patent.aggregate([{ $sample: { size: 1 } }]); // returns a random document from MongoDB
+      res.json(patents);
+    }
   } catch (err) {
     res.json({ message: err });
   }
 });
 
 // This route is sending a post to the DB with labeling information aswell as documentid and userid
-
 router.post("/labels", async function (req, res, next) {
   const label = new Label({
     user:req.user._id,
