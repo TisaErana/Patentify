@@ -41,7 +41,7 @@ router.get("/", async function (req, res, next) {
     {
       console.log("current user does not have a queue, sending random patent")
       const random_patent = await Patent.aggregate([{ $sample: { size: 1 } }]); // returns a random document from MongoDB
-      res.json([random_patent, []]);
+      res.json([random_patent[0], []]);
     }
   } catch (err) {
     res.json({ message: err });
