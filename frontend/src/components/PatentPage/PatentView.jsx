@@ -2,6 +2,7 @@ import React, { useState, useEffect, Fragment } from "react";
 import { useHistory } from "react-router";
 import PatentCard from "../PatentPage/PatentCard";
 import PatentForm from "../PatentPage/PatentForm";
+import PatentQueue from "../PatentPage/PatentQueue";
 
 
 const PatentView = (props) => {
@@ -34,15 +35,7 @@ const PatentView = (props) => {
           setError(body.message)
         }
         else {
-          setPatents(
-  
-            // This sets the state of patents to be an object that contains only the documentID and Patent Corpus
-            // we map throught the object to acxomplish this
-    
-            body.map((id) => {
-              return { documentId: id.documentId, patentCorpus: id.patentCorpus };
-            })
-          );
+          setPatents(body);
         }
       } catch(error) {}
     }
@@ -57,13 +50,15 @@ const PatentView = (props) => {
         // body is an object with the response 
         
         setPatents(
-  
-          // This sets the state of patents to be an object that contains only the documentID and Patent Corpus
+          /* This sets the state of patents to be an object that contains only the documentID and Patent Corpus
           // we map throught the object to acxomplish this
-  
+
+          No longer needed but good example of using map function:
+
           body.map((id) => {
             return { documentId: id.documentId, patentCorpus: id.patentCorpus };
-          })
+          })*/
+          body
         );
       } catch (error) {}
     }
@@ -75,27 +70,24 @@ const PatentView = (props) => {
   
   return (
     <div className="container-fluid mt-5">
-
-    <div className="row" style={{width: "130%"}}>
-      {error ? 
-      <div style={{marginLeft: "1%"}}><h2>{error}</h2></div> : 
-      <Fragment>
-        <div className="col-sm-2 col-lg-6 col-md-6">
-          {
-            patentId !== "" ? 
-            <h2>Patent ID: {patentId}</h2> : ""
-          }
-          <PatentCard patents={patents} />
-        </div>
-        <div className="col-sm-2 col-lg-6 col-md-6">
-          <PatentForm patents={patents}/>
-        </div>
-      </Fragment>
-
-      }
-      
-    </div>
-
+      <div className="row" style={{width: "130%"}}>
+        {error ? 
+        <div style={{marginLeft: "1%"}}><h2>{error}</h2></div> : 
+        <Fragment>
+          <div className="col-sm-2 col-lg-6 col-md-6">
+            {
+              patentId !== "" ? 
+              <h2>Patent ID: {patentId}</h2> : ""
+            }
+            <PatentCard patents={patents} />
+            <PatentQueue patents={patents} />
+          </div>
+          <div className="col-sm-2 col-lg-6 col-md-6">
+            <PatentForm patents={patents}/>
+          </div>
+        </Fragment>
+        }  
+      </div>
     </div>
   );
   
