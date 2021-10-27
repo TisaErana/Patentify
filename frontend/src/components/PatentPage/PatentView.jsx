@@ -80,10 +80,10 @@ const PatentView = (props) => {
               <h2>Patent ID: {patentId}</h2> : ""
             }
             <PatentCard patents={patents} />
-            <PatentQueue patents={patents} />
           </div>
           <div className="col-sm-2 col-lg-6 col-md-6">
             <PatentForm patents={patents}/>
+            <PatentQueue patents={patents}/>
           </div>
         </Fragment>
         }  
