@@ -16,6 +16,7 @@ const PatentView = (props) => {
   const [error, setError] = useState();
   
   const patentId = history.location.state ? history.location.state['patentId'] : "";
+  const queueIndex = history.location.state ? history.location.state['queueIndex'] : undefined;
 
   useEffect(() => {
     const weAreSearching = history.location.state ? history.location.state['weAreSearching'] : false;
@@ -42,9 +43,15 @@ const PatentView = (props) => {
 
     async function fetchData() {
       try {
-        
         // we are using fetch to call the backend endpoint that contains all 368 patents.
-        const response = await fetch("/patents-api/")
+        // check if user has selected an item from queue or not:
+        alert(queueIndex)
+        const response = (queueIndex == undefined) ?
+          await fetch("/patents-api/") : await fetch("/patents-api/", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ queueIndex: queueIndex })
+          })
   
         const body = await response.json();
         // body is an object with the response 

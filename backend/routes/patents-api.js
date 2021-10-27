@@ -21,7 +21,6 @@ const Queue = require("../models/queue_model");
 */
 router.get("/", async function (req, res, next) {
   try {
-    console.log(req.body)
     const queue = await Queue.find({ // fetch items from the queue for the current user.
       "userId":  req.user._id
     })
@@ -42,6 +41,37 @@ router.get("/", async function (req, res, next) {
       console.log("current user does not have a queue, sending random patent")
       const random_patent = await Patent.aggregate([{ $sample: { size: 1 } }]); // returns a random document from MongoDB
       res.json([random_patent[0], []]);
+    }
+  } catch (err) {
+    res.json({ message: err });
+  }
+});
+
+/**
+ * POSTs the queue index to fetch instead of just the first patent in queue.
+ */
+router.post("/", async function (req, res, next) {
+  try {  
+    const queue = await Queue.find({ // fetch items from the queue for the current user.
+      "userId":  req.user._id
+    })
+
+    if (queue.length !== 0 && queue[0].items.length > 0) // a single user should not have more than one queue.
+    {
+      if (req.body.queueIndex < 0) { res.json({ message: "invalid index" }) }
+
+      const patent = await Patent.find({ // find the patent corpus.
+          documentId: queue[0].items[req.body.queueIndex]
+      });
+
+      res.json((patent.length != 0) ?
+        [patent[0], queue[0].items] :
+        { error: 'patent with id ' + queue[0].items[0] + ", in queue at ["+req.body.queueIndex+"] is not in database."}
+      );
+    }
+    else // current user has no queued items:
+    {
+      res.json({ message: "the current user does not have a queue" });
     }
   } catch (err) {
     res.json({ message: err });
