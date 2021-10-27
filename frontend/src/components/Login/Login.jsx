@@ -23,12 +23,12 @@ const Login = (props) => {
     })
       .then((response) => {
         if (response.status === 200) {
-          const ISAUTHENTICATED = response.data.isAuthenticated;
           const ROLE = response.data.role
+          const ISAUTHENTICATED = response.data.isAuthenticated;
 
           // log user in:
+          window.localStorage.setItem("role", ROLE);
           window.localStorage.setItem("isAuthenticated", ISAUTHENTICATED);
-          window.localStorage.setItem("role",ROLE);
 
           if(ISAUTHENTICATED)
           {
@@ -42,7 +42,7 @@ const Login = (props) => {
             }
           }
 
-          // console.log(response.data);
+          //console.log(response.data);
         }
       })
       .catch((error) => {
