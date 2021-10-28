@@ -176,6 +176,7 @@ const PatentForm = (props) => {
             size="lg"
             className="col-3"
             onClick={nextPage}
+            disabled={history.location.pathname=="/Search"}
           >
             {" "}
             Skip
