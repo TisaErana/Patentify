@@ -26,22 +26,63 @@ router.get("/", async function (req, res, next) {
       "userId":  req.user._id
     })
 
-    if (queue.length !== 0 && queue[0].items.length > 0) // a single user should not have more than one queue.
+    if (queue.length !== 0)
     {
-      const first_patent = await Patent.find({ // find the patent corpus.
-          documentId: queue[0].items[0]
-      });
+        if(queue[0].items.length > 0) // a single user should not have more than one queue.
+        {
+          const first_patent = await Patent.find({ // find the patent corpus.
+            documentId: queue[0].items[0]
+          });
 
-      res.json((first_patent.length != 0) ?
-        [first_patent[0], queue[0].items] :
-        { error: 'patent with id ' + queue[0].items[0] + ", in queue at [0] is not in database."}
-      );
+          res.json((first_patent.length != 0) ?
+            [first_patent[0], queue[0].items] :
+            { error: 'patent with id ' + queue[0].items[0] + ", in queue at [0] is not in database."}
+          );
+      }
+      else // user has entry, but queue is empty:
+      {
+        const patents = await Patent.aggregate([{ $sample: { size: 10 } }]); // find 10 random patents
+        const random_patents = patents.map((id) => { return id.documentId; }) // extract only the patentId
+        
+        const result = await Queue.updateOne(
+          { 
+            _id: queue[0]._id 
+          },
+          { 
+            items: random_patents
+          },
+          function (err, mongoDBResponse) {
+            if (err){
+                console.log(err)
+                res.status(500).json({error: err})
+            }
+            else{
+                res.json([patents[0], random_patents])
+            }
+          }
+        );
+      }
+      
     }
     else // current user has no queued items:
     {
-      console.log("current user does not have a queue, sending random patent")
-      const random_patent = await Patent.aggregate([{ $sample: { size: 1 } }]); // returns a random document from MongoDB
-      res.json([random_patent[0], []]);
+      const patents = await Patent.aggregate([{ $sample: { size: 10 } }]); // find 10 random patents
+      const random_patents = patents.map((id) => { return id.documentId; }) // extract only the patentId
+        
+      const queue = new Queue({
+        userId: req.user._id,
+        items: random_patents
+      });
+  
+      queue.save()
+        .then((result) => {
+          res.json([patents[0], random_patents]);
+        })
+        .catch((error) => {
+          res.status(500).json({
+            error: error,
+          });
+        });
     }
   } catch (err) {
     res.json({ message: err });
@@ -208,7 +249,7 @@ router.post("/queue/add", async function (req, res, next) {
           _id: queue[0]._id 
         },
         { 
-          items:  queue[0].items 
+          items: queue[0].items 
         },
         function (err, mongoDBResponse) {
           if (err){
