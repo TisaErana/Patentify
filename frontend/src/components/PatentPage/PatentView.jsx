@@ -47,7 +47,6 @@ const PatentView = (props) => {
       try {
         // we are using fetch to call the backend endpoint that contains all 368 patents.
         // check if user has selected an item from queue or not:
-        alert("current index " + queueIndex)
         const response = (queueIndex == undefined) ?
           await fetch("/patents-api/") : await fetch("/patents-api/", {
             method: 'POST',
