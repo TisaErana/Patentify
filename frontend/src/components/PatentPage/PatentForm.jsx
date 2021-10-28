@@ -5,11 +5,9 @@ import axios from "axios";
 import { AiFillQuestionCircle } from 'react-icons/ai';
 import { useHistory } from "react-router";
 
-
-
 const PatentForm = (props) => {
   const history = useHistory();
-  const { register, handleSubmit, formState: {isDirty} } = useForm();
+  const { register, handleSubmit, reset, formState: {isDirty} } = useForm();
 
   const onSubmit = (data) => {
     // This is using axios to make a post request to our backend and send {name,email,password}
@@ -49,13 +47,12 @@ const PatentForm = (props) => {
       .then((response) => {
         props.updatePatentId(response.data[0].documentId);
         props.updatePatents(response.data);
+        reset(); // reset the form values.
       })
       .catch((error) => {
         console.log("error: ", error);
       });
   };
-  
-  
 
   return (
     <div>
