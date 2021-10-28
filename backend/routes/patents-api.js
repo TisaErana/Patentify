@@ -10,6 +10,7 @@ const Label = require("../models/label_model");
 
 // Import queue model
 const Queue = require("../models/queue_model");
+const e = require("express");
 
 /**
  * GETs patents from the database.
@@ -117,12 +118,20 @@ router.get("/labels", async function (req, res, next) {
 
 //Search for Patents by documentID
 router.post("/search", async function (req, res, next) {
-    let val = req.body.patentId
+    let val = req.body.patentSearchId
+
+    const queue = await Queue.find({ // fetch items from the queue for the current user.
+      "userId":  req.user._id
+    })
  
     mongoose.connection.db.collection("patents", function(err,collection){
       collection.find({"documentId": val}).toArray(function(err,data){  
         if(data.length > 0 ){
-          res.json(data)
+          res.json(
+            [data[0], 
+            (queue.length !== 0 && queue[0].items.length > 0) ? 
+              queue[0].items : []]
+          );
         }else{
           res.json({message:`Patent with the given id \'${val}\' not found.`})
         }
