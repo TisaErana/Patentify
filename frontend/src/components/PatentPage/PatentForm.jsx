@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Button, Form, FormCheck} from "react-bootstrap";
 import { useForm } from "react-hook-form";
 import axios from "axios";
@@ -8,11 +8,8 @@ import { useHistory } from "react-router";
 
 
 const PatentForm = (props) => {
-
   const history = useHistory();
-
   const { register, handleSubmit, formState: {isDirty} } = useForm();
-  const queueIndex = history.location.state ? history.location.state['queueIndex'] : undefined;
 
   const onSubmit = (data) => {
     // This is using axios to make a post request to our backend and send {name,email,password}
@@ -34,36 +31,28 @@ const PatentForm = (props) => {
       },
     })
       .then((response) => {
-        console.log("Data: ", response.data);
-        history.push({
-          pathname: history.location.pathname,
-          state: { 
-              queueIndex: undefined
-          }
-        })
-        history.go(0);
+        console.log(response.data);
+        dequeue();
       })
       .catch((error) => {
-        console.log("Error: ", error.data);
+        console.log("error: ", error.data);
       });
   };
-  const nextPage = () => {
-    const queueSize = props.patents[1].length;
-
-    if (queueSize === 0)
-    {
-      window.location.reload();
-    }
-    else // the user will skip an item in the queue:
-    {
-      history.push({
-        pathname: history.location.pathname,
-        state: { 
-            queueIndex: ((queueSize - 1) < (queueIndex + 1)) ? 0 : queueIndex + 1
-        }
+  const dequeue = () => {
+    axios({
+      url: "/patents-api/queue/remove", // route in backend
+      method: "POST",
+      data: {
+        documentId: props.patents[0].documentId,
+      },
+    })
+      .then((response) => {
+        props.updatePatentId(response.data[0].documentId);
+        props.updatePatents(response.data);
       })
-      history.go(0);
-    }
+      .catch((error) => {
+        console.log("error: ", error);
+      });
   };
   
   
@@ -181,7 +170,7 @@ const PatentForm = (props) => {
             variant="danger"
             size="lg"
             className="col-3"
-            onClick={nextPage}
+            onClick={dequeue}
             disabled={history.location.pathname==="/Search"}
           >
             {" "}

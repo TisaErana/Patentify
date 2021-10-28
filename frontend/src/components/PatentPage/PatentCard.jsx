@@ -49,7 +49,7 @@ const PatentCard = (props) => {
 
 function checkID(patents, currentPage){
 
-   if(patents !== undefined && patents !== [] ){
+   if(patents !== undefined && patents !== []){
        //console.log(patents)
 
        // pdfpiw.uspto.gov: expects 'RE' is converted -> '00' for API call
