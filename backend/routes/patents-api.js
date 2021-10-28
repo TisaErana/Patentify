@@ -96,8 +96,8 @@ router.post("/labels", async function (req, res, next) {
   label
     .save()
     .then((result) => {
-      // console.log(result);
-      res.status(201).json(result);
+       console.log(result);
+      //res.status(201).json(result);
     })
     .catch((error) => {
       // console.log(error);
@@ -105,6 +105,33 @@ router.post("/labels", async function (req, res, next) {
         error: error,
       });
     });
+
+
+    const queue = await Queue.find({ // check if patent just labeled is from queue:
+      "userId":  req.user._id,
+      "items": req.body.documentId
+    });
+
+    if (queue.length !== 0 && queue[0].items.length > 0)
+    {
+      const result = await Queue.updateOne(
+        { 
+          _id: queue[0]._id 
+        },
+        { 
+          items: queue[0].items.filter(item => item !== req.body.documentId)
+        },
+        function (err, mongoDBResponse) {
+          if (err){
+              console.log(err)
+              res.status(500).json({error: err})
+          }
+          else{
+              res.json(mongoDBResponse)
+          }
+        }
+      );
+    }
 });
 
 router.get("/labels", async function (req, res, next) {

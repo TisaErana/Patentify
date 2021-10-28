@@ -35,7 +35,13 @@ const PatentForm = (props) => {
     })
       .then((response) => {
         console.log("Data: ", response.data);
-        window.location.reload();
+        history.push({
+          pathname: history.location.pathname,
+          state: { 
+              queueIndex: undefined
+          }
+        })
+        history.go(0);
       })
       .catch((error) => {
         console.log("Error: ", error.data);
