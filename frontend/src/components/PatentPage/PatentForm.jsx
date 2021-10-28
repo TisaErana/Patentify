@@ -1,18 +1,14 @@
-import React from "react";
+import React, { useState } from "react";
 import { Button, Form, FormCheck} from "react-bootstrap";
 import { useForm } from "react-hook-form";
 import axios from "axios";
 import { AiFillQuestionCircle } from 'react-icons/ai';
-import { useHistory } from "react-router";
 
 
 
 const PatentForm = (props) => {
 
-  const history = useHistory();
-
   const { register, handleSubmit, formState: {isDirty} } = useForm();
-  const queueIndex = history.location.state ? history.location.state['queueIndex'] : undefined;
 
   const onSubmit = (data) => {
     // This is using axios to make a post request to our backend and send {name,email,password}
@@ -35,35 +31,14 @@ const PatentForm = (props) => {
     })
       .then((response) => {
         console.log("Data: ", response.data);
-        history.push({
-          pathname: history.location.pathname,
-          state: { 
-              queueIndex: undefined
-          }
-        })
-        history.go(0);
+        window.location.reload();
       })
       .catch((error) => {
         console.log("Error: ", error.data);
       });
   };
   const nextPage = () => {
-    const queueSize = props.patents[1].length;
-
-    if (queueSize === 0)
-    {
-      window.location.reload();
-    }
-    else // the user will skip an item in the queue:
-    {
-      history.push({
-        pathname: history.location.pathname,
-        state: { 
-            queueIndex: ((queueSize - 1) < (queueIndex + 1)) ? 0 : queueIndex + 1
-        }
-      })
-      history.go(0);
-    }
+    window.location.reload();
   };
   
   
@@ -182,7 +157,6 @@ const PatentForm = (props) => {
             size="lg"
             className="col-3"
             onClick={nextPage}
-            disabled={history.location.pathname==="/Search"}
           >
             {" "}
             Skip
