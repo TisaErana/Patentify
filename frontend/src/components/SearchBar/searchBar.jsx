@@ -12,7 +12,7 @@ const SearchBar = ()=> {
         history.push({
             pathname: '/Search',
             state: { 
-                patentId: patentNumber,
+                patentSearchId: patentNumber,
                 weAreSearching: true 
             }
         })
