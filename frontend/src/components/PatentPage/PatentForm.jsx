@@ -13,7 +13,6 @@ const PatentForm = (props) => {
 
   const { register, handleSubmit, formState: {isDirty} } = useForm();
   const queueIndex = history.location.state ? history.location.state['queueIndex'] : undefined;
-  const queueLength = history.location.state ? history.location.state['queueLength'] : undefined;
 
   const onSubmit = (data) => {
     // This is using axios to make a post request to our backend and send {name,email,password}
@@ -43,17 +42,18 @@ const PatentForm = (props) => {
       });
   };
   const nextPage = () => {
-    if (queueIndex === undefined || queueLength === undefined)
+    const queueSize = props.patents[1].length;
+
+    if (queueSize === 0)
     {
       window.location.reload();
     }
     else // the user will skip an item in the queue:
     {
       history.push({
-        pathname: '/Patents',
+        pathname: history.location.pathname,
         state: { 
-            queueIndex: (queueLength - 1 < queueIndex + 1) ? 0 : queueIndex + 1,
-            queueLength: queueLength
+            queueIndex: ((queueSize - 1) < (queueIndex + 1)) ? 0 : queueIndex + 1
         }
       })
       history.go(0);
