@@ -14,7 +14,7 @@ const PatentQueue = (props) => {
             if(props.patents[1].length > 0)
             {
                 history.push({ // at this point we are loading the first item on the queue:
-                    pathname: '/Patents',
+                    pathname: history.location.pathname,
                     state: { 
                         queueIndex: 0,
                         queueLength: props.patents[1].length
