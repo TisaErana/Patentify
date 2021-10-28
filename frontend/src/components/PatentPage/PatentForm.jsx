@@ -3,12 +3,17 @@ import { Button, Form, FormCheck} from "react-bootstrap";
 import { useForm } from "react-hook-form";
 import axios from "axios";
 import { AiFillQuestionCircle } from 'react-icons/ai';
+import { useHistory } from "react-router";
 
 
 
 const PatentForm = (props) => {
 
+  const history = useHistory();
+
   const { register, handleSubmit, formState: {isDirty} } = useForm();
+  const queueIndex = history.location.state ? history.location.state['queueIndex'] : undefined;
+  const queueLength = history.location.state ? history.location.state['queueLength'] : undefined;
 
   const onSubmit = (data) => {
     // This is using axios to make a post request to our backend and send {name,email,password}
@@ -38,7 +43,21 @@ const PatentForm = (props) => {
       });
   };
   const nextPage = () => {
-    window.location.reload();
+    if (queueIndex === undefined || queueLength === undefined)
+    {
+      window.location.reload();
+    }
+    else // the user will skip an item in the queue:
+    {
+      history.push({
+        pathname: '/Patents',
+        state: { 
+            queueIndex: (queueLength - 1 < queueIndex + 1) ? 0 : queueIndex + 1,
+            queueLength: queueLength
+        }
+      })
+      history.go(0);
+    }
   };
   
   
