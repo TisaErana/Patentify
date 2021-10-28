@@ -1,29 +1,56 @@
 import React from "react";
+import axios from "axios";
 import { useHistory } from "react-router";
-import { Card, ListGroup } from "react-bootstrap";
+import { Button, Card, ListGroup } from "react-bootstrap";
 
 const PatentQueue = (props) => {
-    const history = useHistory()
-    const queueIndex = history.location.state ? history.location.state['queueIndex'] : undefined;
+    const history = useHistory();
 
-    // set the initial state of the queue:
-    if(props.patents !== undefined)
-    {
-        if(queueIndex === undefined)
-        {
-            if(props.patents[1].length > 0)
-            {
-                history.push({ // at this point we are loading the first item on the queue:
-                    pathname: history.location.pathname,
-                    state: { 
-                        queueIndex: 0,
-                        queueLength: props.patents[1].length
-                    }
-                })
-            }
-        }
-    }
+    const isQueueEmpty = props.patents !== undefined && props.patents[1].length === 0;
 
+    const addPatent = () => {
+        axios({
+          url: "/patents-api/queue/add", // route in backend
+          method: "POST",
+          data: {
+            documentId: props.patents[0].documentId,
+          },
+        })
+          .then((response) => {
+            history.push({
+                pathname: history.location.pathname,
+                state: { 
+                    queueIndex: 0
+                }
+            })
+            history.go(0);
+          })
+          .catch((error) => {
+            console.log("Error: ", error.data);
+          });
+      };
+
+      const removePatent = () => {
+        axios({
+          url: "/patents-api/queue/remove", // route in backend
+          method: "POST",
+          data: {
+            documentId: props.patents[0].documentId,
+          },
+        })
+          .then((response) => {
+            history.push({
+                pathname: history.location.pathname,
+                state: { 
+                    queueIndex: undefined
+                }
+            })
+            history.go(0);
+          })
+          .catch((error) => {
+            console.log("Error: ", error.data);
+          });
+      };
 
     return (
         <Card style={{marginTop: "2%", width: "52%"}}>
@@ -39,10 +66,9 @@ const PatentQueue = (props) => {
                                 disabled={item === props.patents[0].documentId}
                                 onClick={() => {
                                     history.push({
-                                        pathname: '/Patents',
+                                        pathname: history.location.pathname,
                                         state: { 
-                                            queueIndex: index,
-                                            queueLength: props.patents[1].length
+                                            queueIndex: index
                                         }
                                     })
                                     history.go(0);
@@ -51,10 +77,22 @@ const PatentQueue = (props) => {
                     )) : "Loading..." 
                 }
                 {
-                    (props.patents !== undefined && props.patents[1].length === 0) ? // let the user know if the queue is empty.
-                    <h4>Empty</h4> : ""
+                    (isQueueEmpty) ? <h4>Empty</h4> : ""
                 }
             </ListGroup>
+            <div style={{display: "flex"}}>
+                <Button
+                    onClick={addPatent} 
+                    style={{margin: "2%", width: "50%"}}>
+                    Add Patent
+                </Button>
+                <Button
+                    onClick={removePatent} 
+                    style={{margin: "2%", width: "50%"}}
+                    disabled={isQueueEmpty}>
+                    Remove Patent
+                </Button>
+            </div>
         </Card>
     );
 }
