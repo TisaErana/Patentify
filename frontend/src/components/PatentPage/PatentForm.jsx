@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { Button, Form, FormCheck} from "react-bootstrap";
 import { useForm } from "react-hook-form";
 import axios from "axios";
@@ -176,7 +176,7 @@ const PatentForm = (props) => {
             size="lg"
             className="col-3"
             onClick={nextPage}
-            disabled={history.location.pathname=="/Search"}
+            disabled={history.location.pathname==="/Search"}
           >
             {" "}
             Skip
