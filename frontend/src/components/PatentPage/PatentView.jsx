@@ -12,10 +12,11 @@ const PatentView = (props) => {
 
   const history = useHistory()
   
-  const [patents, setPatents] = useState();
   const [error, setError] = useState();
+  const [patents, setPatents] = useState();
+  const [patentId, setPatentId] = useState();
   
-  const patentId = history.location.state ? history.location.state['patentId'] : "";
+  const patentSearchId = history.location.state ? history.location.state['patentSearchId'] : undefined;
   const queueIndex = history.location.state ? history.location.state['queueIndex'] : undefined;
 
   useEffect(() => {
@@ -27,7 +28,7 @@ const PatentView = (props) => {
         const response = await fetch(`/patents-api/search`,{
           method:'POST',
           headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({patentId})
+          body: JSON.stringify({patentSearchId})
         });
   
         const body = await response.json();
@@ -36,6 +37,7 @@ const PatentView = (props) => {
           setError(body.message)
         }
         else {
+          setPatentId(body[0].documentId);
           setPatents(body);
         }
       } catch(error) {}
@@ -45,7 +47,7 @@ const PatentView = (props) => {
       try {
         // we are using fetch to call the backend endpoint that contains all 368 patents.
         // check if user has selected an item from queue or not:
-        alert(queueIndex)
+        alert("current index " + queueIndex)
         const response = (queueIndex == undefined) ?
           await fetch("/patents-api/") : await fetch("/patents-api/", {
             method: 'POST',
@@ -56,6 +58,7 @@ const PatentView = (props) => {
         const body = await response.json();
         // body is an object with the response 
         
+        setPatentId(body[0].documentId);
         setPatents(
           /* This sets the state of patents to be an object that contains only the documentID and Patent Corpus
           // we map throught the object to acxomplish this
@@ -82,10 +85,7 @@ const PatentView = (props) => {
         <div style={{marginLeft: "1%"}}><h2>{error}</h2></div> : 
         <Fragment>
           <div className="col-sm-2 col-lg-6 col-md-6">
-            {
-              patentId !== "" ? 
-              <h2>Patent ID: {patentId}</h2> : ""
-            }
+            <h2>Patent ID: {patentId}</h2>
             <PatentCard patents={patents} />
           </div>
           <div className="col-sm-2 col-lg-6 col-md-6">
