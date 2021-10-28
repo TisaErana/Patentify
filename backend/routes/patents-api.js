@@ -144,4 +144,110 @@ router.post("/search", async function (req, res, next) {
     // res.json(patent)
 });
 
+// Add a patent to the current user's queue:
+router.post("/queue/add", async function (req, res, next) {
+  const queue = await Queue.find({ // fetch items from the queue for the current user.
+    "userId":  req.user._id
+  })
+
+  if(queue.length !== 0) // user has a queue:
+  {
+    if(queue[0].items.length === 0) // user has a queue entry but it is empty:
+    {
+      const result = await Queue.updateOne(
+        { 
+          _id: queue[0]._id 
+        },
+        { 
+          items: [req.body.documentId] 
+        },
+        function (err, mongoDBResponse) {
+          if (err){
+              console.log(err)
+              res.status(500).json({error: err})
+          }
+          else{
+              res.json(mongoDBResponse)
+          }
+        }
+      );
+    }
+    else // we only need to add the item to the top:
+    {
+      queue[0].items.unshift(req.body.documentId);
+      
+      const result = await Queue.updateOne(
+        { 
+          _id: queue[0]._id 
+        },
+        { 
+          items:  queue[0].items 
+        },
+        function (err, mongoDBResponse) {
+          if (err){
+              console.log(err)
+              res.status(500).json({error: err})
+          }
+          else{
+              res.json(mongoDBResponse)
+          }
+        }
+      );
+    }
+  }
+  else // this user will be creating a new queue entry:
+  {
+    const queue = new Queue({
+      userId:req.user._id,
+      items: [req.body.documentId]
+    });
+
+    queue.save()
+      .then((result) => {
+        res.json(result);
+      })
+      .catch((error) => {
+        res.status(500).json({
+          error: error,
+        });
+      });
+  }
+
+});
+
+// Remove a patent from the current user's queue:
+router.post("/queue/remove", async function (req, res, next) {
+  const queue = await Queue.find({ // fetch items from the queue for the current user.
+    "userId":  req.user._id
+  })
+
+  if(queue.length !== 0 && queue[0].items.length > 0) // user has a queue:
+  {
+    const result = await Queue.updateOne(
+      { 
+        _id: queue[0]._id 
+      },
+      { 
+        items: queue[0].items.filter(item => item !== req.body.documentId)
+      },
+      function (err, mongoDBResponse) {
+        if (err){
+            console.log(err)
+            res.status(500).json({error: err})
+        }
+        else{
+            res.json(mongoDBResponse)
+        }
+      }
+    );
+  }
+  else // invalid request:
+  {
+    res.status(500).json({
+      error: 'the current user does not have a queue',
+    });
+  }
+
+});
+
 module.exports = router;
