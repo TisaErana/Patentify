@@ -2,22 +2,16 @@ import React, { useState, useEffect, Fragment } from "react";
 import { useHistory } from "react-router";
 import PatentCard from "../PatentPage/PatentCard";
 import PatentForm from "../PatentPage/PatentForm";
-import PatentQueue from "../PatentPage/PatentQueue";
 
 
 const PatentView = (props) => {
-
-  // Patents is an object that contains the documentID and the Patent Corpus
-  // SetPatents is used to set the state for patents
-
-  const history = useHistory()
+  const history = useHistory();
   
-  const [error, setError] = useState();
-  const [patents, setPatents] = useState();
-  const [patentId, setPatentId] = useState();
+  const [error, setError] = useState(); //             stores errors to display to the user.
+  const [patents, setPatents] = useState(); //         object with patents assigned to user.
+  const [patentId, setPatentId] = useState(); //       stores the documentId of the current patent.
   
   const patentSearchId = history.location.state ? history.location.state['patentSearchId'] : undefined;
-  const queueIndex = history.location.state ? history.location.state['queueIndex'] : undefined;
 
   useEffect(() => {
     const weAreSearching = history.location.state ? history.location.state['weAreSearching'] : false;
@@ -46,17 +40,11 @@ const PatentView = (props) => {
     async function fetchData() {
       try {
         // we are using fetch to call the backend endpoint that contains all 368 patents.
-        // check if user has selected an item from queue or not:
-        const response = (queueIndex === undefined) ?
-          await fetch("/patents-api/") : await fetch("/patents-api/", {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ queueIndex: queueIndex })
-          })
+        const response = await fetch("/patents-api/")
   
         const body = await response.json();
         // body is an object with the response 
-        
+
         setPatentId(body[0].documentId);
         setPatents(
           /* This sets the state of patents to be an object that contains only the documentID and Patent Corpus
@@ -88,8 +76,7 @@ const PatentView = (props) => {
             <PatentCard patents={patents} />
           </div>
           <div className="col-sm-2 col-lg-6 col-md-6">
-            <PatentForm patents={patents}/>
-            <PatentQueue patents={patents}/>
+            <PatentForm patents={patents} updatePatents={setPatents} updatePatentId={setPatentId}/>
           </div>
         </Fragment>
         }  
