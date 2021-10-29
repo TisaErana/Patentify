@@ -7,7 +7,7 @@ import { useHistory } from "react-router";
 
 const PatentForm = (props) => {
   const history = useHistory();
-  const { register, handleSubmit, reset, formState: {isDirty} } = useForm();
+  const { register, handleSubmit, formState: {isDirty} } = useForm();
 
   const [mal, setMal] = useState("No");
   const [hdw, setHdw] = useState("No");
@@ -75,7 +75,8 @@ const PatentForm = (props) => {
       .then((response) => {
         props.updatePatentId(response.data[0].documentId);
         props.updatePatents(response.data);
-        reset(); // reset the form values.
+        
+        resetForm();
       })
       .catch((error) => {
         console.log("error: ", error);
@@ -84,6 +85,18 @@ const PatentForm = (props) => {
 
   const updateFormCheck = (val, setFunction) => {
     setFunction((val === "Yes") ? "No" : "Yes");
+  }
+
+  const resetForm = () => {
+    setMal("No");
+    setHdw("No");
+    setEvo("No");
+    setNlp("No");
+    setSpc("No");
+    setVis("No");
+    setKpr("No");
+    setPln("No");
+    setNone("No");
   }
 
   return (
