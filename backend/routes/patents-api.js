@@ -80,59 +80,56 @@ router.get("/", async function (req, res, next) {
 });
 
 // This route is sending a post to the DB with labeling information aswell as documentid and userid
-router.post("/labels", async function (req, res, next) {
-  const label = new Label({
-    user:req.user._id,
-    document: req.body.documentId,
-    mal:req.body.mal, // Machine Learning
-    hdw:req.body.hdw, // Hardware
-    evo:req.body.evo, // Evolution
-    spc:req.body.spc, // speech
-    vis:req.body.vis, // Vision
-    nlp:req.body.nlp, // Natural Language Processing 
-    pln:req.body.pln, // Planning 
-    kpr:req.body.kpr, // Knowledge Processing
-    none:req.body.none // None of the Above
-  });
-  label
-    .save()
-    .then((result) => {
-       console.log(result);
-      //res.status(201).json(result);
-    })
-    .catch((error) => {
-      // console.log(error);
-      res.status(500).json({
-        error: error,
-      });
+router.post("/labels", async function (req, res, next) { 
+  try
+  {
+    const annotation = await Label.findOne({
+      document: req.body.documentId
     });
-
-
-    const queue = await Queue.find({ // check if patent just labeled is from queue:
-      "userId":  req.user._id,
-      "items": req.body.documentId
-    });
-
-    if (queue.length !== 0 && queue[0].items.length > 0)
+    
+    // check if there is already an annotation in the database:
+    if (annotation !== null) // let's update it:
     {
-      const result = await Queue.updateOne(
-        { 
-          _id: queue[0]._id 
-        },
-        { 
-          items: queue[0].items.filter(item => item !== req.body.documentId)
-        },
-        function (err, mongoDBResponse) {
-          if (err){
-              console.log(err)
-              res.status(500).json({error: err})
-          }
-          else{
-              res.json(mongoDBResponse)
-          }
+      const result = await Label.updateOne(
+        { _id: annotation._id },
+        {
+          mal:req.body.mal, // Machine Learning
+          hdw:req.body.hdw, // Hardware
+          evo:req.body.evo, // Evolution
+          spc:req.body.spc, // speech
+          vis:req.body.vis, // Vision
+          nlp:req.body.nlp, // Natural Language Processing 
+          pln:req.body.pln, // Planning 
+          kpr:req.body.kpr, // Knowledge Processing
+          none:req.body.none // None of the Above
         }
       );
+
+      res.json(result);
     }
+    else // new entry:
+    {
+      const label = new Label({
+        user:req.user._id,
+        document: req.body.documentId,
+        mal:req.body.mal, // Machine Learning
+        hdw:req.body.hdw, // Hardware
+        evo:req.body.evo, // Evolution
+        spc:req.body.spc, // speech
+        vis:req.body.vis, // Vision
+        nlp:req.body.nlp, // Natural Language Processing 
+        pln:req.body.pln, // Planning 
+        kpr:req.body.kpr, // Knowledge Processing
+        none:req.body.none // None of the Above
+      });
+
+      res.json(await label.save());
+    }
+  }
+  catch(error)
+  {
+    res.status(500).json({ error: error });
+  }
 });
 
 router.get("/labels", async function (req, res, next) {
@@ -164,7 +161,7 @@ router.post("/search", async function (req, res, next) {
       }
       else
       {
-        res.json(patent)
+        res.json([patent]);
       }
     }
     else 
