@@ -92,6 +92,7 @@ router.post("/labels", async function (req, res, next) {
     nlp:req.body.nlp, // Natural Language Processing 
     pln:req.body.pln, // Planning 
     kpr:req.body.kpr, // Knowledge Processing
+    none:req.body.none // None of the Above
   });
   label
     .save()
@@ -143,27 +144,33 @@ router.get("/labels", async function (req, res, next) {
   }
 });
 
-//Search for Patents by documentID
+//Search for Patents by documentID + retrieve any annotations:
 router.post("/search", async function (req, res, next) {
-    let val = req.body.patentSearchId
+    let searchVal = req.body.patentSearchId
 
-    const queue = await Queue.find({ // fetch items from the queue for the current user.
-      "userId":  req.user._id
-    })
- 
-    mongoose.connection.db.collection("patents", function(err,collection){
-      collection.find({"documentId": val}).toArray(function(err,data){  
-        if(data.length > 0 ){
-          res.json(
-            [data[0], 
-            (queue.length !== 0 && queue[0].items.length > 0) ? 
-              queue[0].items : []]
-          );
-        }else{
-          res.json({message:`Patent with the given id \'${val}\' not found.`})
-        }
-      })
-    });
+    const patent = await Patent.findOne({
+      documentId: searchVal
+    }).select("-_id");
+
+    if(patent !== null)
+    {
+      const annotation = await Label.findOne({
+        document: searchVal
+      }).select("-_id");
+
+      if(annotation !== null)
+      {
+        res.json([Object.assign(patent.toObject(), annotation.toObject())]);
+      }
+      else
+      {
+        res.json(patent)
+      }
+    }
+    else 
+    {
+      res.json({message:`Patent with the given id \'${val}\' not found.`})
+    }
 });
 
 // Remove a patent from the current user's queue:
