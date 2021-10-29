@@ -25,15 +25,15 @@ const PatentForm = (props) => {
     {
       const patents = props.patents[0];
       console.log(patents)
-      if(patents.mal !== mal) { setMal(patents.mal); }
-      if(patents.hdw !== hdw) { setHdw(patents.hdw); }
-      if(patents.evo !== evo) { setEvo(patents.evo); }
-      if(patents.nlp !== nlp) { setNlp(patents.nlp); }
-      if(patents.spc !== spc) { setSpc(patents.spc); }
-      if(patents.vis !== vis) { setVis(patents.vis); }
-      if(patents.kpr !== kpr) { setKpr(patents.kpr); }
-      if(patents.pln !== pln) { setPln(patents.pln); }
-      if(patents.none !== none) { setNone(patents.none); }
+      if(patents.mal !== undefined && patents.mal !== mal) { setMal(patents.mal); }
+      if(patents.hdw !== undefined && patents.hdw !== hdw) { setHdw(patents.hdw); }
+      if(patents.evo !== undefined && patents.evo !== evo) { setEvo(patents.evo); }
+      if(patents.nlp !== undefined && patents.nlp !== nlp) { setNlp(patents.nlp); }
+      if(patents.spc !== undefined && patents.spc !== spc) { setSpc(patents.spc); }
+      if(patents.vis !== undefined && patents.vis !== vis) { setVis(patents.vis); }
+      if(patents.kpr !== undefined && patents.kpr !== kpr) { setKpr(patents.kpr); }
+      if(patents.pln !== undefined && patents.pln !== pln) { setPln(patents.pln); }
+      if(patents.none !== undefined && patents.none !== none) { setNone(patents.none); }
     }
   }, [props.patents]);
 
