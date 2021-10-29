@@ -36,7 +36,14 @@ async function getPatentQueue(req)
     }
     else // let's add some new patents:
     {
-      const patents = await Patent.aggregate([{ $sample: { size: 10 } }]); // find 10 random patents
+      var alreadyLabeled = await Label.find().select(['-_id', 'document']);
+      alreadyLabeled = alreadyLabeled.map((id) => {return id.document; }); // extract only the documentId
+      
+      const patents = await Patent.aggregate([
+        { $match: { documentId: { $nin: alreadyLabeled }}},
+        { $sample: { size: 10 } }
+      ]); // find 10 random patents
+
       const patentIds = patents.map((id) => { return id.documentId; }) // extract only the patentId
 
       await Queue.updateOne(
@@ -49,7 +56,14 @@ async function getPatentQueue(req)
   }
   else // current user does not have a queue in the database (yet):
   {
-    const patents = await Patent.aggregate([{ $sample: { size: 10 } }]); // find 10 random patents
+    var alreadyLabeled = await Label.find().select(['-_id', 'document']);
+    alreadyLabeled = alreadyLabeled.map((id) => {return id.document; }); // extract only the documentId
+      
+    const patents = await Patent.aggregate([
+      { $match: { documentId: { $nin: alreadyLabeled }}},
+      { $sample: { size: 10 } }
+    ]); // find 10 random patents
+      
     const patentIds = patents.map((id) => { return id.documentId; }) // extract only the patentId
     
     const queue = new Queue({
