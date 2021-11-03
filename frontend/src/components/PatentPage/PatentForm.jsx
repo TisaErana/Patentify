@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import axios from "axios";
 import { AiFillQuestionCircle } from 'react-icons/ai';
 import { useHistory } from "react-router";
+import ReactTooltip from "react-tooltip";
 
 const PatentForm = (props) => {
   const history = useHistory();
@@ -108,7 +109,10 @@ const PatentForm = (props) => {
       >
         <Form.Group>
           <Form.Label>
-          Machine Learning Patent <AiFillQuestionCircle/>
+          Machine Learning Patent <AiFillQuestionCircle data-tip data-for="machineLearningTip"/>
+          <ReactTooltip id="machineLearningTip" place="top" effect="solid">
+            Any patents related to refining AI systems to automatically learn and improve from experience via input and output
+          </ReactTooltip>
           </Form.Label>
           <div className='row-2'>
           <FormCheck name="mal" inline type="radio" label="Yes" value='Yes' ref={register} checked={mal === "Yes"} onChange={() => {updateFormCheck(mal, setMal)}}/>
@@ -118,7 +122,10 @@ const PatentForm = (props) => {
 
         <Form.Group>
           <Form.Label>
-          AI Hardware Patent <AiFillQuestionCircle/>
+          AI Hardware Patent <AiFillQuestionCircle data-tip data-for="aiHardwareTip"/>
+          <ReactTooltip id="aiHardwareTip" place="top" effect="solid">
+            Any patents related to computers and components that make an AI 
+          </ReactTooltip>
           </Form.Label>
           <div className='row-2'>
           <FormCheck  name="hdw" inline type="radio" label="Yes"  value='Yes' ref={register} checked={hdw === "Yes"} onChange={() => {updateFormCheck(hdw, setHdw)}}/>
@@ -128,7 +135,10 @@ const PatentForm = (props) => {
         
         <Form.Group>
           <Form.Label>
-          Evolutionary Computation Patent <AiFillQuestionCircle/>
+          Evolutionary Computation Patent <AiFillQuestionCircle data-tip data-for="evolCompTip"/>
+          <ReactTooltip id="evolCompTip" place="top" effect="solid">
+            Any patents related to computational routines that create models while improving its own algorithm
+          </ReactTooltip>
           </Form.Label>
           <div className='row-2'>
           <FormCheck  name="evo" inline type="radio" label="Yes" value='Yes' ref={register} checked={evo === "Yes"} onChange={() => {updateFormCheck(evo, setEvo)}}/>
@@ -138,7 +148,10 @@ const PatentForm = (props) => {
 
         <Form.Group>
           <Form.Label>
-          Natural Language Processing Patent <AiFillQuestionCircle/>
+          Natural Language Processing Patent <AiFillQuestionCircle data-tip data-for="natLangTip"/>
+          <ReactTooltip id="natLangTip" place="top" effect="solid">
+            Any patents related to understanding and using data found in written langauge
+          </ReactTooltip>
           </Form.Label>
           <div className='row-2'>
           <FormCheck name="nlp" inline type="radio" label="Yes" value='Yes' ref={register} checked={nlp === "Yes"} onChange={() => {updateFormCheck(nlp, setNlp)}}/>
@@ -148,7 +161,10 @@ const PatentForm = (props) => {
 
         <Form.Group>
           <Form.Label>
-          Speech Patent <AiFillQuestionCircle/>
+          Speech Patent <AiFillQuestionCircle data-tip data-for="speechTip"/>
+          <ReactTooltip id="speechTip" place="top" effect="solid">
+            Any patents related to techniques in understanding words, phrases, or language 
+          </ReactTooltip>
           </Form.Label>
           <div className='row-2'>
           <FormCheck name="spc" inline type="radio" label="Yes" value='Yes' ref={register} checked={spc === "Yes"} onChange={() => {updateFormCheck(spc, setSpc)}}/>
@@ -158,7 +174,10 @@ const PatentForm = (props) => {
 
         <Form.Group>
           <Form.Label>
-          Vision Patent <AiFillQuestionCircle/>
+          Vision Patent <AiFillQuestionCircle data-tip data-for="visionTip"/>
+          <ReactTooltip id="visionTip" place="top" effect="solid">
+            Any patents related to the extraction or understanding of images and videos through computer vision 
+          </ReactTooltip>
           </Form.Label>
           <div className='row-2'>
           <FormCheck name="vis" inline type="radio" label="Yes" value='Yes' ref={register} checked={vis === "Yes"} onChange={() => {updateFormCheck(vis, setVis)}}/>
@@ -168,7 +187,10 @@ const PatentForm = (props) => {
 
         <Form.Group>
           <Form.Label>
-          Knowledge Processing Patent <AiFillQuestionCircle/>
+          Knowledge Processing Patent <AiFillQuestionCircle data-tip data-for="knowProcTip"/>
+          <ReactTooltip id="knowProcTip" place="top" effect="solid">
+            Any patents related to deriving facts about the world and using those facts in automated systems
+          </ReactTooltip>
           </Form.Label>
           <div className='row-2'>
           <FormCheck name="kpr" inline type="radio" label="Yes" value='Yes' ref={register} checked={kpr === "Yes"} onChange={() => {updateFormCheck(kpr, setKpr)}}/>
@@ -178,7 +200,10 @@ const PatentForm = (props) => {
 
         <Form.Group>
           <Form.Label>
-          Planning/Control Patent <AiFillQuestionCircle/>
+          Planning/Control Patent <AiFillQuestionCircle data-tip data-for="planControlTip"/>
+          <ReactTooltip id="planControlTip" place="top" effect="solid">
+            Any patents related to identifying, creating, or executing tasks in order to achieve a specific goal
+          </ReactTooltip>
           </Form.Label>
           <div className='row-2'>
           <FormCheck  name="pln" inline type="radio" label="Yes" value='Yes' ref={register} checked={pln === "Yes"} onChange={() => {updateFormCheck(pln, setPln)}}/>
