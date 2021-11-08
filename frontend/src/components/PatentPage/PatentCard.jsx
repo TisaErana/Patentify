@@ -8,8 +8,28 @@ const PatentCard = (props) => {
 
   return (
     <Card style={{ width: "100%" }}>
-
-      <Card.Body>
+        <Card.Body>
+        <Button 
+          disabled={
+            currentPage <= 1
+          } 
+          onClick={
+            () => { 
+              setCurrentPage(currentPage - 1);
+              document.getElementById("patent-pdf").src = checkID(props.patents, currentPage);
+            }
+          }
+          style={{marginBottom: "1%"}}
+        >Previous Page</Button>
+        <Button
+          style={{marginLeft: "80%"}} 
+          onClick={
+            () => { 
+              setCurrentPage(currentPage + 1);
+              document.getElementById("patent-pdf").src = checkID(props.patents, currentPage); 
+            }
+          }
+        >Next Page</Button>
         <Iframe
             id="patent-pdf"
             url={checkID(props.patents, currentPage)}
@@ -20,26 +40,6 @@ const PatentCard = (props) => {
             postion="relative"
         />
       </Card.Body>
-      <Button 
-        disabled={
-          currentPage <= 1
-        } 
-        onClick={
-          () => { 
-            setCurrentPage(currentPage - 1);
-            document.getElementById("patent-pdf").src = checkID(props.patents, currentPage);
-          }
-        }
-        style={{marginBottom: "1%"}}
-      >Previous Page</Button>
-      <Button 
-        onClick={
-          () => { 
-            setCurrentPage(currentPage + 1);
-            document.getElementById("patent-pdf").src = checkID(props.patents, currentPage); 
-          }
-        }
-      >Next Page</Button>
     </Card>
   );
 }
