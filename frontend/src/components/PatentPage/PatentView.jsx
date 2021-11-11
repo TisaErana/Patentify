@@ -67,7 +67,7 @@ const PatentView = (props) => {
   
   return (
     <div className="container-fluid mt-5">
-      <div className="row" style={{width: "130%"}}>
+      <div className="row" style={{width: "145%"}}>
         {error ? 
         <div style={{marginLeft: "1%"}}><h2>{error}</h2></div> : 
         <Fragment>

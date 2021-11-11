@@ -7,7 +7,7 @@ const PatentCard = (props) => {
   const [currentPage, setCurrentPage] = useState(1);
 
   return (
-    <Card style={{ width: "100%" }}>
+    <Card style={{ width: "105%" }}>
         <Card.Body>
         <Button 
           disabled={

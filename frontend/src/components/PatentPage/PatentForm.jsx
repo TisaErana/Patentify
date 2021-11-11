@@ -228,7 +228,7 @@ const PatentForm = (props) => {
             variant="primary" 
             size="lg" 
             className="col-3" 
-            style={{marginRight: "2%"}}
+            style={{marginBottom: "2%"}}
           >
             {" "}
             Submit
@@ -238,6 +238,7 @@ const PatentForm = (props) => {
             size="lg"
             className="col-3"
             onClick={dequeue}
+            style={{display: "block"}}
             disabled={history.location.pathname==="/Search"}
           >
             {" "}
