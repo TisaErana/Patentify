@@ -22,7 +22,7 @@ const PatentCard = (props) => {
           style={{marginBottom: "1%"}}
         >Previous Page</Button>
         <Button
-          style={{marginLeft: "80%"}} 
+          style={{position: "sticky", left: "100%"}} 
           onClick={
             () => { 
               setCurrentPage(currentPage + 1);

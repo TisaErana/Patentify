@@ -70,7 +70,7 @@ const PatentView = (props) => {
         {error ? 
         <div style={{marginLeft: "1%"}}><h2>{error}</h2></div> : 
         <Fragment>
-          <div className="col-sm-2 col-lg-6 col-md-6">
+          <div className="col-sm-2 col-lg-6 col-md-6" style={{maxWidth: "58%"}}>
             <h2>Patent ID: {patentId}</h2>
             <PatentCard patents={patents} />
           </div>
