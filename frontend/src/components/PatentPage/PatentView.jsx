@@ -10,11 +10,10 @@ const PatentView = (props) => {
   const [error, setError] = useState(); //             stores errors to display to the user.
   const [patents, setPatents] = useState(); //         object with patents assigned to user.
   const [patentId, setPatentId] = useState(); //       stores the documentId of the current patent.
-  
-  const patentSearchId = history.location.state ? history.location.state['patentSearchId'] : undefined;
 
   useEffect(() => {
     const weAreSearching = history.location.state ? history.location.state['weAreSearching'] : false;
+    const patentSearchId = history.location.state ? history.location.state['patentSearchId'] : undefined;
 
     async function searchBar(){
       try {     
