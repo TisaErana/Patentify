@@ -108,37 +108,17 @@ router.get("/", async function (req, res, next) {
 
 // This route is sending a post to the DB with labeling information aswell as documentid and userid
 router.post("/labels", async function (req, res, next) { 
-  try
+  const annotation = await Label.findOne({
+    user: req.user._id,
+    document: req.body.documentId
+  });
+  
+  // check if there is already an annotation in the database by the current user:
+  if (annotation !== null) // let's update it:
   {
-    const annotation = await Label.findOne({
-      document: req.body.documentId
-    });
-    
-    // check if there is already an annotation in the database:
-    if (annotation !== null) // let's update it:
-    {
-      const result = await Label.updateOne(
-        { _id: annotation._id },
-        {
-          mal:req.body.mal, // Machine Learning
-          hdw:req.body.hdw, // Hardware
-          evo:req.body.evo, // Evolution
-          spc:req.body.spc, // speech
-          vis:req.body.vis, // Vision
-          nlp:req.body.nlp, // Natural Language Processing 
-          pln:req.body.pln, // Planning 
-          kpr:req.body.kpr, // Knowledge Processing
-          none:req.body.none // None of the Above
-        }
-      );
-
-      res.json(result);
-    }
-    else // new entry:
-    {
-      const label = new Label({
-        user:req.user._id,
-        document: req.body.documentId,
+    const result = await Label.updateOne(
+      { _id: annotation._id },
+      {
         mal:req.body.mal, // Machine Learning
         hdw:req.body.hdw, // Hardware
         evo:req.body.evo, // Evolution
@@ -148,15 +128,30 @@ router.post("/labels", async function (req, res, next) {
         pln:req.body.pln, // Planning 
         kpr:req.body.kpr, // Knowledge Processing
         none:req.body.none // None of the Above
-      });
+      }
+    );
 
-      res.json(await label.save());
-    }
+    res.json(result);
   }
-  catch(error)
+  else // new entry:
   {
-    res.status(500).json({ error: error });
+    const label = new Label({
+      user:req.user._id,
+      document: req.body.documentId,
+      mal:req.body.mal, // Machine Learning
+      hdw:req.body.hdw, // Hardware
+      evo:req.body.evo, // Evolution
+      spc:req.body.spc, // speech
+      vis:req.body.vis, // Vision
+      nlp:req.body.nlp, // Natural Language Processing 
+      pln:req.body.pln, // Planning 
+      kpr:req.body.kpr, // Knowledge Processing
+      none:req.body.none // None of the Above
+    });
+
+    res.json(await label.save());
   }
+
 });
 
 /**
