@@ -11,6 +11,7 @@ const Label = require("../models/label_model");
 // Import queue model
 const Queue = require("../models/queue_model");
 const e = require("express");
+const { rawListeners } = require("../app");
 
 /**
  * ONLY if the queue is empty:
@@ -44,6 +45,13 @@ async function getPatentQueue(req)
         { $sample: { size: 10 } }
       ]); // find 10 random patents
 
+      // make sure we found some patents:
+      if(patents.length == 0)
+      {
+        console.log('no new patents to assign to user queue');
+        throw 'no new patents to assign to user queue';
+      }
+
       const patentIds = patents.map((id) => { return id.documentId; }) // extract only the patentId
 
       await Queue.updateOne(
@@ -63,6 +71,13 @@ async function getPatentQueue(req)
       { $match: { documentId: { $nin: alreadyLabeled }}},
       { $sample: { size: 10 } }
     ]); // find 10 random patents
+
+    // make sure we found some patents:
+    if(patents.length == 0)
+    {
+      console.log('no new patents to assign to user queue');
+      throw 'no new patents to assign to user queue';
+    }
       
     const patentIds = patents.map((id) => { return id.documentId; }) // extract only the patentId
     
@@ -85,12 +100,10 @@ async function getPatentQueue(req)
  *    the entire new queue will be sent to frontend.
 */
 router.get("/", async function (req, res, next) {
-  try {
-    res.json(await getPatentQueue(req));
-  } 
-  catch (error) {
-    res.status(500).json({ error: error });
-  }
+  res.json(
+    await getPatentQueue(req).catch((error) => {
+      res.status(500).json({ error: error });
+    }));
 });
 
 // This route is sending a post to the DB with labeling information aswell as documentid and userid
@@ -143,6 +156,21 @@ router.post("/labels", async function (req, res, next) {
   catch(error)
   {
     res.status(500).json({ error: error });
+  }
+});
+
+/**
+ * Checks if the user is logged authenticated in the backed:
+ * if not, it will prompt the frontend to sync and have the user log in again.
+ */
+router.get('/status', function (req, res) {
+  if(req.user)
+  {
+    res.status(200).json({ status: "authenticated"});
+  }
+  else
+  {
+    res.status(200).json({ status: "unauthenticated"});
   }
 });
 
@@ -222,6 +250,12 @@ router.post("/queue/remove", async function (req, res, next) {
   {
     res.status(500).json({ error: error });
   }
+});
+
+// clears the cookie on the backend side:
+router.get('/logout', function (req, res) {
+  req.logOut();
+  res.status(200).json({ status: "unauthenticated"});
 });
 
 module.exports = router;
