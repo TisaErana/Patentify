@@ -111,6 +111,8 @@ router.post("/labels", async function (req, res, next) {
   const annotation = await Label.findOne({
     user: req.user._id,
     document: req.body.documentId
+  }).catch((error) => {
+    res.status(500).json({ error: error });
   });
   
   // check if there is already an annotation in the database by the current user:
@@ -129,7 +131,9 @@ router.post("/labels", async function (req, res, next) {
         kpr:req.body.kpr, // Knowledge Processing
         none:req.body.none // None of the Above
       }
-    );
+    ).catch((error) => {
+      res.status(500).json({ error: error });
+    });
 
     res.json(result);
   }
@@ -149,13 +153,15 @@ router.post("/labels", async function (req, res, next) {
       none:req.body.none // None of the Above
     });
 
-    res.json(await label.save());
+    res.json(await label.save().catch((error) => {
+      res.status(500).json({ error: error });
+    }));
   }
 
 });
 
 /**
- * Checks if the user is logged authenticated in the backed:
+ * Checks if the user is authenticated in the backed:
  * if not, it will prompt the frontend to sync and have the user log in again.
  */
 router.get('/status', function (req, res) {
@@ -170,12 +176,9 @@ router.get('/status', function (req, res) {
 });
 
 router.get("/labels", async function (req, res, next) {
-  try {
-    const labels = await Label.find()
-    res.json(labels);
-  } catch (err) {
-    res.json({ message: err });
-  }
+  res.json(await Label.find().catch((error) => {
+    res.status(500).json({ error: error });
+  }));
 });
 
 //Search for Patents by documentID + retrieve any annotations:
@@ -211,32 +214,30 @@ router.post("/search", async function (req, res, next) {
 
 // Remove a patent from the current user's queue:
 router.post("/queue/remove", async function (req, res, next) {
-  try {
-    const queue = await Queue.find({ // fetch items from the queue for the current user.
-      "userId":  req.user._id
-    })
-  
-    if(queue.length !== 0) // user has a queue:
-    {
-      const newQueue = queue[0].items.filter(item => item !== req.body.documentId);
-      
-      await Queue.updateOne(
-        { _id: queue[0]._id },
-        { items: newQueue }
-      );
-  
-      res.json(await getPatentQueue(req));
-    }
-    else // invalid request:
-    {
-      res.status(500).json({
-        error: 'the current user does not have a queue',
-      });
-    }
-  }
-  catch(error)
+  const queue = await Queue.find({ // fetch items from the queue for the current user.
+    "userId":  req.user._id
+  })
+
+  if(queue.length !== 0) // user has a queue:
   {
-    res.status(500).json({ error: error });
+    const newQueue = queue[0].items.filter(item => item !== req.body.documentId);
+    
+    await Queue.updateOne(
+      { _id: queue[0]._id },
+      { items: newQueue }
+    ).catch((error) => {
+      res.status(500).json({ error: error });
+    });
+
+    res.json(await getPatentQueue(req).catch((error) => {
+      res.status(500).json({ error: error });
+    }));
+  }
+  else // invalid request:
+  {
+    res.status(500).json({
+      error: 'the current user does not have a queue',
+    });
   }
 });
 
