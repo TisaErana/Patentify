@@ -1,5 +1,6 @@
 // Import Helpers
-import React, { useState } from 'react';
+import axios from "axios";
+import React, { useEffect, useState } from 'react';
 import { Switch, Route,Redirect } from "react-router-dom";
 
 // Imports of Components here
@@ -24,7 +25,26 @@ const App = () => {
   const [Auth] = useState(window.localStorage.getItem("isAuthenticated"))
   const [Role] = useState(window.localStorage.getItem("role"))
 
-  // const ISAUTHENTICATED = window.localStorage.getItem("isAuthenticated");
+  useEffect(() => {
+    if(Auth !== null)
+    {
+      axios({
+        url: "/patents-api/status",
+        method: "GET"
+      })
+        .then((response) => { 
+          if(response.data.status === 'unauthenticated')
+            {
+              localStorage.clear();
+              window.location = '/Login';
+            }
+        })
+        .catch((error) => {
+          console.log("error: ", error.data);
+        });
+    }
+
+  }, []);
 
   return (
     <div>
