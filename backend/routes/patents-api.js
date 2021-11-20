@@ -188,22 +188,15 @@ router.post("/search", async function (req, res, next) {
 
     if(patent !== null)
     {
+      // find annotation done by current user:
       const annotation = await Label.findOne({
+        user: req.user._id,
         document: searchVal
       }).select("-_id");
 
       if(annotation !== null)
       {
-        // only show patent annotations if they have been annotated by the current user:
-        // OR if they are an admin, they can see the latest annotation: 
-        if(annotation.user.toString() == req.user._id || req.user.role == "admin")
-        {
-          res.json([Object.assign(patent.toObject(), annotation.toObject())]);
-        }
-        else // show just the patent:
-        {
-          res.json([patent]);
-        }
+        res.json([Object.assign(patent.toObject(), annotation.toObject())]);
       }
       else
       {
