@@ -13,6 +13,7 @@ import ViewUser from './components/Dashboard/Pages/viewUser';
 import Logout from './components/Logout/Logout';
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
 import Labels from './components/Dashboard/Pages/Labels';
+import ViewQueues from './components/Dashboard/Pages/viewQueues';
 
 // Import Styles
 import './App.css';
@@ -46,6 +47,10 @@ const App = () => {
 
           {Role === "admin" ? 
           (<ProtectedRoute exact path="/Dashboard/ViewUser" isAuthed = {Auth} component={ViewUser} /> ) : (<Redirect to="/" />)}
+
+          
+          {Role === "admin" ? 
+          (<ProtectedRoute exact path="/Dashboard/ViewQueues" isAuthed = {Auth} component={ViewQueues} /> ) : (<Redirect to="/" />)}
 
           {Role === "admin" ? 
           (<ProtectedRoute exact path="/Dashboard/ViewLabel" isAuthed = {Auth} component={Labels} /> ) : (<Redirect to="/" />)}

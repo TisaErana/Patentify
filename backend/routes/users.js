@@ -75,7 +75,22 @@ router.post("/register", function (req, res, next) {
   })(req, res, next);
 });
 
+router.post("/findUser", async function(req,res,next){
+  const IDs = req.body.IDs
+  let users = []
+  let user;
 
+  for(const id of IDs){
+    user = await User.find({_id: id})
+    users.push(user)
+  }
+   console.log(users.length)
+  if(users.length > 0){
+    console.log("here")
+    res.status(200).json(users)
+  }
+  res.status(500).json({message:"error finding users of each queue"})
+})
 
 
 

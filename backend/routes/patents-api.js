@@ -224,4 +224,17 @@ router.post("/queue/remove", async function (req, res, next) {
   }
 });
 
+router.get("/getAllQueues", async function (req,res,next){
+
+  const queues = await Queue.find({})
+
+  if(queues.length < 1){
+    res.status(500).json({error: "no queues are currently active"})
+  }
+  res.status(200).json([queues])
+  
+
+
+})
+
 module.exports = router;
