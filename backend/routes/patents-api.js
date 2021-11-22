@@ -11,6 +11,7 @@ const Label = require("../models/label_model");
 // Import queue model
 const Queue = require("../models/queue_model");
 const e = require("express");
+const { rawListeners } = require("../app");
 
 /**
  * ONLY if the queue is empty:
@@ -44,6 +45,13 @@ async function getPatentQueue(req)
         { $sample: { size: 10 } }
       ]); // find 10 random patents
 
+      // make sure we found some patents:
+      if(patents.length == 0)
+      {
+        console.log('no new patents to assign to user queue');
+        throw 'no new patents to assign to user queue';
+      }
+
       const patentIds = patents.map((id) => { return id.documentId; }) // extract only the patentId
 
       await Queue.updateOne(
@@ -63,6 +71,13 @@ async function getPatentQueue(req)
       { $match: { documentId: { $nin: alreadyLabeled }}},
       { $sample: { size: 10 } }
     ]); // find 10 random patents
+
+    // make sure we found some patents:
+    if(patents.length == 0)
+    {
+      console.log('no new patents to assign to user queue');
+      throw 'no new patents to assign to user queue';
+    }
       
     const patentIds = patents.map((id) => { return id.documentId; }) // extract only the patentId
     
@@ -85,47 +100,27 @@ async function getPatentQueue(req)
  *    the entire new queue will be sent to frontend.
 */
 router.get("/", async function (req, res, next) {
-  try {
-    res.json(await getPatentQueue(req));
-  } 
-  catch (error) {
-    res.status(500).json({ error: error });
-  }
+  res.json(
+    await getPatentQueue(req).catch((error) => {
+      res.status(500).json({ error: error });
+    }));
 });
 
 // This route is sending a post to the DB with labeling information aswell as documentid and userid
 router.post("/labels", async function (req, res, next) { 
-  try
+  const annotation = await Label.findOne({
+    user: req.user._id,
+    document: req.body.documentId
+  }).catch((error) => {
+    res.status(500).json({ error: error });
+  });
+  
+  // check if there is already an annotation in the database by the current user:
+  if (annotation !== null) // let's update it:
   {
-    const annotation = await Label.findOne({
-      document: req.body.documentId
-    });
-    
-    // check if there is already an annotation in the database:
-    if (annotation !== null) // let's update it:
-    {
-      const result = await Label.updateOne(
-        { _id: annotation._id },
-        {
-          mal:req.body.mal, // Machine Learning
-          hdw:req.body.hdw, // Hardware
-          evo:req.body.evo, // Evolution
-          spc:req.body.spc, // speech
-          vis:req.body.vis, // Vision
-          nlp:req.body.nlp, // Natural Language Processing 
-          pln:req.body.pln, // Planning 
-          kpr:req.body.kpr, // Knowledge Processing
-          none:req.body.none // None of the Above
-        }
-      );
-
-      res.json(result);
-    }
-    else // new entry:
-    {
-      const label = new Label({
-        user:req.user._id,
-        document: req.body.documentId,
+    const result = await Label.updateOne(
+      { _id: annotation._id },
+      {
         mal:req.body.mal, // Machine Learning
         hdw:req.body.hdw, // Hardware
         evo:req.body.evo, // Evolution
@@ -135,24 +130,55 @@ router.post("/labels", async function (req, res, next) {
         pln:req.body.pln, // Planning 
         kpr:req.body.kpr, // Knowledge Processing
         none:req.body.none // None of the Above
-      });
+      }
+    ).catch((error) => {
+      res.status(500).json({ error: error });
+    });
 
-      res.json(await label.save());
-    }
+    res.json(result);
   }
-  catch(error)
+  else // new entry:
   {
-    res.status(500).json({ error: error });
+    const label = new Label({
+      user:req.user._id,
+      document: req.body.documentId,
+      mal:req.body.mal, // Machine Learning
+      hdw:req.body.hdw, // Hardware
+      evo:req.body.evo, // Evolution
+      spc:req.body.spc, // speech
+      vis:req.body.vis, // Vision
+      nlp:req.body.nlp, // Natural Language Processing 
+      pln:req.body.pln, // Planning 
+      kpr:req.body.kpr, // Knowledge Processing
+      none:req.body.none // None of the Above
+    });
+
+    res.json(await label.save().catch((error) => {
+      res.status(500).json({ error: error });
+    }));
+  }
+
+});
+
+/**
+ * Checks if the user is authenticated in the backed:
+ * if not, it will prompt the frontend to sync and have the user log in again.
+ */
+router.get('/status', function (req, res) {
+  if(req.user)
+  {
+    res.status(200).json({ status: "authenticated"});
+  }
+  else
+  {
+    res.status(200).json({ status: "unauthenticated"});
   }
 });
 
 router.get("/labels", async function (req, res, next) {
-  try {
-    const labels = await Label.find()
-    res.json(labels);
-  } catch (err) {
-    res.json({ message: err });
-  }
+  res.json(await Label.find().catch((error) => {
+    res.status(500).json({ error: error });
+  }));
 });
 
 //Search for Patents by documentID + retrieve any annotations:
@@ -165,22 +191,15 @@ router.post("/search", async function (req, res, next) {
 
     if(patent !== null)
     {
+      // find annotation done by current user:
       const annotation = await Label.findOne({
+        user: req.user._id,
         document: searchVal
       }).select("-_id");
 
       if(annotation !== null)
       {
-        // only show patent annotations if they have been annotated by the current user:
-        // OR if they are an admin, they can see the latest annotation: 
-        if(annotation.user.toString() == req.user._id || req.user.role == "admin")
-        {
-          res.json([Object.assign(patent.toObject(), annotation.toObject())]);
-        }
-        else // show just the patent:
-        {
-          res.json([patent]);
-        }
+        res.json([Object.assign(patent.toObject(), annotation.toObject())]);
       }
       else
       {
@@ -195,32 +214,30 @@ router.post("/search", async function (req, res, next) {
 
 // Remove a patent from the current user's queue:
 router.post("/queue/remove", async function (req, res, next) {
-  try {
-    const queue = await Queue.find({ // fetch items from the queue for the current user.
-      "userId":  req.user._id
-    })
-  
-    if(queue.length !== 0) // user has a queue:
-    {
-      const newQueue = queue[0].items.filter(item => item !== req.body.documentId);
-      
-      await Queue.updateOne(
-        { _id: queue[0]._id },
-        { items: newQueue }
-      );
-  
-      res.json(await getPatentQueue(req));
-    }
-    else // invalid request:
-    {
-      res.status(500).json({
-        error: 'the current user does not have a queue',
-      });
-    }
-  }
-  catch(error)
+  const queue = await Queue.find({ // fetch items from the queue for the current user.
+    "userId":  req.user._id
+  })
+
+  if(queue.length !== 0) // user has a queue:
   {
-    res.status(500).json({ error: error });
+    const newQueue = queue[0].items.filter(item => item !== req.body.documentId);
+    
+    await Queue.updateOne(
+      { _id: queue[0]._id },
+      { items: newQueue }
+    ).catch((error) => {
+      res.status(500).json({ error: error });
+    });
+
+    res.json(await getPatentQueue(req).catch((error) => {
+      res.status(500).json({ error: error });
+    }));
+  }
+  else // invalid request:
+  {
+    res.status(500).json({
+      error: 'the current user does not have a queue',
+    });
   }
 });
 
@@ -236,5 +253,11 @@ router.get("/getAllQueues", async function (req,res,next){
 
 
 })
+
+// clears the cookie on the backend side:
+router.get('/logout', function (req, res) {
+  req.logOut();
+  res.status(200).json({ status: "unauthenticated"});
+});
 
 module.exports = router;

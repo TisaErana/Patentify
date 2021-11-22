@@ -40,7 +40,8 @@ app.use(express.urlencoded({ extended: false }));
 // This module stores the session data on the client within a cookie
 app.use(cookieSession({
   name: 'session',
-  keys: ['key1', 'key2']
+  keys: ['key1', 'key2'],
+  maxAge: (new Date(253402300000000) - new Date()) / 1000 // set the cookie to never expire unless logged out.
 }))
 
 // Passport
