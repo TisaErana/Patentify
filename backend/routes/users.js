@@ -80,16 +80,19 @@ router.post("/findUser", async function(req,res,next){
   let users = []
   let user;
 
-  for(const id of IDs){
-    user = await User.find({_id: id})
+  for(const id of IDs) {
+    user = await User.find({_id: id}).catch((error) => {
+      res.status(500).json({ error: error });
+    });
     users.push(...user)
   }
-   console.log(users.length)
+  
   if(users.length > 0){
-    console.log("here")
     res.status(200).json(users)
   }
-  res.status(500).json({message:"error finding users of each queue"})
+  else{
+    res.status(500).json({message:"error finding users of each queue"})
+  }
 })
 
 

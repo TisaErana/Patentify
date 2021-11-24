@@ -18,7 +18,7 @@ const app = express();
 
 // Here we are connecting to our MongoDB database that is hosted on Compute1 at FIU
 mongoose
-  .connect('mongodb://localhost:27017/PatentData?readPreference=primary&appname=MongoDB%20Compass&directConnection=true&ssl=false' , { useNewUrlParser: true, useUnifiedTopology: false })
+  .connect(process.env.MONGO_URL, { useNewUrlParser: true, useUnifiedTopology: false })
   .then((x) =>
     console.log(`Connected to Mongo! Database name: "${x.connections[0].name}"`)
   )
@@ -40,7 +40,8 @@ app.use(express.urlencoded({ extended: false }));
 // This module stores the session data on the client within a cookie
 app.use(cookieSession({
   name: 'session',
-  keys: ['key1', 'key2']
+  keys: ['key1', 'key2'],
+  maxAge: (new Date(253402300000000) - new Date()) / 1000 // set the cookie to never expire unless logged out.
 }))
 
 // Passport
