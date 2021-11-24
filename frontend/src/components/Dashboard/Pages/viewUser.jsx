@@ -1,4 +1,4 @@
-import React, { useState,  } from "react";
+import React, { useState, useEffect } from "react";
 import Nav from "../components/DashboardNavigation";
 import MaterialTable from "material-table";
 
@@ -13,7 +13,7 @@ const ViewUser = () => {
 
   // console.log(rowData);
 
-  (() => {
+  useEffect(() => {
     async function fetchData() {
       try {
         // fetch all users in the database:

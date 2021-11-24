@@ -1,6 +1,6 @@
 import React, { useState, useEffect, Fragment } from "react";
 
-import { Tab, Row, Col, TabContainer, Nav as NavBar } from 'react-bootstrap';
+import { Tab, Row, Col, Container, Nav as NavBar } from 'react-bootstrap';
 import axios from 'axios';
 import Nav from "../components/DashboardNavigation";
 
@@ -36,7 +36,7 @@ const ViewQueues = () => {
                     if (res.data.message) { 
                         setError(res.data.message)
                     } else {
-                        sortQueuesByUsers(queues, res.data[0]) // sortQueuesByUsers(queues, users)
+                        sortQueuesByUsers(queues, res.data) // sortQueuesByUsers(queues, users)
                     }
                 }).catch(err => setError(err))
 
@@ -62,12 +62,13 @@ const ViewQueues = () => {
 
 
     function printInfo() {
-        if (queuesPerUser.size > 0) {
-            for (const [key, values] of queuesPerUser.entries()) {
+        if (!(queuesPerUser.size > 0)) {
+            return (<div>{error}</div>)
+        }else{
+            return Array.from(queuesPerUser).map(([key,values])=>{
                 return(
-                    <Tab.Container id="left-tabs-example" defaultActiveKey="first">
-                        <Row>
-                            <Col sm={3}>
+                      <Fragment>
+                            <Col sm={3} md={3} lg={3}>
                                 <NavBar variant="pills" className="flex-column">
                                     <NavBar.Item>
                                         {/* print user name */}
@@ -75,57 +76,54 @@ const ViewQueues = () => {
                                     </NavBar.Item>
                                 </NavBar>
                             </Col>
-                        </Row>
-                        <Col sm={9}>
-                            <Tab.Content>
-                                {printQueues(key, values)}
-                            </Tab.Content>
-                        </Col>
-                    </Tab.Container>
-                ) 
-            }
-        } else {
-            return (<div>{error}</div>)
-        }
-    };
-    function printQueues(userId, queuesArray) {
-
-        return queuesArray.map((q) => {
-            return (
-                        <Tab.Pane eventKey={userId}>
-                            <div>
-                                <p>Queue ID: {q._id}</p>
-                                <ul>
-                                    { q.items.length > 0?
-                                         q.items.map( (item) => {
-                                            return <li>Patent Number: {item}</li>
-                                         })
-                                         :
-                                         <li>This queue is empty</li>
+                            <Col sm={9} md={7} lg={8} >
+                                <Tab.Content>
+                                    {
+                                        values.map((q) => {
+                                            return (
+                                                        <Tab.Pane eventKey={key} >
+                                                            <Container className="text-center">
+                                                                <p>Queue ID: {q._id}</p>
+                                                                <ul style={{'list-style-type': 'none'}} >
+                                                                    { q.items.length > 0?
+                                                                         q.items.map( (item) => {
+                                                                            return <li>Patent Number: {item}</li>
+                                                                         })
+                                                                      :
+                                                                         <li>This queue is empty</li>
+                                                                    }
+                                                                </ul>
+                                                            </Container>
+                                                        </Tab.Pane>
+                                            )})
                                     }
-                                </ul>
-                            </div>
-                        </Tab.Pane>
-            )
-        })
-
+                                </Tab.Content>
+                            </Col>
+                      </Fragment>
+       
+                )})
+        }            
     };
 
     return (
-        <div>
+        <Container>
             <Nav />
-            <h1>Active Queues by User</h1>
-            <div className="queueLists">
+            <h1 className="text-center">Active Queues by User</h1>
+            <Fragment>
                 {
-                    loaded ?
-                        <Fragment>
-                            {printInfo()}
-                        </Fragment>
-                        :
-                        <div>Loading...</div>
+                    loaded?
+                        <Container fluid>
+                            <Tab.Container id="left-tabs-example" defaultActiveKey="first">
+                                <Row className="justify-content-sm-center">
+                                   {printInfo()}
+                                </Row>
+                            </Tab.Container>  
+                        </Container>
+                    :
+                    <Container>Loading...</Container>
                 }
-            </div>
-        </div>
+            </Fragment>
+        </Container>
 
     );
 

@@ -82,7 +82,7 @@ router.post("/findUser", async function(req,res,next){
 
   for(const id of IDs){
     user = await User.find({_id: id})
-    users.push(user)
+    users.push(...user)
   }
    console.log(users.length)
   if(users.length > 0){
