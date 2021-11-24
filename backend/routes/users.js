@@ -84,8 +84,7 @@ router.post("/findUser", async function(req,res,next){
     user = await User.find({_id: id}).catch((error) => {
       res.status(500).json({ error: error });
     });
-
-    users.push(user)
+    users.push(...user)
   }
   
   if(users.length > 0){
