@@ -36,17 +36,9 @@ async function getPatentQueue(req)
         documentId: queue[0].items
       });
 
-      console.log(patents)
-
-      // expensive to re-map the elements, but will gaurantee the queue order:
-      const orderedPatents = patents.map((item, index) => { 
+      // this will gaurantee the queue order:      
+      return patents.map((item, index) => { 
         return patents.find((i) => i.documentId == queue[0].items[index]); 
-      });
-
-      console.log(patents)
-      
-      return await Patent.find({
-        documentId: queue[0].items
       });
     }
     else // let's add some new patents:
