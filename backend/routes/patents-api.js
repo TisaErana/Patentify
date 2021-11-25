@@ -31,6 +31,20 @@ async function getPatentQueue(req)
     // so, safe to only check queue[0]
     if(queue[0].items.length > 0)
     {
+      // retrieves information about patents in the order they are in the patents collection:
+      const patents = await Patent.find({
+        documentId: queue[0].items
+      });
+
+      console.log(patents)
+
+      // expensive to re-map the elements, but will gaurantee the queue order:
+      const orderedPatents = patents.map((item, index) => { 
+        return patents.find((i) => i.documentId == queue[0].items[index]); 
+      });
+
+      console.log(patents)
+      
       return await Patent.find({
         documentId: queue[0].items
       });
