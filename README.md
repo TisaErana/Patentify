@@ -32,4 +32,4 @@ Node-gyp Errors:
   ```
   npm config set msvs_version 2017
   ```
-* if you have not rebooted since the install, reboot and try again
+* if you have not rebooted, reboot and try again
