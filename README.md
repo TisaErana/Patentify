@@ -1,17 +1,32 @@
-# USPTOApp
+# PATENTIFY
 Data Labeling by Active Learning
 
 Get Started:
 * Install [Node](https://nodejs.org/en/download/)
   * npm is automatically installed with Node
-  * check by running ```npm -v``` on Terminal
+  * make sure to check the checkbox labeled 'Automatically install the necessary tools' at the end
+    * a command prompt window should open, hit enter
+    * give admin privilleges, a powershell window should open
+    * wait for everything to finish installing
+  * check by running ```npm -v``` and ```node -v``` on Terminal
 * Install [MongoDB](https://docs.mongodb.com/manual/installation/)
-* Install Nodemon 
-   -```npm install -g nodemon```
+  * import data from live database
+* Install [Nodemon](https://www.npmjs.com/package/nodemon) 
+   - ```npm install -g nodemon```
 
 On the Terminal:
-* cd /USPTOApp/frontend
+* cd /Patentify/frontend
   * ```npm install```
 
-* cd /USPTOApp/backend
+* cd /Patentify/backend
   * ```npm install```
+
+Node-gyp Errors:
+* try setting the version of the build tools you have: 
+  ```
+  npm config set msvs_version 2019
+  ```
+  ```
+  npm config set msvs_version 2017
+  ```
+* if you have not rebooted since the install, reboot and try again
