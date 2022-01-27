@@ -6,7 +6,7 @@ To acheive this on an ubuntu server modify the VirtualHost file in /etc/apache2/
 and include the following right before the </VirtualHost> tag:
 ```
 ProxyRequests on
-ProxyPass /[api-endpoint-path]/ http://localhost:[backend-port]/[api-endpoin-path]
+ProxyPass /[api-endpoint-path]/ http://localhost:[backend-port]/[api-endpoint-path]
 ProxyPassReverse /[api-endpoint-path]/ http://localhost:[backend-port]/[api-endpoint-path]
 ```
 For example:
@@ -26,5 +26,4 @@ The backend can be started with:
 ```
 npm start
 ```
-
 A systemd service can be created to run the app in the long-term.
