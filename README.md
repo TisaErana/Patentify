@@ -22,7 +22,8 @@ On the Terminal:
   * ```npm install```
 
 Node-gyp Errors:
-* try setting the version of the build tools you have: 
+* make sure Python is in your PATH
+* set the version of the build tools you have: 
   ```
   npm config set msvs_version 2019
   ```
