@@ -11,6 +11,8 @@ Get Started:
   * check by running ```npm -v``` and ```node -v``` on Terminal
 * Install [MongoDB](https://docs.mongodb.com/manual/installation/)
   * import data from live database
+  * add an environment variable 'MONGO_URL' with value: 
+    * ```mongodb://localhost:27017/[database-name]```
 * Install [Nodemon](https://www.npmjs.com/package/nodemon) 
    - ```npm install -g nodemon```
 
