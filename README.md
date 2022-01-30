@@ -13,6 +13,10 @@ Get Started:
   * import data from live database
   * add an environment variable 'MONGO_URL' with value: 
     * ```mongodb://localhost:27017/[database-name]```
+    * MongoDB does not bind to the IPv6 address (::1) by default, \
+    if you get ECONNREFUSED errors, localhost might be resolving to ::1 \
+    instead use:
+    ```mongodb://127.0.0.1:27017/[database-name]```
 * Install [Nodemon](https://www.npmjs.com/package/nodemon) 
    - ```npm install -g nodemon```
 
