@@ -38,7 +38,7 @@ Node-gyp Errors:
   ```
 * if you have not rebooted, reboot and try again
 
-* try deleting the package-lock.json files and try again.
+* try deleting the package-lock.json files and try again
 * try installing a [global node-gyp version and telling npm to use it](https://github.com/nodejs/node-gyp/blob/master/docs/Updating-npm-bundled-node-gyp.md)
 * if all else fails, switch to [yarn](https://classic.yarnpkg.com/lang/en/docs/install/): \
   ```npm install --global yarn``` \
