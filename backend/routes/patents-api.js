@@ -26,8 +26,13 @@ const QUEUE_CANDIDATE_LOOKUP_SIZE = 3;
 /**
  * Finds the next best patent to show the user.
  * @param {*} req the api request to the server.
+ * @param {Object} transaction update existing entry or make a new one.
+ *    transaction: 
+ *      mode: new | update
+ *      documentId: the documentId of the patent currently in the queue.
+ * @return an Object with patent information.
  */
-async function getNextPatent(req) {
+async function getNextPatent(req, transaction = { "mode": "new", "documentId": undefined }) {
   // find patents the user has already labeled:
   var alreadyLabeled = await Label.find({
     user: req.user._id
@@ -59,15 +64,42 @@ async function getNextPatent(req) {
     patent = candidates[++i];
   }
   
-  await (new Queue({
-    userId: req.user._id,
-    documentId: patent.documentId,
-    patentCorpus: patent.patentCorpus
-  }))
-  .save()
-  .catch((error) => {
-    throw error;
-  });
+  if(transaction.mode === "update")
+  {
+    const queueItem = await Queue.findOne({
+      userId: req.user._id,
+      documentId: transaction.documentId
+    })
+    .catch((error) => {
+      throw error;
+    });
+
+    if(queueItem !== null)
+    {
+      queueItem.documentId = patent.documentId;
+      queueItem.patentCorpus = patent.patentCorpus;
+      queueItem.updatedAt = Date.now();
+
+      await queueItem.save().catch((error) => {
+        throw error;
+      });
+    }
+    else { 
+      throw "invalid queue: check user and documentId"; 
+    }
+  }
+  else
+  {
+    await (new Queue({
+      userId: req.user._id,
+      documentId: patent.documentId,
+      patentCorpus: patent.patentCorpus
+    }))
+    .save()
+    .catch((error) => {
+      console.log(error);
+    });
+  }
 
   return patent;
 }
@@ -210,31 +242,10 @@ router.post("/search", async function (req, res, next) {
 
 // Remove a patent from the current user's queue:
 router.post("/queue/remove", async function (req, res, next) {
-  const queue = await Queue.find({ // fetch items from the queue for the current user.
-    "userId":  req.user._id
-  })
-
-  if(queue.length !== 0) // user has a queue:
-  {
-    const newQueue = queue[0].items.filter(item => item !== req.body.documentId);
-    
-    await Queue.updateOne(
-      { _id: queue[0]._id },
-      { items: newQueue }
-    ).catch((error) => {
-      res.status(500).json({ error: error });
-    });
-
-    res.json(await getPatentQueue(req).catch((error) => {
-      res.status(500).json({ error: error });
-    }));
-  }
-  else // invalid request:
-  {
-    res.status(500).json({
-      error: 'the current user does not have a queue',
-    });
-  }
+  res.json(
+    await getNextPatent(req, {"mode": "update", "documentId": req.body.documentId}).catch((error) => {
+      res.status(400).json({ error: error });
+  }));
 });
 
 router.get("/getAllQueues", async function (req,res,next){
@@ -245,9 +256,6 @@ router.get("/getAllQueues", async function (req,res,next){
     res.status(500).json({error: "no queues are currently active"})
   }
   res.status(200).json([queues])
-  
-
-
 })
 
 // clears the cookie on the backend side:
