@@ -163,6 +163,15 @@ router.post("/labels", async function (req, res, next) {
       res.status(500).json({ error: error });
     });
 
+    await getNextPatent(req, 
+      {
+        "mode": "update", 
+        "documentId": req.body.documentId
+      }).catch((error) => {
+        res.status(400).json({ error: error })
+      }
+    );
+
     res.json(result);
   }
   else // new entry:
@@ -180,6 +189,15 @@ router.post("/labels", async function (req, res, next) {
       kpr:req.body.kpr, // Knowledge Processing
       none:req.body.none // None of the Above
     });
+
+    await getNextPatent(req, 
+      {
+        "mode": "update", 
+        "documentId": req.body.documentId
+      }).catch((error) => {
+        res.status(400).json({ error: error })
+      }
+    );
 
     res.json(await label.save().catch((error) => {
       res.status(500).json({ error: error });
