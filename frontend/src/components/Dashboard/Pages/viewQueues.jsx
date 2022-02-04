@@ -61,6 +61,22 @@ const ViewQueues = () => {
 
     }, [])
 
+    function padTo2Digits(num) {
+        return num.toString().padStart(2, '0');
+    }
+
+    function convertMsToTime(milliseconds) {
+        let seconds = Math.floor(milliseconds / 1000);
+        let minutes = Math.floor(seconds / 60);
+        let hours = Math.floor(minutes / 60);
+      
+        seconds = seconds % 60;
+        minutes = minutes % 60;
+      
+        return `${padTo2Digits(hours)}:${padTo2Digits(minutes)}:${padTo2Digits(
+          seconds,
+        )}`;
+      }
 
     function printInfo() {
         if (!(queuesPerUser.size > 0)) {
@@ -83,22 +99,31 @@ const ViewQueues = () => {
                                 <Tab.Content>
                                     {
                                         values.map((q) => {
+                                            const updatedAt = (new Date(q.updatedAt));
                                             return (
-                                                        <Tab.Pane eventKey={key} >
-                                                            <Container className="text-center">
-                                                                <h5>Queue ID: {q._id}</h5>
-                                                                <ul style={{'list-style-type': 'none'}} >
-                                                                    { q.documentId !== undefined ?
-                                                                        <div>
-                                                                            <li>Patent Number: {q.documentId}</li>
-                                                                            <li>Updated At: {q.updatedAt}</li>
-                                                                        </div>
-                                                                      :
-                                                                        <li>This queue is empty</li>
-                                                                    }
-                                                                </ul>
-                                                            </Container>
-                                                        </Tab.Pane>
+                                                    <Tab.Pane eventKey={key} >
+                                                        <Container className="text-center">
+                                                            <h5>Queue ID: {q._id}</h5>
+                                                            <ul style={{'list-style-type': 'none'}} >
+                                                                { q.documentId !== undefined ?
+                                                                    <div>
+                                                                        <li>Patent Number: {q.documentId}</li>
+                                                                        <li>Elapsed Time: { 
+                                                                                convertMsToTime(new Date() - updatedAt) 
+                                                                            }
+                                                                        </li>
+                                                                        <li>Expires In: { // 864,000,000ms = 10 days
+                                                                                convertMsToTime(864000000 - (new Date() - updatedAt))
+                                                                            } hours
+                                                                        </li>
+                                                                        <li>Updated At: {updatedAt.toString()}</li>
+                                                                    </div>
+                                                                    :
+                                                                    <li>This queue is empty</li>
+                                                                }
+                                                            </ul>
+                                                        </Container>
+                                                    </Tab.Pane>
                                             )})
                                     }
                                 </Tab.Content>
