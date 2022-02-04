@@ -44,7 +44,7 @@ const PatentView = (props) => {
         const body = await response.json();
         // body is an object with the response 
 
-        setPatentId(body[0].documentId);
+        setPatentId(body.documentId);
         setPatents(
           /* This sets the state of patents to be an object that contains only the documentID and Patent Corpus
           // we map throught the object to acxomplish this

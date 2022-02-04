@@ -24,7 +24,7 @@ const PatentForm = (props) => {
   useEffect(() => {
     if(props.patents !== undefined)
     {
-      const patents = props.patents[0];
+      const patents = props.patents;
       console.log(patents)
       if(patents.mal !== undefined && patents.mal !== mal) { setMal(patents.mal); }
       if(patents.hdw !== undefined && patents.hdw !== hdw) { setHdw(patents.hdw); }
@@ -45,7 +45,7 @@ const PatentForm = (props) => {
       url: "/patents-api/labels", // route in backend
       method: "POST",
       data: {
-        documentId: props.patents[0].documentId,
+        documentId: props.patents.documentId,
         mal: data.mal,
         hdw: data.hdw,
         evo: data.evo,
@@ -58,8 +58,7 @@ const PatentForm = (props) => {
       },
     })
       .then((response) => {
-        console.log(response.data);
-        dequeue();
+        window.location.reload(false);
       })
       .catch((error) => {
         console.log("error: ", error.data);
@@ -70,11 +69,11 @@ const PatentForm = (props) => {
       url: "/patents-api/queue/remove", // route in backend
       method: "POST",
       data: {
-        documentId: props.patents[0].documentId,
+        documentId: props.patents.documentId,
       },
     })
       .then((response) => {
-        props.updatePatentId(response.data[0].documentId);
+        props.updatePatentId(response.data.documentId);
         props.updatePatents(response.data);
         
         resetForm();

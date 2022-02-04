@@ -19,7 +19,7 @@ const ViewQueues = () => {
                     if (res.message) {
                         setError(res.data.message)
                     } else {
-                        findQueueUsers(res.data[0]) // findQueueUsers(queues)
+                        findQueueUsers(res.data) // findQueueUsers(queues)
                     }
                 }).catch(err => setError(err))
             } catch (e) { }
@@ -45,12 +45,13 @@ const ViewQueues = () => {
         };
 
         function sortQueuesByUsers(queues, users) {
-            let map = new Map()
+            let map = new Map();
             for (const user of users) {
                 map.set(`${user._id}`, [])
             }
             for (const queue of queues) {
-                map.get(queue.userId).push(queue)
+                queue.details = users.find(user => user._id === queue.userId);
+                map.get(queue.userId).push(queue);
             }
             setQueuesPerUser(map)
             setLoaded(true)
@@ -71,8 +72,10 @@ const ViewQueues = () => {
                             <Col sm={3} md={3} lg={3}>
                                 <NavBar variant="pills" className="flex-column">
                                     <NavBar.Item>
-                                        {/* print user name */}
-                                        <NavBar.Link eventKey={key}>User Id: {key}</NavBar.Link>  
+                                        <NavBar.Link eventKey={key}>
+                                            <li>{values[0].details.name}</li>
+                                            <li>{key}</li>
+                                        </NavBar.Link>  
                                     </NavBar.Item>
                                 </NavBar>
                             </Col>
@@ -83,14 +86,15 @@ const ViewQueues = () => {
                                             return (
                                                         <Tab.Pane eventKey={key} >
                                                             <Container className="text-center">
-                                                                <p>Queue ID: {q._id}</p>
+                                                                <h5>Queue ID: {q._id}</h5>
                                                                 <ul style={{'list-style-type': 'none'}} >
-                                                                    { q.items.length > 0?
-                                                                         q.items.map( (item) => {
-                                                                            return <li>Patent Number: {item}</li>
-                                                                         })
+                                                                    { q.documentId !== undefined ?
+                                                                        <div>
+                                                                            <li>Patent Number: {q.documentId}</li>
+                                                                            <li>Updated At: {q.updatedAt}</li>
+                                                                        </div>
                                                                       :
-                                                                         <li>This queue is empty</li>
+                                                                        <li>This queue is empty</li>
                                                                     }
                                                                 </ul>
                                                             </Container>
