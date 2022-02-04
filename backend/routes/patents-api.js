@@ -270,12 +270,11 @@ router.get("/getAllQueues", async function (req,res,next){
 
   if(req.user.role === 'admin')
   {
-    const queues = await Queue.find()
-
-    if(queues.length < 1){
-      res.status(500).json({error: "no queues are currently active"})
-    }
-    res.status(200).json([queues])
+    const queues = await Queue.find().catch((error) => {
+      console.log(error);
+      res.status(500);
+    });
+    res.status(200).json(queues);
   }
   else
   {
