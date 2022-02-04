@@ -53,10 +53,10 @@ function checkID(patents, currentPage){
        //console.log(patents)
 
        // pdfpiw.uspto.gov: expects 'RE' is converted -> '00' for API call
-       var id = patents[0].documentId.toString()
+       var id = patents.documentId.toString()
        id = id.replace('RE', '00');
 
-       if(patents[0].patentCorpus === "USPAT") // ex: 04021701 
+       if(patents.patentCorpus === "USPAT") // ex: 04021701 
        {
 
          while(id.length < 8) // pad the patent number to 8 characters.
@@ -67,7 +67,7 @@ function checkID(patents, currentPage){
          return ("https://pdfpiw.uspto.gov/"+id.substring(6, 8)+"/"+id.substring(3, 6)+"/"+id.substring(0, 3)+"/"+currentPage+".pdf")
        
        }
-       else if (patents[0].patentCorpus === "PGPUB") // ex: 20170205789
+       else if (patents.patentCorpus === "PGPUB") // ex: 20170205789
        {
          return ("https://pdfaiw.uspto.gov/"+id.substring(9,11)+"/"+id.substring(0,4)+"/"+id.substring(7,9)+"/"+id.substring(4,7)+"/"+currentPage+".pdf")
 

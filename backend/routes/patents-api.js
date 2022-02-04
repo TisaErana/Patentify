@@ -13,103 +13,125 @@ const Queue = require("../models/queue_model");
 const e = require("express");
 const { rawListeners } = require("../app");
 
+// Backend Constants:
+
 /**
- * ONLY if the queue is empty:
- * Adds 10 random unannotated patents to the users queue.
- * @return {List} of patents in the queue for the current user.
+ * The sample size of random patents to retrieve from the DB when findind a new patent.
+ * 
+ * Increase this when most patents in the DB have been labeled/are in queues to be labeled to decrease DB queries.
+ * Decrease this when size of patents in DB > size of patents labeled/in user queues.
  */
-async function getPatentQueue(req)
-{
-  const queue = await Queue.find({
-    "userId":  req.user._id
-  });
+const QUEUE_CANDIDATE_LOOKUP_SIZE = 3;
 
-  // current user has a queue entry in the database:
-  if (queue.length !== 0)
+/**
+ * Finds the next best patent to show the user.
+ * @param {*} req the api request to the server.
+ * @param {Object} transaction update existing entry or make a new one.
+ *    transaction: 
+ *      mode: new | update
+ *      documentId: the documentId of the patent currently in the queue.
+ * @return an Object with patent information.
+ */
+async function getNextPatent(req, transaction = { "mode": "new", "documentId": undefined }) {
+  // find patents the user has already labeled:
+  var alreadyLabeled = await Label.find({
+    user: req.user._id
+  }).select(['-_id', 'document']).distinct('document');
+
+  // find patents in someone else's queue:
+  var inQueues = await Queue.find({
+    userId: req.user._id
+  }).select(['-_id', 'documentId']).distinct('documentId')
+  
+  var candidates = await Patent.aggregate([
+    { $sample: { size: QUEUE_CANDIDATE_LOOKUP_SIZE } }
+  ]); // find some random patent candidates
+
+  var i = 0; // current index
+  var patent = candidates[i]; // current patent
+  const patentIdsToExclude = alreadyLabeled.concat(inQueues);
+
+  // this is a lot faster than excluding them in the MongoDB aggregate function:
+  while(patentIdsToExclude.includes(patent.documentId))
   {
-    // a single user should only have 1 queue entry,
-    // so, safe to only check queue[0]
-    if(queue[0].items.length > 0)
-    {
-      // retrieves information about patents in the order they are in the patents collection:
-      const patents = await Patent.find({
-        documentId: queue[0].items
-      });
+    if(i == (QUEUE_CANDIDATE_LOOKUP_SIZE - 1)) {
+      candidates = await Patent.aggregate([
+        { $sample: { size: QUEUE_CANDIDATE_LOOKUP_SIZE } }
+      ]); // find some random patent candidates
 
-      // this will gaurantee the queue order:      
-      return patents.map((item, index) => { 
-        return patents.find((i) => i.documentId == queue[0].items[index]); 
-      });
+      i = 0;
     }
-    else // let's add some new patents:
-    {
-      var alreadyLabeled = await Label.find().select(['-_id', 'document']);
-      alreadyLabeled = alreadyLabeled.map((id) => {return id.document; }); // extract only the documentId
-      
-      const patents = await Patent.aggregate([
-        { $match: { documentId: { $nin: alreadyLabeled }}},
-        { $sample: { size: 10 } }
-      ]); // find 10 random patents
-
-      // make sure we found some patents:
-      if(patents.length == 0)
-      {
-        console.log('no new patents to assign to user queue');
-        throw 'no new patents to assign to user queue';
-      }
-
-      const patentIds = patents.map((id) => { return id.documentId; }) // extract only the patentId
-
-      await Queue.updateOne(
-        { _id: queue[0]._id },
-        { items: patentIds }
-      );
-
-      return patents;
-    }   
+    patent = candidates[++i];
   }
-  else // current user does not have a queue in the database (yet):
+  
+  if(transaction.mode === "update")
   {
-    var alreadyLabeled = await Label.find().select(['-_id', 'document']);
-    alreadyLabeled = alreadyLabeled.map((id) => {return id.document; }); // extract only the documentId
-      
-    const patents = await Patent.aggregate([
-      { $match: { documentId: { $nin: alreadyLabeled }}},
-      { $sample: { size: 10 } }
-    ]); // find 10 random patents
-
-    // make sure we found some patents:
-    if(patents.length == 0)
-    {
-      console.log('no new patents to assign to user queue');
-      throw 'no new patents to assign to user queue';
-    }
-      
-    const patentIds = patents.map((id) => { return id.documentId; }) // extract only the patentId
-    
-    const queue = new Queue({
+    const queueItem = await Queue.findOne({
       userId: req.user._id,
-      items: patentIds
+      documentId: transaction.documentId
+    })
+    .catch((error) => {
+      throw error;
     });
 
-    await queue.save();
-    return patents;
+    if(queueItem !== null)
+    {
+      queueItem.documentId = patent.documentId;
+      queueItem.patentCorpus = patent.patentCorpus;
+      queueItem.updatedAt = Date.now();
+
+      await queueItem.save().catch((error) => {
+        throw error;
+      });
+    }
+    else { 
+      throw "invalid queue: check user and documentId"; 
+    }
   }
+  else
+  {
+    await (new Queue({
+      userId: req.user._id,
+      documentId: patent.documentId,
+      patentCorpus: patent.patentCorpus
+    }))
+    .save()
+    .catch((error) => {
+      console.log(error);
+    });
+  }
+
+  return patent;
 }
 
 /**
  * GETs patents from the database.
- * IF the user has items in their queue:
- *    the entire queue will be sent to frontend.
+ * 
+ * IF the user has items in the queue:
+ *    that item will be retrieved.
  * ELSE
- *    the user will receive 10 random patents in their queue.
- *    the entire new queue will be sent to frontend.
+ *    a new patent will be found for them and added to the queue.
+ * 
+ * @returns json encoded patent information.   
 */
 router.get("/", async function (req, res, next) {
-  res.json(
-    await getPatentQueue(req).catch((error) => {
-      res.status(500).json({ error: error });
+  const userQueue = await Queue.findOne({
+    "userId":  req.user._id
+  });
+
+  // there is a patent in queue for the current user:
+  if(userQueue !== null)
+  {
+    res.json(userQueue);
+  }
+  else // let's find a new patent for the user:
+  {
+    res.json(
+      await getNextPatent(req).catch((error) => {
+        res.status(500).json({ error: error });
     }));
+  }
+
 });
 
 // This route is sending a post to the DB with labeling information aswell as documentid and userid
@@ -141,6 +163,15 @@ router.post("/labels", async function (req, res, next) {
       res.status(500).json({ error: error });
     });
 
+    await getNextPatent(req, 
+      {
+        "mode": "update", 
+        "documentId": req.body.documentId
+      }).catch((error) => {
+        res.status(400).json({ error: error })
+      }
+    );
+
     res.json(result);
   }
   else // new entry:
@@ -158,6 +189,15 @@ router.post("/labels", async function (req, res, next) {
       kpr:req.body.kpr, // Knowledge Processing
       none:req.body.none // None of the Above
     });
+
+    await getNextPatent(req, 
+      {
+        "mode": "update", 
+        "documentId": req.body.documentId
+      }).catch((error) => {
+        res.status(400).json({ error: error })
+      }
+    );
 
     res.json(await label.save().catch((error) => {
       res.status(500).json({ error: error });
@@ -220,44 +260,26 @@ router.post("/search", async function (req, res, next) {
 
 // Remove a patent from the current user's queue:
 router.post("/queue/remove", async function (req, res, next) {
-  const queue = await Queue.find({ // fetch items from the queue for the current user.
-    "userId":  req.user._id
-  })
-
-  if(queue.length !== 0) // user has a queue:
-  {
-    const newQueue = queue[0].items.filter(item => item !== req.body.documentId);
-    
-    await Queue.updateOne(
-      { _id: queue[0]._id },
-      { items: newQueue }
-    ).catch((error) => {
-      res.status(500).json({ error: error });
-    });
-
-    res.json(await getPatentQueue(req).catch((error) => {
-      res.status(500).json({ error: error });
-    }));
-  }
-  else // invalid request:
-  {
-    res.status(500).json({
-      error: 'the current user does not have a queue',
-    });
-  }
+  res.json(
+    await getNextPatent(req, {"mode": "update", "documentId": req.body.documentId}).catch((error) => {
+      res.status(400).json({ error: error });
+  }));
 });
 
 router.get("/getAllQueues", async function (req,res,next){
 
-  const queues = await Queue.find({})
-
-  if(queues.length < 1){
-    res.status(500).json({error: "no queues are currently active"})
+  if(req.user.role === 'admin')
+  {
+    const queues = await Queue.find().catch((error) => {
+      console.log(error);
+      res.status(500);
+    });
+    res.status(200).json(queues);
   }
-  res.status(200).json([queues])
-  
-
-
+  else
+  {
+    res.status(401).json({ error: "unauthorized" });
+  }
 })
 
 // clears the cookie on the backend side:

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, Fragment } from "react";
 
-import { Tab, Row, Col, Container, Nav as NavBar } from 'react-bootstrap';
+import { Tab, Table, Row, Col, Container, Nav as NavBar } from 'react-bootstrap';
 import axios from 'axios';
 import Nav from "../components/DashboardNavigation";
 
@@ -19,7 +19,7 @@ const ViewQueues = () => {
                     if (res.message) {
                         setError(res.data.message)
                     } else {
-                        findQueueUsers(res.data[0]) // findQueueUsers(queues)
+                        findQueueUsers(res.data) // findQueueUsers(queues)
                     }
                 }).catch(err => setError(err))
             } catch (e) { }
@@ -45,12 +45,13 @@ const ViewQueues = () => {
         };
 
         function sortQueuesByUsers(queues, users) {
-            let map = new Map()
+            let map = new Map();
             for (const user of users) {
                 map.set(`${user._id}`, [])
             }
             for (const queue of queues) {
-                map.get(queue.userId).push(queue)
+                queue.details = users.find(user => user._id === queue.userId);
+                map.get(queue.userId).push(queue);
             }
             setQueuesPerUser(map)
             setLoaded(true)
@@ -60,6 +61,22 @@ const ViewQueues = () => {
 
     }, [])
 
+    function padTo2Digits(num) {
+        return num.toString().padStart(2, '0');
+    }
+
+    function convertMsToTime(milliseconds) {
+        let seconds = Math.floor(milliseconds / 1000);
+        let minutes = Math.floor(seconds / 60);
+        let hours = Math.floor(minutes / 60);
+      
+        seconds = seconds % 60;
+        minutes = minutes % 60;
+      
+        return `${padTo2Digits(hours)}:${padTo2Digits(minutes)}:${padTo2Digits(
+          seconds,
+        )}`;
+      }
 
     function printInfo() {
         if (!(queuesPerUser.size > 0)) {
@@ -71,8 +88,10 @@ const ViewQueues = () => {
                             <Col sm={3} md={3} lg={3}>
                                 <NavBar variant="pills" className="flex-column">
                                     <NavBar.Item>
-                                        {/* print user name */}
-                                        <NavBar.Link eventKey={key}>User Id: {key}</NavBar.Link>  
+                                        <NavBar.Link eventKey={key}>
+                                            <li>{values[0].details.name}</li>
+                                            <li>{key}</li>
+                                        </NavBar.Link>  
                                     </NavBar.Item>
                                 </NavBar>
                             </Col>
@@ -80,21 +99,54 @@ const ViewQueues = () => {
                                 <Tab.Content>
                                     {
                                         values.map((q) => {
+                                            const updatedAt = (new Date(q.updatedAt));
                                             return (
-                                                        <Tab.Pane eventKey={key} >
-                                                            <Container className="text-center">
-                                                                <p>Queue ID: {q._id}</p>
-                                                                <ul style={{'list-style-type': 'none'}} >
-                                                                    { q.items.length > 0?
-                                                                         q.items.map( (item) => {
-                                                                            return <li>Patent Number: {item}</li>
-                                                                         })
-                                                                      :
-                                                                         <li>This queue is empty</li>
-                                                                    }
-                                                                </ul>
-                                                            </Container>
-                                                        </Tab.Pane>
+                                                    <Tab.Pane eventKey={key} >
+                                                        <Container className="text-center">
+                                                            <h5>Queue ID: {q._id}</h5>
+                                                            <ul style={{'list-style-type': 'none'}} >
+                                                                <Table>
+                                                                    <tbody>
+                                                                        <tr>
+                                                                            <td>
+                                                                                Patent Number: 
+                                                                            </td>
+                                                                            <td>
+                                                                                {q.documentId}
+                                                                            </td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td>
+                                                                                Elapsed Time: 
+                                                                            </td>
+                                                                            <td>
+                                                                                { convertMsToTime(new Date() - updatedAt) }
+                                                                            </td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td>
+                                                                                Expires In: 
+                                                                            </td>
+                                                                            <td> 
+                                                                                {
+                                                                                    // 864,000,000ms = 10 days
+                                                                                    convertMsToTime(864000000 - (new Date() - updatedAt))
+                                                                                } 
+                                                                            </td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td>
+                                                                                Last Updated At: 
+                                                                            </td>
+                                                                            <td> 
+                                                                                { updatedAt.toString() }
+                                                                            </td>
+                                                                        </tr>                                                                       
+                                                                    </tbody>
+                                                                </Table>
+                                                            </ul>
+                                                        </Container>
+                                                    </Tab.Pane>
                                             )})
                                     }
                                 </Tab.Content>
