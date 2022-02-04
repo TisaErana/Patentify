@@ -1,6 +1,6 @@
 import React, { useState, useEffect, Fragment } from "react";
 
-import { Tab, Row, Col, Container, Nav as NavBar } from 'react-bootstrap';
+import { Tab, Table, Row, Col, Container, Nav as NavBar } from 'react-bootstrap';
 import axios from 'axios';
 import Nav from "../components/DashboardNavigation";
 
@@ -105,22 +105,45 @@ const ViewQueues = () => {
                                                         <Container className="text-center">
                                                             <h5>Queue ID: {q._id}</h5>
                                                             <ul style={{'list-style-type': 'none'}} >
-                                                                { q.documentId !== undefined ?
-                                                                    <div>
-                                                                        <li>Patent Number: {q.documentId}</li>
-                                                                        <li>Elapsed Time: { 
-                                                                                convertMsToTime(new Date() - updatedAt) 
-                                                                            }
-                                                                        </li>
-                                                                        <li>Expires In: { // 864,000,000ms = 10 days
-                                                                                convertMsToTime(864000000 - (new Date() - updatedAt))
-                                                                            } hours
-                                                                        </li>
-                                                                        <li>Updated At: {updatedAt.toString()}</li>
-                                                                    </div>
-                                                                    :
-                                                                    <li>This queue is empty</li>
-                                                                }
+                                                                <Table>
+                                                                    <tbody>
+                                                                        <tr>
+                                                                            <td>
+                                                                                Patent Number: 
+                                                                            </td>
+                                                                            <td>
+                                                                                {q.documentId}
+                                                                            </td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td>
+                                                                                Elapsed Time: 
+                                                                            </td>
+                                                                            <td>
+                                                                                { convertMsToTime(new Date() - updatedAt) }
+                                                                            </td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td>
+                                                                                Expires In: 
+                                                                            </td>
+                                                                            <td> 
+                                                                                {
+                                                                                    // 864,000,000ms = 10 days
+                                                                                    convertMsToTime(864000000 - (new Date() - updatedAt))
+                                                                                } 
+                                                                            </td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td>
+                                                                                Last Updated At: 
+                                                                            </td>
+                                                                            <td> 
+                                                                                { updatedAt.toString() }
+                                                                            </td>
+                                                                        </tr>                                                                       
+                                                                    </tbody>
+                                                                </Table>
                                                             </ul>
                                                         </Container>
                                                     </Tab.Pane>
