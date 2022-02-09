@@ -122,6 +122,12 @@ router.get("/", async function (req, res, next) {
   // there is a patent in queue for the current user:
   if(userQueue !== null)
   {
+    userQueue.updatedAt = Date.now();
+    
+    await userQueue.save().catch((error) => {
+      res.status(500);
+    });
+
     res.json(userQueue);
   }
   else // let's find a new patent for the user:
