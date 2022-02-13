@@ -6,7 +6,7 @@ from time import time
 
 #stablish connection to the database
 
-client = MongoClient("mongodb://compute1.cognac.cs.fiu.edu:59122/PatentData?readPreference=secondary&ssl=false")
+client = MongoClient("mongodb://localhost:27017/PatentData")
 db = client['PatentData']
 cluster = db['labels']
 
