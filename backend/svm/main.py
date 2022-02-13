@@ -48,20 +48,19 @@ entries = 0
 ids = []
 target = []
 try:
+    db_stream = None
+    continue_starter = None
     continue_after = None
     try:
-        continue_starter = load('continue_token.joblib')
-        continue_after = continue_starter
+        continue_after = continue_starter = load('continue_token.joblib')
+        db_stream = cluster.watch(resume_after=continue_starter)
+        print('[INFO]: found resume token:', continue_starter)
     except FileNotFoundError:
-        print('no token found')
-        continue_after = None
+        db_stream = cluster.watch()  
+        continue_after = continue_starter = db_stream._resume_token
+        print('[INFO]: no resume token found, using latest resume token:', continue_starter)
         
-    if not continue_after:
-        print('no Continue After')
-        continue_starter = load('continue_tester.joblib')
-        continue_after = continue_starter
-        
-    with cluster.watch(resume_after=continue_after) as stream:
+    with db_stream as stream:
         print("Listening...")
         while stream.alive:
             change = stream.next()
