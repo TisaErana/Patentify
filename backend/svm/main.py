@@ -80,35 +80,10 @@ try:
                     print("done with cycle")
                     entries = 0
                     ids = []
-                    target = []
-
-#         for idx in range(len(X)):
-#             query_idx, query_instance = learner.query(X)
-#             learner.teach(X[query_idx].reshape(1, -1), y[query_idx].reshape(1, -1))    
-#     with cluster.watch(resume_after=continue_after) as stream:
-#         print('Entering full loop with resume_after')
-#         while stream.alive:
-#             change = stream.next()
-#             if change is not None:
-#                 entry = change['fullDocument']
-#                 print(f'Entry:{entry}')
-#                 entries +=1
-#                 ids.append(entry['document'])
-#                 target.append(entry['MachineLearningPatent'])
-#                 if entries > 7:
-#                     print("Learning")
-#                     X, y = to_learn(client, ids, target, stopwords)
-#                     print("Teaching")
-# #                     for idx in range(len(X)):
-# #                         query_idx, query_instance = learner.query(X)
-# #                         learner.teach(X[query_idx].reshape(1, -1), y[query_idx].reshape(1, -1))
-#                     continue_after = change['_id']
-#                     dump(contiune_after,'continue_token.joblib')
-#                     entries = 0
-
-                        
+                    target = []                      
 except KeyboardInterrupt:
     print("Interrupted")
+
 print("Finalizing ...")
 if continue_after is not continue_starter:
     print("Dumping continue_after")
