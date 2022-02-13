@@ -68,7 +68,7 @@ def base_model_creator(client, stopwords):
     sleep(3)
     
 
-def model_loader(model = 'base_model'):
+def model_loader(model = 'base_model_working'):
     estimator = load(f"models/Final/{model}.joblib")
     return estimator
 
