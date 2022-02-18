@@ -69,7 +69,7 @@ try:
                 print(f'Entry:{entry}')
                 entries +=1
                 ids.append(entry['document'])
-                target.append(entry['MachineLearningPatent'])
+                target.append(entry['mal'])
                 if entries > 3:
                     continue_after = change['_id']
                     print(ids)
