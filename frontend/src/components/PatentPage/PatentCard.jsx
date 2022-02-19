@@ -6,7 +6,7 @@ import Iframe from 'react-iframe';
 const PatentCard = (props) => {
 
   return (
-    <Card style={{ width: "105%" }}>
+    <Card>
         <Card.Body>
         <Iframe
             id="patent-pdf"
