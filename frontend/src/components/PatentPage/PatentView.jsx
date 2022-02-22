@@ -66,15 +66,15 @@ const PatentView = (props) => {
   
   return (
     <div className="container-fluid mt-5">
-      <div className="row" style={{width: "145%"}}>
+      <div className="row">
         {error ? 
         <div style={{marginLeft: "1%"}}><h2>{error}</h2></div> : 
         <Fragment>
-          <div className="col-sm-2 col-lg-6 col-md-6" style={{maxWidth: "58%"}}>
+          <div className="col-sm-10 col-lg-9 col-md-7">
             <h2>Patent ID: {patentId}</h2>
             <PatentCard patents={patents} />
           </div>
-          <div className="col-sm-2 col-lg-6 col-md-6">
+          <div className="col-sm-7 col-lg-3 col-md-4">
             <PatentForm patents={patents} updatePatents={setPatents} updatePatentId={setPatentId}/>
           </div>
         </Fragment>

@@ -6,7 +6,7 @@ from time import time
 
 #stablish connection to the database
 
-client = MongoClient("mongodb://localhost:27017/PatentData")
+client = MongoClient("mongodb://compute1.cognac.cs.fiu.edu:59122/PatentData?readPreference=secondary&ssl=false")
 db = client['PatentData']
 cluster = db['labels']
 
@@ -48,19 +48,20 @@ entries = 0
 ids = []
 target = []
 try:
-    db_stream = None
-    continue_starter = None
     continue_after = None
     try:
-        continue_after = continue_starter = load('continue_token.joblib')
-        db_stream = cluster.watch(resume_after=continue_starter)
-        print('[INFO]: found resume token:', continue_starter)
+        continue_starter = load('continue_token.joblib')
+        continue_after = continue_starter
     except FileNotFoundError:
-        db_stream = cluster.watch()  
-        continue_after = continue_starter = db_stream._resume_token
-        print('[INFO]: no resume token found, using latest resume token:', continue_starter)
+        print('no token found')
+        continue_after = None
         
-    with db_stream as stream:
+    if not continue_after:
+        print('no Continue After')
+        continue_starter = load('continue_tester.joblib')
+        continue_after = continue_starter
+        
+    with cluster.watch(resume_after=continue_after) as stream:
         print("Listening...")
         while stream.alive:
             change = stream.next()
@@ -69,7 +70,7 @@ try:
                 print(f'Entry:{entry}')
                 entries +=1
                 ids.append(entry['document'])
-                target.append(entry['mal'])
+                target.append(entry['MachineLearningPatent'])
                 if entries > 3:
                     continue_after = change['_id']
                     print(ids)
@@ -80,10 +81,35 @@ try:
                     print("done with cycle")
                     entries = 0
                     ids = []
-                    target = []                      
+                    target = []
+
+#         for idx in range(len(X)):
+#             query_idx, query_instance = learner.query(X)
+#             learner.teach(X[query_idx].reshape(1, -1), y[query_idx].reshape(1, -1))    
+#     with cluster.watch(resume_after=continue_after) as stream:
+#         print('Entering full loop with resume_after')
+#         while stream.alive:
+#             change = stream.next()
+#             if change is not None:
+#                 entry = change['fullDocument']
+#                 print(f'Entry:{entry}')
+#                 entries +=1
+#                 ids.append(entry['document'])
+#                 target.append(entry['MachineLearningPatent'])
+#                 if entries > 7:
+#                     print("Learning")
+#                     X, y = to_learn(client, ids, target, stopwords)
+#                     print("Teaching")
+# #                     for idx in range(len(X)):
+# #                         query_idx, query_instance = learner.query(X)
+# #                         learner.teach(X[query_idx].reshape(1, -1), y[query_idx].reshape(1, -1))
+#                     continue_after = change['_id']
+#                     dump(contiune_after,'continue_token.joblib')
+#                     entries = 0
+
+                        
 except KeyboardInterrupt:
     print("Interrupted")
-
 print("Finalizing ...")
 if continue_after is not continue_starter:
     print("Dumping continue_after")
