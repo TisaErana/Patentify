@@ -30,7 +30,7 @@ const PatentView = (props) => {
           setError(body.message)
         }
         else {
-          setPatentId(body[0].documentId);
+          setPatentId(body.documentId);
           setPatents(body);
         }
       } catch(error) {}

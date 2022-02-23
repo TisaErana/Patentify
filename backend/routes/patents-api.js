@@ -169,14 +169,17 @@ router.post("/labels", async function (req, res, next) {
       res.status(500).json({ error: error });
     });
 
-    await getNextPatent(req, 
+    // only way to get here is through search feature,
+    // in this case, there is no need to remove queue:
+
+    /*await getNextPatent(req, 
       {
         "mode": "update", 
         "documentId": req.body.documentId
       }).catch((error) => {
         res.status(400).json({ error: error })
       }
-    );
+    );*/
 
     res.json(result);
   }
@@ -251,11 +254,11 @@ router.post("/search", async function (req, res, next) {
 
       if(annotation !== null)
       {
-        res.json([Object.assign(patent.toObject(), annotation.toObject())]);
+        res.json(Object.assign(patent.toObject(), annotation.toObject()));
       }
       else
       {
-        res.json([patent]);
+        res.json(patent);
       }
     }
     else 
