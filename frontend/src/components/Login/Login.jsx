@@ -119,6 +119,10 @@ const Login = (props) => {
                 <Link to="/signup" className="text-center">
                   SignUp
                 </Link>
+                <p></p>
+                <Link to="/Forgot" className="text-center">
+                  Forgot Password
+                </Link>
               </p>
             </div>
           </div>
