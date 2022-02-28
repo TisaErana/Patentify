@@ -3,6 +3,7 @@ import axios from "axios";
 import React, { useEffect, useState } from 'react';
 import { Switch, Route,Redirect } from "react-router-dom";
 
+
 // Imports of Components here
 import Home from './components/Home/Home';
 import Navbar from './components/NavigationBar/navBar';
@@ -15,7 +16,7 @@ import Logout from './components/Logout/Logout';
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
 import Labels from './components/Dashboard/Pages/Labels';
 import ViewQueues from './components/Dashboard/Pages/viewQueues';
-
+import Forgot from './components/Forgot/Forgot';
 // Import Styles
 import './App.css';
 
@@ -56,6 +57,7 @@ const App = () => {
           <Route exact path="/Home" render ={Home}/>
           <Route path="/Signup" render={(props) => <SignUp {...props} />} />
           <Route path="/Login" render={(props) => <Login {...props} />} />
+          <Route path="/Forgot" render={(props) => <Forgot {...props} />} />
           <Route exact path="/Logout" render={(props) => <Logout {...props} />} />
           <Route exact path="/Search" render={(props) => <ViewPatent {...props} />} />
           <ProtectedRoute exact path="/Patents"   isAuthed = {Auth}  component = {ViewPatent}/> 
