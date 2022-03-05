@@ -1,22 +1,21 @@
-const { User } = require("../models/User_model");
-const Token = require("../models/token");
-const sendEmail = require("../utils/sendEmail");
-const crypto = require("crypto");
-const Joi = require("joi");
 const express = require("express");
 const router = express.Router();
 
+const mongoose = require("mongoose");
+const db = mongoose.connection.db
+
+const crypto = require("crypto");
+const User = require("../models/User_model");
+const Token = require("../models/token");
+const sendEmail = require("../utils/sendEmail");
+
 router.post("/", async (req, res) => {
     try {
-        const schema = Joi.object({ email: Joi.string().email().required() });
-        const { error } = schema.validate(req.body);
-        if (error) return res.status(400).send(error.details[0].message);
-
         const user = await User.findOne({ email: req.body.email });
-        if (!user)
-            return res.status(400).send("user with given email doesn't exist");
+        if (user == null)
+            return res.status(400).json({ error: 'User with given email does not exist.'});
 
-        let token = await Token.findOne({ userId: user._id });
+        let token = await Token.find({ userId: user._id });
         if (!token) {
             token = await new Token({
                 userId: user._id,
@@ -25,7 +24,7 @@ router.post("/", async (req, res) => {
         }
 
         const link = `http://localhost:3000/passwordReset/${user._id}/${token.token}`;
-        await sendEmail(user.email, "Password reset", link);
+        await sendEmail(user.email, "Patentify Password Reset", link);
 
         res.send("password reset link sent to your email account");
     } catch (error) {
@@ -36,7 +35,7 @@ router.post("/", async (req, res) => {
 
 router.post("/:userId/:token", async (req, res) => {
     try {
-        const schema = Joi.object({ password: Joi.string().required() });
+        /*const schema = Joi.object({ password: Joi.string().required() });
         const { error } = schema.validate(req.body);
         if (error) return res.status(400).send(error.details[0].message);
 
@@ -53,7 +52,7 @@ router.post("/:userId/:token", async (req, res) => {
         await user.save();
         await token.delete();
 
-        res.send("password reset sucessfully.");
+        res.send("password reset sucessfully.");*/
     } catch (error) {
         res.send("An error occured");
         console.log(error);
