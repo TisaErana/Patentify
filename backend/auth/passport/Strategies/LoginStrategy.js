@@ -30,6 +30,11 @@ const LoginStrategy = new Strategy({ usernameField: 'email' },
             return done("Email or Password Incorrect", null);
         }
 
+        if(!user.verified) 
+        {
+            return done("Please confirm your email to login.", null);
+        }
+
         return done(null,user);
 
     });

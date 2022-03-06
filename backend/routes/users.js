@@ -1,8 +1,11 @@
 const express = require("express");
 const router = express.Router();
 const passport = require("../auth/passport/index");
-
+const userconfirmed = require("../models/user_confirmed_model")
 const User = require("../models/User_model");
+const path = require("path");
+const bcrypt = require('bcryptjs');
+
 
 /* GET users listing. */
 
@@ -64,16 +67,18 @@ router.post("/register", function (req, res, next) {
         message: error || "Oops something happend"
       })
     }
+    
     // Adds a property to object and lets us know that the user has been authenticated.
     user.isAuthenticated = true; 
 
     return res.json(user);
-
+    
   });
 
     
   })(req, res, next);
 });
+
 
 router.post("/findUser", async function(req,res,next){
   const IDs = req.body.IDs
@@ -95,6 +100,34 @@ router.post("/findUser", async function(req,res,next){
   }
 })
 
-
+router.get("/verify/:userId/:uniqueString", (req, res) => {
+  let{userId, uniqueString} = req.params;
+  userconfirmed.find({userId}).then((inserted) => {
+    if(inserted.length > 0){  
+      const hashedUniqueString = inserted[0].uniqueString;
+      bcrypt.compare(uniqueString, hashedUniqueString).then(inserted => {  
+        if(inserted){  
+          User.updateOne({_id: userId}, {verified: true}).then(() =>{  
+            userconfirmed.deleteOne({userId}).then(() =>{  
+            }).catch(error =>{  
+              console.log(error);
+            })
+          }).catch(error =>{  
+          console.log(error);
+          })
+        }else{  
+          console.log(error);
+        }
+      }).catch(error =>{  
+        console.log(error);
+      })
+    }else{  
+      console.log(error);
+    }
+  }).catch((error)=> {
+    console.log(error);
+    console.log(error);
+  })
+});
 
 module.exports = router;
