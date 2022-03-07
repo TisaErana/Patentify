@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import axios from "axios";
 
-const Forgot = (props) => {
+const Reset = (props) => {
   const { register, handleSubmit } = useForm(); // initialize the hook
 
   //register is a function to be used as a ref provided by the useForm hook. We can assign it to each input field so that the react-hook-form can track the changes for the input field value.
@@ -14,10 +14,11 @@ const Forgot = (props) => {
     // and checks if user is in our Database
 
     axios({
-      url: "passwordReset", // route in backend
+      url: "/passwordReset/reset", // route in backend
       method: "POST",
       data: {
-        email: data.email,
+        password: data.password,
+        token: data.token
       },
     })
       .then((response) => {
@@ -35,30 +36,37 @@ const Forgot = (props) => {
       <div className="d-flex justify-content-center ">
         <div className="login-box">
           <div className="login-logo">
-            <b>Reset Password</b>
+            <b>Password Reset</b>
           </div>
           <div className="card">
             <div className="card-body login-card-body">
-              <p className="login-box-msg">Enter Email to Rest Password</p>
+              <p className="login-box-msg">Enter New Password</p>
               <Form
-                action="/routes/passwordReset"
-                method="POST"
                 onSubmit={handleSubmit(onSubmit)}
               >
                 <div className="input-group mb-3">
                   <input
-                    type="email"
-                    id="email"
-                    name="email"
+                    type="password"
+                    id="password"
+                    name="password"
                     className="form-control"
-                    placeholder="Enter Email"
+                    placeholder="Enter Password"
                     autoComplete="username"
+                    ref={register({ required: true })}
+                    required
+                  />
+                   <input
+                    type="token"
+                    id="token"
+                    name="token"
+                    className="form-control"
+                    placeholder="Enter Token"
+                    autoComplete="Token"
                     ref={register({ required: true })}
                     required
                   />
                   <div className="input-group-append">
                     <div className="input-group-text">
-                      <span className="fas fa-envelope" />
                     </div>
                   </div>
                 </div>
@@ -86,4 +94,4 @@ const Forgot = (props) => {
   );
 };
 
-export default Forgot;
+export default Reset;
