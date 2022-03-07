@@ -3,7 +3,6 @@ const router = express.Router();
 const passport = require("../auth/passport/index");
 const userconfirmed = require("../models/user_confirmed_model")
 const User = require("../models/User_model");
-const path = require("path");
 const bcrypt = require('bcryptjs');
 
 
@@ -104,25 +103,23 @@ router.get("/verify/:userId/:uniqueString", (req, res) => {
   let{userId, uniqueString} = req.params;
   userconfirmed.find({userId}).then((inserted) => {
     if(inserted.length > 0){  
-      const hashedUniqueString = inserted[0].uniqueString;
-      bcrypt.compare(uniqueString, hashedUniqueString).then(inserted => {  
-        if(inserted){  
-          User.updateOne({_id: userId}, {verified: true}).then(() =>{  
-            userconfirmed.deleteOne({userId}).then(() =>{  
-            }).catch(error =>{  
-              console.log(error);
+      inserted.forEach((value) => {
+        const hashedUniqueString = value.uniqueString;
+        bcrypt.compare(uniqueString, hashedUniqueString).then(inserted => {  
+          if(inserted){  
+            User.updateOne({_id: userId}, {verified: true}).then(() =>{  
+              userconfirmed.deleteMany({userId}).then(() =>{  
+              }).catch((error) =>{  
+                console.log(error);
+              })
+            }).catch((error) =>{  
+            console.log(error);
             })
-          }).catch(error =>{  
+          }
+        }).catch((error) =>{  
           console.log(error);
-          })
-        }else{  
-          console.log(error);
-        }
-      }).catch(error =>{  
-        console.log(error);
-      })
-    }else{  
-      console.log(error);
+        })
+      });
     }
   }).catch((error)=> {
     console.log(error);
