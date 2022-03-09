@@ -11,7 +11,7 @@ const { UserSchema } = require("../models/User_model");
 const bcrypt = require('bcryptjs');
 const salt = bcrypt.genSaltSync(10);
 
-router.post("/", async (req, res) => {
+router.post("/requestPasswordLink", async (req, res) => {
     try {
         const user = await User.findOne({ email: req.body.email });
         if (user == null)
@@ -19,18 +19,17 @@ router.post("/", async (req, res) => {
             let token = await Token.findOne({ userId: user._id });
         if (token) await token.deleteOne();
         let resetToken = crypto.randomBytes(32).toString("hex");
-        const hash= await bcrypt.hash(resetToken, salt);
             
            await new Token({
                 userId: user._id,
-                token: hash,
+                token: resetToken,
                 createdAt: Date.now(),
             }).save();
         
-        
+        const currentUrl = "http://localhost:3000"
 
-        const link = `http://localhost:3000/ResetPage?token=${resetToken}&id=${user._id}`;
-        await sendEmail(user.email, 'Patentify Password Reset', `Hello ${user.name} , Please click the link below to reset your password\n ${link}`);
+        const link = `${currentUrl}/ResetPage`;
+        await sendEmail(user.email, 'Patentify Password Reset', `Hello ${user.name} , Please click the link below enter code below to reset your password\n ${link}\n${resetToken}`);
         res.send("password reset link sent to your email account");
         return link;
     } catch (error) {
@@ -39,23 +38,34 @@ router.post("/", async (req, res) => {
     }
 });
 
-    const resetPassword = async (userId, token, password) => {
-    let passwordResetToken = await Token.findOne({userId});
-    if (!passwordResetToken){
-        throw new Error("Invalid or expired token");
-    }
 
-    const isValid = await bcrypt.compare(token, passwordResetToken.token);
-    if(!isValid){
-        throw new Error("Invalid or expired token");
+router.post("/verify/update", async (req, res) =>{
+    let inputToken= req.body.token;
+    let token = await Token.findOne({ token:inputToken});
+    let TokenUserId = token.userId;
+    console.log("UserId VARIABLE = token.userId : " + TokenUserId);
+    let user = await User.findOne({_id:TokenUserId});
+    console.log("user id : " + user._id);
+    let newPassword = req.body.password
+    console.log("New password = " + newPassword);
+    if(!token){
+        console.log("Token is not valid")
+        throw new Error("Invalid token");
     }
-    const hash = await bcrypt.hash(password, salt);
+    console.log("new Password: " + newPassword);
+    const hashedPassword = bcrypt.hashSync(newPassword, salt);
+    console.log("Hashed Password: " + hashedPassword);
     await User.updateOne(
-        {_id: userId},
-        { $set: { password: hash } }
-    );
+        {_id : user._id  },
+        { $set: {password: hashedPassword} }
+        )
+    
 
-};
+});
+
+
+
+
 
 
 module.exports = router;

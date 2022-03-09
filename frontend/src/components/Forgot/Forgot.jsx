@@ -14,7 +14,7 @@ const Forgot = (props) => {
     // and checks if user is in our Database
 
     axios({
-      url: "passwordReset", // route in backend
+      url: "passwordReset/requestPasswordLink", // route in backend
       method: "POST",
       data: {
         email: data.email,
