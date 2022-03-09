@@ -14,11 +14,10 @@ const Reset = (props) => {
     // and checks if user is in our Database
 
     axios({
-      url: "/passwordReset/reset", // route in backend
-      method: "POST",
+      url: "passwordReset/resetPassword", // route in backend
+      method: "GET",
       data: {
         password: data.password,
-        token: data.token
       },
     })
       .then((response) => {
@@ -52,16 +51,6 @@ const Reset = (props) => {
                     className="form-control"
                     placeholder="Enter Password"
                     autoComplete="username"
-                    ref={register({ required: true })}
-                    required
-                  />
-                   <input
-                    type="token"
-                    id="token"
-                    name="token"
-                    className="form-control"
-                    placeholder="Enter Token"
-                    autoComplete="Token"
                     ref={register({ required: true })}
                     required
                   />
