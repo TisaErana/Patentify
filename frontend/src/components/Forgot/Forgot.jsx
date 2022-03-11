@@ -22,11 +22,13 @@ const Forgot = (props) => {
     })
       .then((response) => {
         if (response.status === 200) {
+          alert(response.data);
+          console.log("Sucess: ", response.data)
         }
       })
       .catch((error) => {
-        alert(error.response.data.message);
-        console.log("Error", error.response.data.message);
+        alert(error.response.data);
+        console.log("Error: ", error.response.data);
       });
   };
 

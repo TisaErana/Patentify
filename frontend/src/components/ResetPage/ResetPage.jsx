@@ -19,15 +19,18 @@ const Reset = (props) => {
       data: {
         token: data.token,
         password: data.password,
+        passwordConfirm: data.passwordConfirm,
       },
     })
       .then((response) => {
         if (response.status === 200) {
+          alert(response.data);
+          console.log("Sucess: ", response.data)
         }
       })
       .catch((error) => {
-        alert(error.response.data.message);
-        console.log("Error", error.response.data.message);
+        alert(error.response.data);
+        console.log("Error:", error.response.data);
       });
   };
 
@@ -51,15 +54,23 @@ const Reset = (props) => {
                     name="token"
                     className="form-control"
                     placeholder="Enter code"
+                    autoComplete = "off"
                     ref={register({ required: true })}
                     required
                   />
+                     <div className="input-group-append">
+                    <div className="input-group-text">
+                      </div>
+                      </div>
+                      </div>
+                 <div className="input-group mb-3">
                   <input
                     type="password"
                     id="password"
                     name="password"
                     className="form-control"
                     placeholder="Enter Password"
+                    autoComplete = "off"
                     ref={register({ required: true })}
                     required
                   />
@@ -67,7 +78,23 @@ const Reset = (props) => {
                     <div className="input-group-text">
                     </div>
                   </div>
-                </div>
+                  </div>
+                  <div className="input-group mb-3">
+                  <input
+                    type="password"
+                    id="passwordConfirm"
+                    name="passwordConfirm"
+                    className="form-control"
+                    placeholder="Re-enter Password"
+                    autoComplete = "off"
+                    ref={register({ required: true })}
+                    required
+                  />
+                  <div className="input-group-append">
+                    <div className="input-group-text">
+                    </div>
+                  </div>
+                  </div>
                 <div className="row">
                   <div className="col">
                     <button type="submit" className="btn btn-primary btn-block">

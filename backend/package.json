@@ -17,6 +17,7 @@
     "nodemailer": "^6.7.2",
     "nodemon": "^2.0.15",
     "passport": "^0.4.1",
-    "passport-local": "^1.0.0"
+    "passport-local": "^1.0.0",
+    "react-native-web": "^0.17.7"
   }
 }
