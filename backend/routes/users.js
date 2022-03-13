@@ -5,7 +5,6 @@ const userconfirmed = require("../models/user_confirmed_model")
 const User = require("../models/User_model");
 const bcrypt = require('bcryptjs');
 
-
 /* GET users listing. */
 
 router.get("/", async function (req, res, next) {
@@ -78,7 +77,6 @@ router.post("/register", function (req, res, next) {
   })(req, res, next);
 });
 
-
 router.post("/findUser", async function(req,res,next){
   const IDs = req.body.IDs
   let users = []
@@ -125,6 +123,20 @@ router.get("/verify/:userId/:uniqueString", (req, res) => {
     console.log(error);
     console.log(error);
   })
+});
+
+router.post("/", async (req, res) => {
+  try {
+      const { error } = validate(req.body);
+      if (error) return res.status(400).send(error.details[0].message);
+
+      const user = await new User(req.body).save();
+
+      res.send(user);
+  } catch (error) {
+      res.send("An error occured");
+      console.log(error);
+  }
 });
 
 module.exports = router;

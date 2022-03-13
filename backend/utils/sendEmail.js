@@ -1,22 +1,22 @@
 const nodemailer = require("nodemailer");
 const bcrypt = require('bcryptjs');
 const {v4: uuid} = require("uuid");
-require("dotenv").config();
+require('dotenv').config();
 
 const transporter = nodemailer.createTransport({  
     service: "gmail",
+    secure: true,
     auth:{  
       user: process.env.AUTH_EMAIL,
       pass: process.env.AUTH_PASS,
-    }
-    })
+}})
   
   transporter.verify((error, success)=> {  
     if(error){  
       console.log(error);
     } else {
-      console.log("Ready for messages");
       console.log(success);
+      console.log("Ready to send emails.");
     }
 })  
 
@@ -62,4 +62,19 @@ const sendVerificationEmail = ({_id, email}, res) => {
     })
 }
 
-module.exports = { sendVerificationEmail };
+const sendEmail = async (email, subject, text) => {
+    try {
+      await transporter.sendMail({
+            from: process.env.AUTH_EMAIL,
+            to: email,
+            subject: subject,
+            text: text,
+        });
+
+        //console.log("Password recovery email sent sucessfully.");
+    } catch (error) {
+        console.log(error, "Password recovery email could not be sent.");
+    }
+};
+
+module.exports = { sendVerificationEmail, sendEmail };

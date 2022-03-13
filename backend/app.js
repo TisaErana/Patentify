@@ -12,6 +12,8 @@ const cookieSession = require('cookie-session');
 // Routes
 const usersRouter = require('./routes/users');
 const patentsRouter = require('./routes/patents-api');
+const passwordRouter = require('./routes/passwordReset');
+
 
 
 const app = express();
@@ -51,6 +53,7 @@ app.use(passport.session());
 // MiddleWare // Here is where we let our application use the route that has been created
 app.use('/users', usersRouter);
 app.use('/patents-api', patentsRouter);
+app.use('/passwordReset', passwordRouter);
 
 
 // catch 404 and forward to error handler

@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import axios from "axios";
 
-const Login = (props) => {
+const Forgot = (props) => {
   const { register, handleSubmit } = useForm(); // initialize the hook
 
   //register is a function to be used as a ref provided by the useForm hook. We can assign it to each input field so that the react-hook-form can track the changes for the input field value.
@@ -14,40 +14,21 @@ const Login = (props) => {
     // and checks if user is in our Database
 
     axios({
-      url: "/users/Login", // route in backend
+      url: "passwordReset/requestPasswordLink", // route in backend
       method: "POST",
       data: {
         email: data.email,
-        password: data.password,
       },
     })
       .then((response) => {
         if (response.status === 200) {
-          const ROLE = response.data.role
-          const ISAUTHENTICATED = response.data.isAuthenticated;
-
-          // log user in:
-          window.localStorage.setItem("role", ROLE);
-          window.localStorage.setItem("isAuthenticated", ISAUTHENTICATED);
-
-          if(ISAUTHENTICATED)
-          {
-            if(ROLE === 'admin')
-            {
-              window.location = '/Dashboard';
-            }
-            else if(ROLE === 'annotator')
-            {
-              window.location = '/Patents';
-            }
-          }
-
-          //console.log(response.data);
+          alert(response.data);
+          console.log("Sucess: ", response.data)
         }
       })
       .catch((error) => {
-        alert(error.response.data.message);
-        console.log("Error", error.response.data.message);
+        alert(error.response.data);
+        console.log("Error: ", error.response.data);
       });
   };
 
@@ -56,13 +37,13 @@ const Login = (props) => {
       <div className="d-flex justify-content-center ">
         <div className="login-box">
           <div className="login-logo">
-            <b>Login</b>
+            <b>Reset Password</b>
           </div>
           <div className="card">
             <div className="card-body login-card-body">
-              <p className="login-box-msg">Sign in to start your session</p>
+              <p className="login-box-msg">Enter Email to Rest Password</p>
               <Form
-                action="/users/login"
+                action="/routes/passwordReset"
                 method="POST"
                 onSubmit={handleSubmit(onSubmit)}
               >
@@ -83,33 +64,12 @@ const Login = (props) => {
                     </div>
                   </div>
                 </div>
-                <div className="input-group mb-3">
-                  <input
-                    type="password"
-                    id="password"
-                    name="password"
-                    className="form-control"
-                    placeholder="Enter Password"
-                    autoComplete="false"
-                    ref={register({ required: "Password Required" })}
-                    required
-                  />
-                  <div className="input-group-append">
-                    <div className="input-group-text">
-                      <span className="fas fa-lock" />
-                    </div>
-                  </div>
-                </div>
                 <div className="row">
                   <div className="col">
                     <button type="submit" className="btn btn-primary btn-block">
-                      Sign In
+                      Reset Password
                     </button>
                     <div className=" mt-2">
-                      <div className="icheck-primary">
-                        <input type="checkbox" id="remember" />
-                        <label htmlFor="remember">Remember Me</label>
-                      </div>
                     </div>
                   </div>
                 </div>
@@ -118,10 +78,6 @@ const Login = (props) => {
                 Don't have An Account?{" "}
                 <Link to="/signup" className="text-center">
                   SignUp
-                </Link>
-                <p></p>
-                <Link to="/Forgot" className="text-center">
-                  Forgot Password
                 </Link>
               </p>
             </div>
@@ -132,4 +88,4 @@ const Login = (props) => {
   );
 };
 
-export default Login;
+export default Forgot;
