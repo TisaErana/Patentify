@@ -5,7 +5,7 @@ const nodemailer = require("nodemailer");
 const bcrypt = require('bcryptjs');
 const salt = bcrypt.genSaltSync(10);
 
-const emailHelpers = require('../../../utils/sendEmail');
+const sendVerificationEmail = require('../../../utils/sendEmail').sendVerificationEmail;
 
 // Import models
 const User = require("../../../models/User_model");
@@ -37,7 +37,7 @@ const SignupStrategy = new Strategy({passReqToCallback: true, usernameField: 'em
             if (error) {
                 return done(error, null);
             }   
-            emailHelpers.sendVerificationEmail(inserted, res);
+            sendVerificationEmail(inserted, res);
             return done(null, inserted);
         });
     });
