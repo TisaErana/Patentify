@@ -27,7 +27,7 @@ router.post("/requestPasswordLink", async (req, res) => {
                 createdAt: Date.now(),
             }).save();
         
-        const currentUrl = "http://localhost:3000"
+        const currentUrl = process.env.DOMAIN_NAME
 
         const link = `${currentUrl}/ResetPage`;
         await sendEmail(user.email, 'Patentify Password Reset', `Hello ${user.name},
@@ -61,7 +61,7 @@ router.post("/verify/update", async (req, res) =>{
         {_id : user._id  },
         { $set: {password: hashedPassword} }
         )
-        let loginLink = 'http://localhost:3000/Login';
+        let loginLink = `${process.env.DOMAIN_NAME}/Login`;
         await sendEmail(user.email, "Password reset confirmation", `Hello ${user.name} your password has been successfully updated, click the link below to login.\n${loginLink}`);
         res.status(200).send('Password Reset successfuly');
 
