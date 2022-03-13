@@ -26,7 +26,7 @@ const Signup = (props) => {
     })
       .then((response) => {
         if (response.status === 200) {
-         props.history.push('/Login')
+         props.history.push('/EmailSent')
         }
       })
       .catch((error) => {

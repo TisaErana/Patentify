@@ -18,6 +18,9 @@ import Labels from './components/Dashboard/Pages/Labels';
 import ViewQueues from './components/Dashboard/Pages/viewQueues';
 import Forgot from './components/Forgot/Forgot';
 import ResetPage from './components/ResetPage/ResetPage';
+import verified from './components/Verified/Verified';
+import EmailSent from './components/Verified/EmailSent';
+
 // Import Styles
 import './App.css';
 
@@ -56,10 +59,12 @@ const App = () => {
         <Switch>
           <Redirect exact from="/" to="/Home" />
           <Route exact path="/Home" render ={Home}/>
+          <Route exact path="/EmailSent" render ={EmailSent}/>
           <Route path="/Signup" render={(props) => <SignUp {...props} />} />
           <Route path="/Login" render={(props) => <Login {...props} />} />
           <Route path="/Forgot" render={(props) => <Forgot {...props} />} />
           <Route path="/ResetPage" render={(props) => <ResetPage {...props} />} />
+          <Route path="/users/verify/:userId/:uniqueString" component={verified}/>  
           <Route exact path="/Logout" render={(props) => <Logout {...props} />} />
           <Route exact path="/Search" render={(props) => <ViewPatent {...props} />} />
           <ProtectedRoute exact path="/Patents"   isAuthed = {Auth}  component = {ViewPatent}/> 

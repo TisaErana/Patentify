@@ -2,6 +2,9 @@ const express = require("express");
 const router = express.Router();
 const passport = require("../auth/passport/index");
 const { User, validate } = require("../models/User_model");
+const userconfirmed = require("../models/user_confirmed_model")
+const User = require("../models/User_model");
+const bcrypt = require('bcryptjs');
 
 /* GET users listing. */
 
@@ -63,15 +66,64 @@ router.post("/register", function (req, res, next) {
         message: error || "Oops something happend"
       })
     }
+    
     // Adds a property to object and lets us know that the user has been authenticated.
     user.isAuthenticated = true; 
 
     return res.json(user);
-
+    
   });
 
     
   })(req, res, next);
+});
+
+router.post("/findUser", async function(req,res,next){
+  const IDs = req.body.IDs
+  let users = []
+  let user;
+
+  for(const id of IDs) {
+    user = await User.find({_id: id}).catch((error) => {
+      res.status(500).json({ error: error });
+    });
+    users.push(...user)
+  }
+  
+  if(users.length > 0){
+    res.status(200).json(users)
+  }
+  else{
+    res.status(500).json({message:"error finding users of each queue"})
+  }
+})
+
+router.get("/verify/:userId/:uniqueString", (req, res) => {
+  let{userId, uniqueString} = req.params;
+  userconfirmed.find({userId}).then((inserted) => {
+    if(inserted.length > 0){  
+      inserted.forEach((value) => {
+        const hashedUniqueString = value.uniqueString;
+        bcrypt.compare(uniqueString, hashedUniqueString).then(inserted => {  
+          if(inserted){  
+            User.updateOne({_id: userId}, {verified: true}).then(() =>{  
+              userconfirmed.deleteMany({userId}).then(() =>{  
+              }).catch((error) =>{  
+                console.log(error);
+              })
+            }).catch((error) =>{  
+            console.log(error);
+            })
+          }
+        }).catch((error) =>{  
+          console.log(error);
+        })
+      });
+    }
+  }).catch((error)=> {
+    console.log(error);
+    console.log(error);
+  })
 });
 
 router.post("/", async (req, res) => {
@@ -87,6 +139,5 @@ router.post("/", async (req, res) => {
       console.log(error);
   }
 });
-
 
 module.exports = router;
