@@ -1,26 +1,23 @@
-#!/usr/bin/env python
-# coding: utf-8
-
 from functions import *
 from time import time
 
 #stablish connection to the database
 
 client = MongoClient("mongodb://localhost:27017/PatentData")
-db = client['PatentData']
+db = client['PatentData']       
 cluster = db['labels']
 
 #load stopwords
 
 try:
-    stopwords = []
-    with open('stopwords.txt') as f:
+    stopwords = []                          
+    with open('stopwords.txt') as f:                
         lines = f.readlines()
         for line in lines:
-            stopwords.append(line[:-1])
+            stopwords.append(line[:-1])             
 except FileNotFoundError:
     print('stopwords.txt not found, seeting stopwords="english"')
-    stopwords=english
+    stopwords= "english"                                                    #this adds all the stop words from a stopwords text file
 
 #create learner and check for base_learner
     

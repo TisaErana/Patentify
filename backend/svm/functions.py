@@ -44,21 +44,21 @@ def base_model_creator(client, stopwords):
 #         lines = f.readlines()
 #         for line in lines:
 #             stopwords.append(line[:-1])
-    #Prepare Data
+    #Prepare Data                                           #the stop words are the words that arent going to be used in the model
     
-    vectorizer = CountVectorizer(stop_words = stopwords)
-    X = vectorizer.fit_transform(data['text'].values)
-    svd = TruncatedSVD(n_components=100,random_state=42)
+    vectorizer = CountVectorizer(stop_words = stopwords)    #Transform a given text into a vector on the basis of the frequency (count) of each word that occurs in the entire text#
+    X = vectorizer.fit_transform(data['text'].values)       #fit model and then transform shape of array
+    svd = TruncatedSVD(n_components=100,random_state=42)       #reduces dimension
     X = svd.fit_transform(X)
-    y = data['grp_ml'].values
+    y = data['grp_ml'].values                                   
     #X, y = vectorize(data, stopwords, target = 'grp_ml')
 
 
     # Create Learner
     learner = ActiveLearner(
-        estimator=svm.SVC(kernel='linear', gamma='scale', C=2, probability = True),
+        estimator=svm.SVC(kernel='linear', gamma='scale', C=2, probability = True),         #estimator uses svm, c is penalty parameter, gamma is kernel coeeficcient, 
         query_strategy=uncertainty_sampling,
-        X_training=X, y_training=y
+        X_training=X, y_training=y                                                          #this just makes x and y the training values
     )
     
     # joblib dump
@@ -76,11 +76,11 @@ def model_loader(model = 'base_model_working'):
 def to_learn(client, ids, target, stopwords):
     db = client['PatentData']
     collection = db['Patents']
-    entries = list(collection.find(filter = {'documentId':{'$in':ids}}))
-    txt = [p['abstract']+''+p['title'] for p in entries]
-    target = list(map(lambda x: 1 if x=='Yes' else 0, target))
-    df = pd.DataFrame(data = {'id':ids,'text':txt,'target':target})
-    return vectorize(df, stopwords, vect = True)
+    entries = list(collection.find(filter = {'documentId':{'$in':ids}}))            #list patents by patent id
+    txt = [p['abstract']+''+p['title'] for p in entries]                            #text hold the abstract and title
+    target = list(map(lambda x: 1 if x=='Yes' else 0, target))                      #target im guessing is the label
+    df = pd.DataFrame(data = {'id':ids,'text':txt,'target':target})                 #this will put the id, text{abstract and title}, and target{label??} into a dataframe
+    return vectorize(df, stopwords, vect = True)                                    
     
 
 def vectorize(df, stopwords, target='target', vect = False):
@@ -96,3 +96,6 @@ def vectorize(df, stopwords, target='target', vect = False):
 #     print(X)
     y = df['target'].values
     return X, y
+
+
+  
