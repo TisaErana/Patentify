@@ -4,7 +4,9 @@ const {v4: uuid} = require("uuid");
 require('dotenv').config();
 
 const transporter = nodemailer.createTransport({  
-    service: "gmail",
+    service:'zoho',
+    host: "smtp.zoho.com",
+    port: 465,
     secure: true,
     auth:{  
       user: process.env.AUTH_EMAIL,
