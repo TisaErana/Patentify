@@ -56,6 +56,49 @@ del filtered
 del result
 #del PGPUBs
 
+# load pre-2005 PGPUB data from tsv file:
+missing_PGPUB_titles = pd.read_csv(
+  'data/missing_pgpub_title_meta.csv',
+  header = 0, # header at row 0
+  dtype = { 'pub_no': str, 'title': str } # let's make it's all strings
+)
+print('Loaded missing_pgpub_title_meta.csv into dataframe.')
+print()
+
+missing_PGPUB_abstracts = pd.read_csv(
+  'data/missing_pgpub_abstract_text.csv',
+  header = 0, # header at row 0
+  dtype = { 'pub_no': str, 'abstract': str } # let's make it's all strings
+)
+print('Loaded missing_pgpub_abstract_text.csv into dataframe.')
+print()
+
+missing_PGPUBs = pd.merge(missing_PGPUB_titles, missing_PGPUB_abstracts, on="pub_no")
+operations = []
+
+# build bulk operation:
+for application in missing_PGPUBs.itertuples():
+    operations.append(
+        UpdateOne({ "documentId": application.pub_no }, { 
+            "$set": { 
+                'title': application.title.strip(),
+                'abstract': application.abstract.strip()
+            } 
+        })
+    )
+
+print('Updating missing PGPUB metadata...')
+result = dbPatents.bulk_write(operations, ordered=False)
+print('Matched', result.matched_count, 'PGPUBs.')
+print('Updated', result.modified_count, 'PGPUBs.')
+print()
+
+# free up some more space:
+del operations
+del missing_PGPUBs
+del missing_PGPUB_titles
+del missing_PGPUB_abstracts
+
 operations = []
 
 # load patent data from tsv file:
