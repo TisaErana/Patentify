@@ -150,13 +150,16 @@ del result2
 del result
 
 missing = list(dbPatents.find({ "title" : { "$exists" : False } }))
+missing_count = dbPatents.count_documents({ "title" : { "$exists" : False } })
 
 with open('missing.txt', 'w') as f:
-    f.write('Patents with missing metadata:\n')
+    f.write('Patents with missing metadata: ')
+    f.write(str(missing_count))
+    f.write(' documents\n')
     for item in missing:
         f.write("%s\n" % item)
         
-print('Wrote missing PGPUBs and USPATs to missing.txt')
+print('Wrote documents with missing metadata to missing.txt')
 print()
 
 print('Done.')
