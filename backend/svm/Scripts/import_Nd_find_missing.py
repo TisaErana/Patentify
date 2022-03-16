@@ -15,7 +15,7 @@ print('Connected to database.')
 
 # load PGPUB data from tsv file:
 applications = pd.read_csv(
-  'application.tsv',
+  'data/application.tsv',
   header = 0, # header at row 0
   sep = '\t',  # tab separated
   dtype = { 'document_number': str, 'invention_title': str, 'abstract': str } # let's make it's all strings
@@ -60,7 +60,7 @@ operations = []
 
 # load patent data from tsv file:
 patents = pd.read_csv(
-  'patent.tsv',
+  'data/patent.tsv',
   header = 0, # header at row 0
   sep = '\t',  # tab separated
   dtype = { 'id': str, 'number': str, 'abstract': str } # mixed types, let's make it all strings
@@ -104,7 +104,7 @@ labelOperations = []
 
 # load patent crosswalk data from tsv file:
 crosswalk = pd.read_csv(
-  'granted_patent_crosswalk.tsv',
+  'data/granted_patent_crosswalk.tsv',
   header = 0, # header at row 0
   sep = '\t',  # tab separated
   dtype = { 'document_number': str, 'patent_number': str }
