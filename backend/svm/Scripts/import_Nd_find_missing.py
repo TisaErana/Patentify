@@ -38,8 +38,8 @@ for application in filtered.itertuples():
     operations.append(
         UpdateOne({ "documentId": application.documentId }, { 
             "$set": { 
-                'title': application.title,
-                'abstract': application.abstract
+                'title': application.title.strip(),
+                'abstract': application.abstract.strip()
             } 
         })
     )
@@ -82,8 +82,8 @@ for patent in filtered.itertuples():
     operations.append(
         UpdateOne({ "documentId": patent.documentId }, { 
             "$set": { 
-                'title': patent.title,
-                'abstract': patent.abstract
+                'title': patent.title.strip(),
+                'abstract': patent.abstract.strip()
             } 
         })
     )
@@ -119,7 +119,7 @@ for application in filtered.itertuples():
     operations.append(
         UpdateOne({ "documentId": application.document_number }, { 
             "$set": { 
-                'documentId': application.patent_number
+                'documentId': application.patent_number.strip()
             } 
         })
     )
@@ -127,7 +127,7 @@ for application in filtered.itertuples():
     labelOperations.append(
         UpdateOne({ "document": application.document_number }, { 
             "$set": { 
-                'document': application.patent_number
+                'document': application.patent_number.strip()
             } 
         })
     )
