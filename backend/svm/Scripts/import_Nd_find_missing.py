@@ -162,7 +162,8 @@ for application in filtered.itertuples():
     operations.append(
         UpdateOne({ "documentId": application.document_number }, { 
             "$set": { 
-                'documentId': application.patent_number.strip()
+                'documentId': application.patent_number.strip(),
+                'patentCorpus': 'USPAT'
             } 
         })
     )
