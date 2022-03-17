@@ -15,7 +15,7 @@ print('Connected to database.')
 
 # load PGPUB data from tsv file:
 applications = pd.read_csv(
-  'application.tsv',
+  'data/application.tsv',
   header = 0, # header at row 0
   sep = '\t',  # tab separated
   dtype = { 'document_number': str, 'invention_title': str, 'abstract': str } # let's make it's all strings
@@ -38,8 +38,8 @@ for application in filtered.itertuples():
     operations.append(
         UpdateOne({ "documentId": application.documentId }, { 
             "$set": { 
-                'title': application.title,
-                'abstract': application.abstract
+                'title': application.title.strip(),
+                'abstract': application.abstract.strip()
             } 
         })
     )
@@ -56,11 +56,54 @@ del filtered
 del result
 #del PGPUBs
 
+# load pre-2005 PGPUB data from tsv file:
+missing_PGPUB_titles = pd.read_csv(
+  'data/missing_pgpub_title_meta.csv',
+  header = 0, # header at row 0
+  dtype = { 'pub_no': str, 'title': str } # let's make it's all strings
+)
+print('Loaded missing_pgpub_title_meta.csv into dataframe.')
+print()
+
+missing_PGPUB_abstracts = pd.read_csv(
+  'data/missing_pgpub_abstract_text.csv',
+  header = 0, # header at row 0
+  dtype = { 'pub_no': str, 'abstract': str } # let's make it's all strings
+)
+print('Loaded missing_pgpub_abstract_text.csv into dataframe.')
+print()
+
+missing_PGPUBs = pd.merge(missing_PGPUB_titles, missing_PGPUB_abstracts, on="pub_no")
+operations = []
+
+# build bulk operation:
+for application in missing_PGPUBs.itertuples():
+    operations.append(
+        UpdateOne({ "documentId": application.pub_no }, { 
+            "$set": { 
+                'title': application.title.strip(),
+                'abstract': application.abstract.strip()
+            } 
+        })
+    )
+
+print('Updating missing PGPUB metadata...')
+result = dbPatents.bulk_write(operations, ordered=False)
+print('Matched', result.matched_count, 'PGPUBs.')
+print('Updated', result.modified_count, 'PGPUBs.')
+print()
+
+# free up some more space:
+del operations
+del missing_PGPUBs
+del missing_PGPUB_titles
+del missing_PGPUB_abstracts
+
 operations = []
 
 # load patent data from tsv file:
 patents = pd.read_csv(
-  'patent.tsv',
+  'data/patent.tsv',
   header = 0, # header at row 0
   sep = '\t',  # tab separated
   dtype = { 'id': str, 'number': str, 'abstract': str } # mixed types, let's make it all strings
@@ -82,8 +125,8 @@ for patent in filtered.itertuples():
     operations.append(
         UpdateOne({ "documentId": patent.documentId }, { 
             "$set": { 
-                'title': patent.title,
-                'abstract': patent.abstract
+                'title': patent.title.strip(),
+                'abstract': patent.abstract.strip()
             } 
         })
     )
@@ -104,7 +147,7 @@ labelOperations = []
 
 # load patent crosswalk data from tsv file:
 crosswalk = pd.read_csv(
-  'granted_patent_crosswalk.tsv',
+  'data/granted_patent_crosswalk.tsv',
   header = 0, # header at row 0
   sep = '\t',  # tab separated
   dtype = { 'document_number': str, 'patent_number': str }
@@ -119,7 +162,8 @@ for application in filtered.itertuples():
     operations.append(
         UpdateOne({ "documentId": application.document_number }, { 
             "$set": { 
-                'documentId': application.patent_number
+                'documentId': application.patent_number.strip(),
+                'patentCorpus': 'USPAT'
             } 
         })
     )
@@ -127,7 +171,7 @@ for application in filtered.itertuples():
     labelOperations.append(
         UpdateOne({ "document": application.document_number }, { 
             "$set": { 
-                'document': application.patent_number
+                'document': application.patent_number.strip()
             } 
         })
     )
@@ -150,13 +194,16 @@ del result2
 del result
 
 missing = list(dbPatents.find({ "title" : { "$exists" : False } }))
+missing_count = dbPatents.count_documents({ "title" : { "$exists" : False } })
 
 with open('missing.txt', 'w') as f:
-    f.write('Patents with missing metadata:\n')
+    f.write('Patents with missing metadata: ')
+    f.write(str(missing_count))
+    f.write(' documents\n')
     for item in missing:
         f.write("%s\n" % item)
         
-print('Wrote missing PGPUBs and USPATs to missing.txt')
+print('Wrote documents with missing metadata to missing.txt')
 print()
 
 print('Done.')
