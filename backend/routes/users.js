@@ -107,7 +107,7 @@ router.get("/verify/:userId/:uniqueString", (req, res) => {
           if(inserted){  
             User.updateOne({_id: userId}, {verified: true}).then(() => {  
               userconfirmed.deleteMany({userId}).then(() => {
-                res.status(200)  
+                res.status(200).json({ status: "verified" })  
               }).catch((error) => {  
                 console.log(error);
                 res.status(500).json({ error: error })
@@ -116,6 +116,9 @@ router.get("/verify/:userId/:uniqueString", (req, res) => {
               console.log(error);
               res.status(500).json({ error: error })
             })
+          }
+          else {
+            res.status(400).json({ error: "Invalid verification token." })
           }
         }).catch((error) => {  
           console.log(error);
