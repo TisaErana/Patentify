@@ -105,23 +105,33 @@ router.get("/verify/:userId/:uniqueString", (req, res) => {
         const hashedUniqueString = value.uniqueString;
         bcrypt.compare(uniqueString, hashedUniqueString).then(inserted => {  
           if(inserted){  
-            User.updateOne({_id: userId}, {verified: true}).then(() =>{  
-              userconfirmed.deleteMany({userId}).then(() =>{  
-              }).catch((error) =>{  
+            User.updateOne({_id: userId}, {verified: true}).then(() => {  
+              userconfirmed.deleteMany({userId}).then(() => {
+                res.status(200).json({ status: "verified" })  
+              }).catch((error) => {  
                 console.log(error);
+                res.status(500).json({ error: error })
               })
-            }).catch((error) =>{  
-            console.log(error);
+            }).catch((error) => {  
+              console.log(error);
+              res.status(500).json({ error: error })
             })
           }
-        }).catch((error) =>{  
+          else {
+            res.status(400).json({ error: "Invalid verification token." })
+          }
+        }).catch((error) => {  
           console.log(error);
+          res.status(500).json({ error: error })
         })
       });
     }
+    else {
+      res.status(400).json({ error: "Invalid verification token." })
+    }
   }).catch((error)=> {
     console.log(error);
-    console.log(error);
+    res.status(400).json({ error: error })
   })
 });
 

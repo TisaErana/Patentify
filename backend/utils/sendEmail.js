@@ -33,7 +33,7 @@ const sendVerificationEmail = ({_id, email}, res) => {
         to: email,
         subject: "Verify Your Email",
         html: `<p>Verify your email address to finish your account and be able to login.</p>
-        <p>Click <a href=${currentUrl + "/users/verify/" + _id + "/" + uniqueString}>here</a> to finalize the process.</p>`,
+        <p>Click <a href=${currentUrl + "/verify/" + _id + "/" + uniqueString}>here</a> to finalize the process.</p>`,
     };
     const saltRounds = 10;
     bcrypt.hash(uniqueString, saltRounds).then((hashedUniqueString) => {  
