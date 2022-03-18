@@ -30,7 +30,8 @@ const Signup = (props) => {
         }
       })
       .catch((error) => {
-        console.log("Error: ", error.data);
+        alert(error.response.data);
+        console.log("Error:", error.response.data);
       });
   };
 
