@@ -3,7 +3,9 @@ const { Schema, model } = require("mongoose");
 const queueSchema = new Schema(
   {
     userId:{ type: Schema.Types.ObjectId, ref: "User"},
+    cpc:{type:String},
     title:{type:String},
+    claims:{type:String},
     abstract:{type:String},
     documentId:{type:String},
     patentCorpus:{type:String},
