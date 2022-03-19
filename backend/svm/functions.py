@@ -73,13 +73,18 @@ def model_loader(model = 'base_model_working'):
     return estimator
 
 
+# target is the entry we are training on: this needs to be updated to not only look at one category in the annotation (use OR on all sub-fields of AI to determine if AI).
 def to_learn(client, ids, target, stopwords):
     db = client['PatentData']
-    collection = db['Patents']
-    entries = list(collection.find(filter = {'documentId':{'$in':ids}}))            #list patents by patent id
+    collection = db['patents']
+    entries = list(collection.find(filter = {'documentId':{'$in':ids}}))            #find patents by patent id
+    #print(entries)
     txt = [p['abstract']+''+p['title'] for p in entries]                            #text hold the abstract and title
-    target = list(map(lambda x: 1 if x=='Yes' else 0, target))                      #target im guessing is the label
+    #print(txt)
+    target = list(map(lambda x: 1 if x=='Yes' else 0, target))                      #target maps the label -> to a 0 or 1.
+    #print(target)
     df = pd.DataFrame(data = {'id':ids,'text':txt,'target':target})                 #this will put the id, text{abstract and title}, and target{label??} into a dataframe
+    #print(df)
     return vectorize(df, stopwords, vect = True)                                    
     
 
