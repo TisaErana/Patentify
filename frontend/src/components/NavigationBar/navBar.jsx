@@ -1,6 +1,8 @@
 import React from "react";
 import { Navbar, Nav } from "react-bootstrap";
 import { Link } from "react-router-dom";
+import patentifyLogo from '../../patentifyLogo.png'
+
 
 
 import  SearchBar  from '../SearchBar/searchBar';
@@ -8,8 +10,8 @@ import  SearchBar  from '../SearchBar/searchBar';
 const navBar = (props) => {
   return (
     <div>
-      <Navbar bg="primary" expand="lg" variant="dark">
-        <Navbar.Brand href="/">Patentify</Navbar.Brand>
+      <Navbar bg="primary" expand="lg" variant="light">
+        <Navbar.Brand href="/"> <img src ={patentifyLogo} alt="Patentify logo" height='100rem' /> </Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
           {displayLogout(props.isAuthed, props.role)}

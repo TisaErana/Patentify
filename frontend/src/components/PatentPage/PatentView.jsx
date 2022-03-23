@@ -3,6 +3,14 @@ import { useHistory } from "react-router";
 import PatentCard from "../PatentPage/PatentCard";
 import PatentForm from "../PatentPage/PatentForm";
 
+function title(str) {
+  var splitStr = str.toLowerCase().split(' ');
+  for (var i = 0; i < splitStr.length; i++) {
+      splitStr[i] = splitStr[i].charAt(0).toUpperCase() + splitStr[i].substring(1);     
+  }
+ 
+  return splitStr.join(' '); 
+}
 
 const PatentView = (props) => {
   const history = useHistory();
@@ -33,7 +41,7 @@ const PatentView = (props) => {
           setError(body.message)
         }
         else {
-          setPatentTitle(body.title);
+          setPatentTitle(title(body.title));
           setPatentId(body.documentId);
           setPatentAbstract(body.abstract);
           setPatents(body);
@@ -49,7 +57,7 @@ const PatentView = (props) => {
         const body = await response.json();
         // body is an object with the response 
 
-        setPatentTitle(body.title);
+        setPatentTitle(title(body.title));
         setPatentId(body.documentId);
         setPatentAbstract(body.abstract);
         setPatents(
