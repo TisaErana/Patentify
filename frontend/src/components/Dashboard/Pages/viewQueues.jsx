@@ -44,7 +44,7 @@ const ViewQueues = () => {
 
         };
 
-        function sortQueuesByUsegrs(queues, users) {
+        function sortQueuesByUsers(queues, users) {
             let map = new Map();
             for (const user of users) {
                 map.set(`${user._id}`, [])
