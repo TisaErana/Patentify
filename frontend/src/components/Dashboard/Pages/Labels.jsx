@@ -46,12 +46,13 @@ const Table = () => {
     return (
       <div>
         <Nav />
-        <div className="container-fluid mt-5">
+        <div className="container-fluid mt-5" style={{ paddingBottom: '5%' }}>
           <MaterialTable
             title="Labels"
             columns={COLUMNS}
             data={rowData}
             isLoading={rowData.length === 0}
+            style={{ border: '5px solid rgba(0, 0, 0, 1)', borderRadius: '0.55rem' }}
             options={{
               exportButton: true,
               exportAllData: true,

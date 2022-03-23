@@ -32,13 +32,14 @@ const ViewUser = () => {
   return (
     <div>
       <Nav />
-      <div className="container-fluid mt-5">
+      <div className="container-fluid mt-5" style={{ paddingBottom: '5%' }}>
         <MaterialTable
           title="Users"
           columns={COLUMNS}
           data={rowData}
           isLoading={rowData.length === 0}
           options={{ exportButton: true, exportAllData: true}}
+          style={{ border: '5px solid rgba(0, 0, 0, 1)', borderRadius: '0.55rem' }}
         />
       </div>
     </div>
