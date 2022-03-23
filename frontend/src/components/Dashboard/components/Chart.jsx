@@ -27,10 +27,10 @@ catch (error) {
     console.log(data);
     
     setChartData({
-        labels:["Total", "Machine Learning", "AI Hardware", "Evolutionary Computation", "Natural Language Processing", "Speech", "Vision", "Knowledge Processing", "Planning/Control"], // name of annotator
+        labels:["Annotated Patents", "Agreed Patents", "Disagreed Patents", "Total" ], // name of category
         datasets: [{
             label: '# of Patents Annotated',
-            data: [data.total, data.ml, data.hard, data.evol, data.natural, data.spee, data.vision, data.know, data.plan], // number of patents annotated
+            data: [data.unique, data.agreed, data.disagreed, data.total], // number of patents annotated
             backgroundColor:'rgba(14,30,64,1)',
            
           }],
