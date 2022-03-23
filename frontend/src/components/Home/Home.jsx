@@ -1,11 +1,10 @@
 import React from 'react';
-import image from '../../assests/25372 [Converted].png';
 
 const Home = () => {
     return (
         
 
-        <div className="d-flex justify-content-center" style= {{backgroundImage:`url("${image}")`, height: '100vh' , backgroundSize: "cover"}}>
+        <div className="d-flex justify-content-center" style= {{backgroundColor:'rgb(136, 127, 127)', height: '100vh' , backgroundSize: "cover"}}>
         <div className= "text-center mt-5" >
           <h5> Welcome to </h5>
           <h1 className='Hero'> Patentify </h1>
