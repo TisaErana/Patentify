@@ -301,4 +301,19 @@ router.get('/logout', function (req, res) {
   res.status(200).json({ status: "unauthenticated"});
 });
 
+router.get("/chart", async function (req, res, next) {
+  var total, ml, hard, evol, spee, vision, natural, plan, know;
+  total = await Label.count();
+  ml = await Label.countDocuments({mal:{$eq:"Yes"}});
+  hard = await Label.countDocuments({hdw:{$eq:"Yes"}});
+  evol = await Label.countDocuments({evo:{$eq:"Yes"}});
+  spee = await Label.countDocuments({spc:{$eq:"Yes"}});
+  vision = await Label.countDocuments({vis:{$eq:"Yes"}});
+  natural = await Label.countDocuments({nlp:{$eq:"Yes"}});
+  plan = await Label.countDocuments({pln:{$eq:"Yes"}});
+  know = await Label.countDocuments({kpr:{$eq:"Yes"}});
+  res.status(200).json({total: total, ml: ml, hard: hard, evol: evol, spee: spee, vision: vision, natural: natural, plan: plan, know: know});
+
+})
+
 module.exports = router;
