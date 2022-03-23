@@ -375,10 +375,16 @@ h2, .h2 {
 
 h3, .h3 {
   font-size: 1.75rem;
+  text-align: center;
+  font-weight: bold;
+  color: black;
 }
 
 h4, .h4 {
   font-size: 1.5rem;
+  text-align: center;
+  font-weight: bold;
+  color: black;
 }
 
 h5, .h5 {
@@ -4303,7 +4309,7 @@ input[type=button].btn-block {
   word-wrap: break-word;
   background-color: #fff;
   background-clip: border-box;
-  border: 1px solid rgba(0, 0, 0, 0.125);
+  border: 1px solid rgba(0, 174, 255, 0.125);
   border-radius: 0.25rem;
 }
 .card > hr {
@@ -4334,6 +4340,8 @@ input[type=button].btn-block {
   min-height: 1px;
   padding: 1.25rem;
   background-color: rgb(184, 229, 255);
+  border-color: rgb(184, 229, 255);
+
 }
 
 .card-title {
