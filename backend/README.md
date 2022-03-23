@@ -21,16 +21,17 @@ To achieve this on an ubuntu server modify the VirtualHost file in /etc/apache2/
 and include the following right before the </VirtualHost> tag:
 ```
 ProxyRequests on
-ProxyPass /[api-endpoint-path]/ http://localhost:[backend-port]/[api-endpoint-path]
-ProxyPassReverse /[api-endpoint-path]/ http://localhost:[backend-port]/[api-endpoint-path]
+ProxyPass /[api-endpoint-path]/ http://localhost:[backend-port]/[api-endpoint-path]/
+ProxyPassReverse /[api-endpoint-path]/ http://localhost:[backend-port]/[api-endpoint-path]/
 ```
 For example:
 ```
 ProxyRequests on
-ProxyPass /users/ http://localhost:4150/users/
-ProxyPassReverse /users/ http://localhost:4150/users/
+ProxyPass /users http://localhost:4150/users
+ProxyPassReverse /users http://localhost:4150/users
 ```
-You must ProxyPass and ProxyPassReverse for every endpoint in the backend.
+You must ProxyPass and ProxyPassReverse for every endpoint in the backend. \
+If you need to match GET requests where the URL has data (like above), do not include the / at the end of [api-endpoint-path].
 
 Then, restart apache:
 ```
