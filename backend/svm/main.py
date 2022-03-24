@@ -1,5 +1,8 @@
+from itertools import cycle
 from functions import *
 from time import time
+
+from sklearn.metrics import f1_score
 
 #stablish connection to the database
 
@@ -42,6 +45,8 @@ if learner is None:
 # the new labels which will be processed first. finally we will dump the resume token in order to continue with the process later on
     
 entries = 0
+cycleCount = 1
+
 ids = []
 target = []
 try:
@@ -64,9 +69,25 @@ try:
             if change is not None:
                 entry = change['fullDocument']
                 print(f'Entry:{entry}')
+
                 entries +=1
                 ids.append(entry['document'])
-                target.append(entry['mal'])
+
+                values = list(map(lambda x: 1 if x=='Yes' else 0, [
+                    entry['mal'], 
+                    entry['hdw'], 
+                    entry['evo'], 
+                    entry['spc'], 
+                    entry['vis'], 
+                    entry['nlp'], 
+                    entry['pln'], 
+                    entry['kpr']
+                ]))
+                #print(values)
+
+                isAI = int(any(values))
+                target.append(isAI)
+
                 if entries > 3:
                     continue_after = change['_id']
                     print(ids)
@@ -74,10 +95,18 @@ try:
                     X, y = to_learn(client, ids, target, stopwords)
                     #sleep(5)
                     learner.teach(X=X, y=y)
-                    print("done with cycle")
                     entries = 0
                     ids = []
-                    target = []                      
+                    target = []    
+
+                    print("[INFO]: done with cycle", cycleCount)
+
+                    if cycleCount % 10 == 0:
+                        print(f'[AUTO-SAVE {time():0.0f}]: saved latest model and continue_token')
+                        dump(learner.estimator, f'models/Final/auto-save_latest.joblib')
+                        dump(continue_after,'continue_token.joblib')
+                    
+                    cycleCount += 1
 except KeyboardInterrupt:
     print("Interrupted")
 

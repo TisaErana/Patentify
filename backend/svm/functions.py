@@ -83,7 +83,7 @@ def to_learn(client, ids, target, stopwords):
     txt = [p['abstract']+''+p['title'] for p in entries]                            #text hold the abstract and title
     print(txt)
     print("text length", len(txt))
-    target = list(map(lambda x: 1 if x=='Yes' else 0, target))                      #target maps the label -> to a 0 or 1.
+    #target = list(map(lambda x: 1 if x=='Yes' else 0, target))                      #target maps the label -> to a 0 or 1.
     print(target)
     print("Target length",len(target))
     df = pd.DataFrame(data = {'id':ids,'text':txt,'target':target})                 #this will put the id, text{abstract and title}, and target{label??} into a dataframe
