@@ -45,7 +45,7 @@ if learner is None:
 # the new labels which will be processed first. finally we will dump the resume token in order to continue with the process later on
     
 entries = 0
-cycleCount = 0
+cycleCount = 1
 
 ids = []
 target = []
@@ -100,7 +100,12 @@ try:
                     target = []    
 
                     print("[INFO]: done with cycle", cycleCount)
-                    cycleCount += 1                 
+                    cycleCount += 1
+
+                if cycleCount % 3 == 0:
+                    print(f'[AUTO-SAVE {time():0.0f}]: saved latest model and continue_token')
+                    dump(learner.estimator, f'models/Final/auto-save_latest.joblib')
+                    dump(continue_after,'continue_token.joblib')
 except KeyboardInterrupt:
     print("Interrupted")
 
