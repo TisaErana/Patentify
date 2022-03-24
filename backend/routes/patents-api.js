@@ -7,11 +7,14 @@ const Patent = require("../models/patent_model");
 
 // Import label model
 const Label = require("../models/label_model");
+const AgreedLabel = require("../models/agreed_labels_model");
+const DisagreedLabel = require("../models/disagreed_labels_model");
 
 // Import queue model
 const Queue = require("../models/queue_model");
 const e = require("express");
 const { rawListeners } = require("../app");
+const disagreed_labels_model = require("../models/disagreed_labels_model");
 
 // Backend Constants:
 
@@ -300,5 +303,48 @@ router.get('/logout', function (req, res) {
   req.logOut();
   res.status(200).json({ status: "unauthenticated"});
 });
+
+router.get("/chart", async function (req, res, next) {
+ 
+  unique = await Label.count();
+  agreed = await AgreedLabel.count();
+  disagreed = await DisagreedLabel.count();
+
+  total = unique + agreed + disagreed;
+
+  ml = await Label.countDocuments({mal:{$eq:"Yes"}});
+  mlAgreed = await AgreedLabel.countDocuments({mal:{$eq:"Yes"}});
+  ml += mlAgreed;
+
+  hard = await Label.countDocuments({hdw:{$eq:"Yes"}});
+  hardAgreed = await AgreedLabel.countDocuments({hdw:{$eq:"Yes"}});
+  hard += hardAgreed;
+
+  evol = await Label.countDocuments({evo:{$eq:"Yes"}});
+  evolAgreed = await AgreedLabel.countDocuments({evo:{$eq:"Yes"}});
+  evol += evolAgreed;
+
+  spee = await Label.countDocuments({spc:{$eq:"Yes"}});
+  speeAgreed = await AgreedLabel.countDocuments({spc:{$eq:"Yes"}});
+  spee += speeAgreed;
+
+  vision = await Label.countDocuments({vis:{$eq:"Yes"}});
+  visionAgreed = await AgreedLabel.countDocuments({vis:{$eq:"Yes"}});
+  vision += visionAgreed;
+
+  natural = await Label.countDocuments({nlp:{$eq:"Yes"}});
+  naturalAgreed = await AgreedLabel.countDocuments({nlp:{$eq:"Yes"}});
+  natural += naturalAgreed;
+
+  plan = await Label.countDocuments({pln:{$eq:"Yes"}});
+  planAgreed = await AgreedLabel.countDocuments({pln:{$eq:"Yes"}});
+  plan += planAgreed;
+
+  know = await Label.countDocuments({kpr:{$eq:"Yes"}});
+  knowAgreed = await AgreedLabel.countDocuments({kpr:{$eq:"Yes"}});
+  know += knowAgreed
+
+  res.status(200).json({total: total, unique: unique, agreed: agreed, disagreed: disagreed, ml: ml, hard: hard, evol: evol, spee: spee, vision: vision, natural: natural, plan: plan, know: know});
+})
 
 module.exports = router;
