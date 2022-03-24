@@ -21,6 +21,7 @@ const PatentView = (props) => {
   const [patentId, setPatentId] = useState(); //              stores the documentId of the current patent.
   const [patentTitle, setPatentTitle] = useState(); //        stores the title of the current patent.
   const [patentAbstract, setPatentAbstract] = useState(); //  stores the abstract of the current patent.
+  const [patentClaims, setPatentClaims] = useState("lorem ipsum"); //      stores the claims of the current patent.
 
   useEffect(() => {
     const weAreSearching = history.location.state ? history.location.state['weAreSearching'] : false;
@@ -86,8 +87,17 @@ const PatentView = (props) => {
         <div style={{marginLeft: "1%"}}><h2>{error}</h2></div> : 
         <Fragment>
           <div className="col-sm-8 col-lg-3 col-md-7">
-            <h3 style={{ marginTop: "45%" }}>Abstract</h3>
-            <div style={{ fontSize: "14px", color: 'black', weight: "bold" }}>{patentAbstract}</div>
+            <div style={{ 
+              backgroundColor: 'rgb(184, 229, 255)', 
+              border: '5px solid rgba(0, 0, 0, 1)', 
+              borderRadius: '0.55rem',
+              padding: '3%',
+              marginTop: '17%' }}>
+              <h3>Abstract</h3>
+              <div style={{ fontSize: "14px", color: 'black', weight: "bold" }}>{patentAbstract}</div>
+              <h3>Claims</h3>
+              <div style={{ fontSize: "14px", color: 'black', weight: "bold" }}>{patentClaims}</div>
+            </div>
           </div>
           <div className="col-sm-10 col-lg-6 col-md-8">
             <h3>Patent ID: {patentId}</h3>
