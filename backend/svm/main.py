@@ -102,7 +102,7 @@ try:
                     print("[INFO]: done with cycle", cycleCount)
                     cycleCount += 1
 
-                if cycleCount % 3 == 0:
+                if cycleCount % 10 == 0:
                     print(f'[AUTO-SAVE {time():0.0f}]: saved latest model and continue_token')
                     dump(learner.estimator, f'models/Final/auto-save_latest.joblib')
                     dump(continue_after,'continue_token.joblib')
