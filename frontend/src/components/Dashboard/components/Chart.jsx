@@ -1,24 +1,53 @@
 import React, { useEffect } from "react";
 import { useState } from "react";
-import { Bar } from "react-chartjs-2";
+import { Bar, Pie } from "react-chartjs-2";
+import axios from "axios";
 
+let data = {}
 const Chart = (props) => {
- 
-  const [chartData, setChartData] = useState({});
+  
+  async function testaxios(){
+    try{
+  let res = await axios({
+    url: "/patents-api/chart", // route in backend
+    method: "GET",
+  })
 
-  const chart = () => {
+    return res.data
+}
+catch (error) {
+  
+};
+}
+
+  const [chartData, setChartData] = useState({});
+  const [chartData2, setChartData2] = useState({});
+  const chart = async () => {
+   data = await testaxios();
+    console.log(data);
     
     setChartData({
-        labels:[], // name of annotator
+        labels:["Annotated Patents", "Agreed Patents", "Disagreed Patents", "Total" ], // name of category
         datasets: [{
-            label:'# of Patents Annotated',
-            data: [32, 22, 17, 20, 15, 26], // number of patents annotated
+            label: '# of Patents Annotated',
+            data: [data.unique, data.agreed, data.disagreed, data.total], // number of patents annotated
             backgroundColor:'rgba(14,30,64,1)',
            
           }],
         borderWidth: 0,
       });
+      setChartData2({
+        labels:["Machine Learning", "AI Hardware", "Evolutionary Computation", "Natural Language Processing", "Speech", "Vision", "Knowledge Processing", "Planning/Control"], // name of annotator
+        datasets: [{
+            label: '# of Patents Annotated',
+            data: [data.ml, data.hard, data.evol, data.natural, data.spee, data.vision, data.know, data.plan], // number of patents annotated
+            backgroundColor:['rgba(30,30,30,1)', 'rgba(36,56,85,1)', 'rgba(98,60,5,1)', 'rgba(38,74,31,1)', 'rgba(70,150,18,1)', 'rgba(150,39,69,1)', 'rgba(70,46,70,1)', 'rgba(200,100,5,1)'],
+           
+          }],
+        borderWidth: 0,
+      });
     };
+    
 
 
   useEffect(() => {
@@ -50,99 +79,14 @@ const Chart = (props) => {
               <div className="card">
                 <div className="card-header border-0">
                   <div className="d-flex justify-content-between">
-                    <h3 className="card-title">Machine Learning Patents</h3>
+                    <h3 className="card-title">Labels Compared</h3>
                   </div>
                 </div>
                 <div className="card-body">
-                  <Bar data={chartData} />
+                  <Pie data={chartData2} />
                 </div>
               </div>
             </div>
-            <div className="col-lg-6 col-sm-6">
-              <div className="card">
-                <div className="card-header border-0">
-                  <div className="d-flex justify-content-between">
-                    <h3 className="card-title">AI Hardware Patents</h3>
-                  </div>
-                </div>
-                <div className="card-body">
-                  <Bar data={chartData} />
-                </div>
-              </div>
-            </div>
-            <div className="col-lg-6 col-sm-6">
-              <div className="card">
-                <div className="card-header border-0">
-                  <div className="d-flex justify-content-between">
-                    <h3 className="card-title">Evolutionary Computation Patents</h3>
-                  </div>
-                </div>
-                <div className="card-body">
-                  <Bar data={chartData} />
-                </div>
-              </div>
-            </div>
-            <div className="col-lg-6 col-sm-6">
-              <div className="card">
-                <div className="card-header border-0">
-                  <div className="d-flex justify-content-between">
-                    <h3 className="card-title">Natural Language Processing Patents</h3>
-                  </div>
-                </div>
-                <div className="card-body">
-                  <Bar data={chartData} />
-                </div>
-              </div>
-            </div>
-            <div className="col-lg-6 col-sm-6">
-              <div className="card">
-                <div className="card-header border-0">
-                  <div className="d-flex justify-content-between">
-                    <h3 className="card-title">Speech Patents</h3>
-                  </div>
-                </div>
-                <div className="card-body">
-                  <Bar data={chartData} />
-                </div>
-              </div>
-            </div>
-            <div className="col-lg-6 col-sm-6">
-              <div className="card">
-                <div className="card-header border-0">
-                  <div className="d-flex justify-content-between">
-                    <h3 className="card-title">Vision Patents</h3>
-                  </div>
-                </div>
-                <div className="card-body">
-                  <Bar data={chartData} />
-                </div>
-              </div>
-            </div>
-            <div className="col-lg-6 col-sm-6">
-              <div className="card">
-                <div className="card-header border-0">
-                  <div className="d-flex justify-content-between">
-                    <h3 className="card-title">Knowledge Processing Patents</h3>
-                  </div>
-                </div>
-                <div className="card-body">
-                  <Bar data={chartData} />
-                </div>
-              </div>
-            </div>
-            <div className="col-lg-6 col-sm-6">
-              <div className="card">
-                <div className="card-header border-0">
-                  <div className="d-flex justify-content-between">
-                    <h3 className="card-title">Planning/Control Patents</h3>
-                  </div>
-                </div>
-                <div className="card-body">
-                  <Bar data={chartData} />
-                </div>
-              </div>
-            </div>
-            {/* /.col-md-6 */}
           </div>
           {/* /.row */}
         </div>

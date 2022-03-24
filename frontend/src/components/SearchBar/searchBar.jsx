@@ -22,7 +22,7 @@ const SearchBar = ()=> {
     
     
     return(
-        
+
         <Form onSubmit={handleSubmit}>
             <Form.Group className="mb-3" controlId="formSearchBar">
                 <Form.Control type="text" placeholder="Search by Patent Number" onChange={e => setPatentNum(e.target.value)}/>

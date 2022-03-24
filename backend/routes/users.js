@@ -53,9 +53,7 @@ router.post("/register", function (req, res, next) {
   passport.authenticate("local-signup", function (error, user, info) {
     
     if (error) {
-      return res.status(500).json({
-        message: error || "Oops something happened",
-      });
+      return res.status(400).send('Email already in use\nTry logging in or using different email');
     }
 
    // Persistent Login

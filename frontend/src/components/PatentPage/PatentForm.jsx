@@ -227,7 +227,7 @@ const PatentForm = (props) => {
             variant="primary" 
             size="lg" 
             className="col-10" 
-            style={{marginBottom: "2%"}}
+            style={{marginBottom: "2%", display: "block"}}
           >
             {" "}
             Submit
