@@ -1,5 +1,4 @@
 # Efficient script to insert titles+abstracts and report missing patent information.
-# Runtime: ~2 days with datasets > 2 million.
 
 import pymongo
 import pandas as pd
@@ -38,6 +37,8 @@ for application in filtered.itertuples():
     operations.append(
         UpdateOne({ "documentId": application.documentId }, { 
             "$set": { 
+                'cpc': '',
+                'claims': '',
                 'title': application.title.strip(),
                 'abstract': application.abstract.strip()
             } 
@@ -81,6 +82,8 @@ for application in missing_PGPUBs.itertuples():
     operations.append(
         UpdateOne({ "documentId": application.pub_no }, { 
             "$set": { 
+                'cpc': '',
+                'claims': '',
                 'title': application.title.strip(),
                 'abstract': application.abstract.strip()
             } 
@@ -118,13 +121,28 @@ patents.rename(columns={'id': 'documentId'}, inplace=True)
 USPATs = [element['documentId'] for element in list(dbPatents.find({"patentCorpus": "USPAT"}, {"_id": False, "documentId": 1}))]
 filtered = patents[patents['documentId'].isin(USPATs)]
 
+# missingUSPATs = filtered[filtered['abstract'].isnull()]
+# missingUSPATs = missingUSPATs['documentId'].tolist()
+# missingUSPATs = ['PN/{}'.format(elem) for elem in missingUSPATs]
+# missingUSPATs = ' OR '.join(missingUSPATs)
+
+# print(missingUSPATs)
+
+# with open('missing.txt', 'w') as f:
+#     for item in missingUSPATs:
+#         f.write("%s\n" % item)
+
+filtered = filtered[~filtered['abstract'].isnull()]
+
 del patents
 
 # build bulk operation:
-for patent in filtered.itertuples():
+for patent in filtered.itertuples():  
     operations.append(
         UpdateOne({ "documentId": patent.documentId }, { 
             "$set": { 
+                'cpc': '',
+                'claims': '',
                 'title': patent.title.strip(),
                 'abstract': patent.abstract.strip()
             } 

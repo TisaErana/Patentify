@@ -4,6 +4,7 @@ const queueSchema = new Schema(
   {
     userId:{ type: Schema.Types.ObjectId, ref: "User", index: {unique: true, dropDups: true}},
     title:{type:String},
+    claims:{type:[String]},
     abstract:{type:String},
     documentId:{type:String},
     patentCorpus:{type:String},
