@@ -6,14 +6,16 @@ from time import time
 
 from sklearn.metrics import f1_score
 
-#stablish connection to the database
+# Configuration:
+MIN_TRAINING_SIZE = 3
 
+
+# establish connection to the database
 client = MongoClient("mongodb://localhost:27017/PatentData")
 db = client['PatentData']       
 cluster = db['labels']
 
-#load stopwords
-
+# load stopwords
 try:
     stopwords = []                          
     with open('stopwords.txt') as f:                
@@ -25,7 +27,6 @@ except FileNotFoundError:
     stopwords= "english"                                                    #this adds all the stop words from a stopwords text file
 
 #create learner and check for base_learner
-    
 learner = None
 try:
     print("Checking for Base Model")
@@ -51,10 +52,14 @@ ids = [] #               document ids of newly annotated documents.
 target = [] #            classification of newly annotated documents.
 cycleCount = 1 #         number of training cycles completed by svm since launch.
 
+entries = 0 #            stores the number of entries the model is going to be trained on.
+
 try:
     db_stream = None
     continue_starter = None
     continue_after = None
+    
+    # load saved model into memory:
     try:
         continue_after = continue_starter = load('continue_token.joblib')
         db_stream = cluster.watch(resume_after=continue_starter)
@@ -63,34 +68,24 @@ try:
         db_stream = cluster.watch()  
         continue_after = continue_starter = db_stream._resume_token
         print('[INFO]: no resume token found, using latest resume token:', continue_starter)
-        
+
+    # begin training model loop:  
     with db_stream as stream:
         print("Listening...")
         while stream.alive:
             change = stream.next()
             if change is not None:
+                entries += 1
+
                 entry = change['fullDocument']
+                ids.append(entry['document'])
                 print(f'Entry:{entry}')
 
-                ids.append(entry['document'])
-
-                values = list(map(lambda x: 1 if x=='Yes' else 0, [
-                    entry['mal'], 
-                    entry['hdw'], 
-                    entry['evo'], 
-                    entry['spc'], 
-                    entry['vis'], 
-                    entry['nlp'], 
-                    entry['pln'], 
-                    entry['kpr']
-                ]))
-                #print(values)
-
-                isAI = int(any(values))
+                isAI = get_target(entry)
                 target.append(isAI)
 
                 # check target has multiple classes(1 and 0)
-                if not (any(target) and all(target)):
+                if entries > MIN_TRAINING_SIZE and not (any(target) and all(target)):
                     continue_after = change['_id']
                     print(ids)
                     print(target)

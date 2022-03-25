@@ -69,11 +69,30 @@ def model_loader(model = 'base_model_working'):
     return estimator
 
 
+def get_target(entry):
+    """
+    Processes a label entry and calculates it's target.
+    Returns if annotation concludes the document is in AI category or not.
+    """
+    values = list(map(lambda x: 1 if x=='Yes' else 0, [
+        entry['mal'], 
+        entry['hdw'], 
+        entry['evo'], 
+        entry['spc'], 
+        entry['vis'], 
+        entry['nlp'], 
+        entry['pln'], 
+        entry['kpr']
+    ]))
+    #print(values)
+
+    return int(any(values))
+
 
 def svm_format(client, ids, target, stopwords):
     """
     Transforms annotations into something the svm model understands.
-    Result is a tuple with the proper vectorization of the annotations.
+    Result is a tuple with the x and y vectorization of the annotations.
     """
     db = client['PatentData']
     collection = db['patents']
@@ -105,5 +124,3 @@ def vectorize(df, stopwords, target='target', vect = False):
     y = df['target'].values
     return X, y
 
-
-  
