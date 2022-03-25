@@ -88,7 +88,8 @@ try:
                 isAI = int(any(values))
                 target.append(isAI)
 
-                if entries > 3:
+                # wait for entries > 3 and check target has multiple classes(1 and 0)
+                if entries > 3 and (not (any(target) and all(target))):
                     continue_after = change['_id']
                     print(ids)
                     print(target)
