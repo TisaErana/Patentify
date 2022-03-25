@@ -8,6 +8,7 @@ from sklearn.metrics import f1_score
 
 # Configuration:
 MIN_TRAINING_SIZE = 3
+MIN_AUTO_SAVE_CYCLES = 10
 
 
 # establish connection to the database
@@ -96,7 +97,7 @@ try:
 
                     print("[INFO]: done with cycle", cycleCount)
 
-                    if cycleCount % 10 == 0:
+                    if cycleCount % MIN_AUTO_SAVE_CYCLES == 0:
                         print(f'[AUTO-SAVE {time():0.0f}]: saved latest model and continue_token')
                         dump(learner.estimator, f'models/Final/auto-save_latest.joblib')
                         dump(continue_after,'continue_token.joblib')
