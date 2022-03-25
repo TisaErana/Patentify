@@ -43,12 +43,11 @@ if learner is None:
 
 # main logic loop. Open the stream and look for updates to labels database, each 3 updates (3 for testing 100 for prod(?)) the model will learn
 # the new labels which will be processed first. finally we will dump the resume token in order to continue with the process later on
-    
-entries = 0
-cycleCount = 1
 
-ids = []
-target = []
+ids = [] #               document ids of newly annotated documents.
+target = [] #            classification of newly annotated documents.
+cycleCount = 1 #         number of training cycles completed by svm since launch.
+
 try:
     db_stream = None
     continue_starter = None
@@ -70,7 +69,6 @@ try:
                 entry = change['fullDocument']
                 print(f'Entry:{entry}')
 
-                entries +=1
                 ids.append(entry['document'])
 
                 values = list(map(lambda x: 1 if x=='Yes' else 0, [
@@ -88,15 +86,13 @@ try:
                 isAI = int(any(values))
                 target.append(isAI)
 
-                # wait for entries > 3 and check target has multiple classes(1 and 0)
-                if entries > 3 and (not (any(target) and all(target))):
+                # check target has multiple classes(1 and 0)
+                if not (any(target) and all(target)):
                     continue_after = change['_id']
                     print(ids)
                     print(target)
                     X, y = to_learn(client, ids, target, stopwords)
-                    #sleep(5)
                     learner.teach(X=X, y=y)
-                    entries = 0
                     ids = []
                     target = []    
 
