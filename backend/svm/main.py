@@ -1,3 +1,5 @@
+from pymongo import MongoClient
+
 from itertools import cycle
 from functions import *
 from time import time
@@ -41,8 +43,9 @@ if learner is None:
     )
 
 
-# main logic loop. Open the stream and look for updates to labels database, each 3 updates (3 for testing 100 for prod(?)) the model will learn
-# the new labels which will be processed first. finally we will dump the resume token in order to continue with the process later on
+# main logic loop: opens the stream and looks for updates to labels database, once it finds two distinct classes in target array (1 and 0),
+# the svm model will train. Finally, it will dump the latest databse and resume token. Once the script is started up again, it will continue where
+# it left off and not skip any patents that it missed while it was not running.
 
 ids = [] #               document ids of newly annotated documents.
 target = [] #            classification of newly annotated documents.
@@ -91,7 +94,7 @@ try:
                     continue_after = change['_id']
                     print(ids)
                     print(target)
-                    X, y = to_learn(client, ids, target, stopwords)
+                    X, y = svm_format(client, ids, target, stopwords)
                     learner.teach(X=X, y=y)
                     ids = []
                     target = []    

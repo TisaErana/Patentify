@@ -11,16 +11,12 @@ from sklearn import svm
 from modAL.uncertainty import uncertainty_sampling
 from modAL.models import ActiveLearner
 
-from pymongo import MongoClient
-
 from joblib import dump, load
 
 import pandas as pd
 import numpy as np
 
 from time import sleep
-
-#    client = MongoClient("mongodb://compute1.cognac.cs.fiu.edu:59122/PatentData?readPreference=secondary&ssl=false")
 
 
 # Create base model and save into file
@@ -73,8 +69,12 @@ def model_loader(model = 'base_model_working'):
     return estimator
 
 
-# target is the entry we are training on: this needs to be updated to not only look at one category in the annotation (use OR on all sub-fields of AI to determine if AI).
-def to_learn(client, ids, target, stopwords):
+
+def svm_format(client, ids, target, stopwords):
+    """
+    Transforms annotations into something the svm model understands.
+    Result is a tuple with the proper vectorization of the annotations.
+    """
     db = client['PatentData']
     collection = db['patents']
     entries = list(collection.find(filter = {'documentId':{'$in':ids}}))            #find patents by patent id
