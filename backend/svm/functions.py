@@ -4,6 +4,7 @@ import pickle
 import json
 
 from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.metrics import f1_score
 from sklearn.model_selection import train_test_split
 from sklearn.decomposition import TruncatedSVD
 from sklearn import svm
@@ -17,7 +18,6 @@ import pandas as pd
 import numpy as np
 
 from time import sleep
-
 
 # Create base model and save into file
 def base_model_creator(client, stopwords):
@@ -62,12 +62,10 @@ def base_model_creator(client, stopwords):
     dump(learner.estimator,'models/Final/base_model.joblib')
     dump(vectorizer, 'vectorizer.joblib')
     sleep(3)
-    
 
 def model_loader(model = 'base_model_working'):
     estimator = load(f"models/Final/{model}.joblib")
     return estimator
-
 
 def get_target(entry):
     """
@@ -88,7 +86,6 @@ def get_target(entry):
 
     return int(any(values))
 
-
 def svm_format(client, ids, target, stopwords):
     """
     Transforms annotations into something the svm model understands.
@@ -108,7 +105,6 @@ def svm_format(client, ids, target, stopwords):
     df = pd.DataFrame(data = {'id':ids,'text':txt,'target':target})                 #this will put the id, text{abstract and title}, and target{label??} into a dataframe
     print(df)
     return vectorize(df, stopwords, vect = True)                                    
-    
 
 def vectorize(df, stopwords, target='target', vect = False):
 #     if vect:
@@ -123,4 +119,28 @@ def vectorize(df, stopwords, target='target', vect = False):
 #     print(X)
     y = df['target'].values
     return X, y
+
+def calc_f1_score(learner, client):
+    """
+    Calculates f1_score based on labels the model has not been trained on.
+    """
+    db = client['PatentData']
+    test_labels = db['labels'].find() # labels which the model has not been trained on.
+
+    ids = [] #               document ids of newly annotated documents.
+    target = [] #            classification of newly annotated documents.
+    
+    for label in test_labels:
+        ids.append(label['document'])
+        target.append(get_target(label))
+    
+    print(ids)
+    print(target)
+
+    x, y = svm_format(client, ids, target, '')
+    y_predictions = learner.predict(x)
+
+    print(f1_score(target, y_predictions, average='weighted'))
+
+    return 0
 
