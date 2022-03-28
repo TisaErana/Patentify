@@ -4,16 +4,13 @@ import pickle
 import json
 
 from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.metrics import f1_score
 from sklearn.model_selection import train_test_split
 from sklearn.decomposition import TruncatedSVD
 from sklearn import svm
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 
 from modAL.uncertainty import uncertainty_sampling
 from modAL.models import ActiveLearner
-
-from pymongo import MongoClient
 
 from joblib import dump, load
 
@@ -21,9 +18,6 @@ import pandas as pd
 import numpy as np
 
 from time import sleep
-
-#    client = MongoClient("mongodb://compute1.cognac.cs.fiu.edu:59122/PatentData?readPreference=secondary&ssl=false")
-
 
 # Create base model and save into file
 def base_model_creator(client, stopwords):
@@ -68,38 +62,49 @@ def base_model_creator(client, stopwords):
     dump(learner.estimator,'models/Final/base_model.joblib')
     dump(vectorizer, 'vectorizer.joblib')
     sleep(3)
-    
 
 def model_loader(model = 'base_model_working'):
     estimator = load(f"models/Final/{model}.joblib")
     return estimator
 
+def get_target(entry):
+    """
+    Processes a label entry and calculates it's target.
+    Returns if annotation concludes the document is in AI category or not.
+    """
+    values = list(map(lambda x: 1 if x=='Yes' else 0, [
+        entry['mal'], 
+        entry['hdw'], 
+        entry['evo'], 
+        entry['spc'], 
+        entry['vis'], 
+        entry['nlp'], 
+        entry['pln'], 
+        entry['kpr']
+    ]))
+    #print(values)
 
-# target is the entry we are training on: this needs to be updated to not only look at one category in the annotation (use OR on all sub-fields of AI to determine if AI).
-def to_learn(client, ids, target, stopwords):
+    return int(any(values))
+
+def svm_format(client, ids, target, stopwords):
+    """
+    Transforms annotations into something the svm model understands.
+    Result is a tuple with the x and y vectorization of the annotations.
+    """
     db = client['PatentData']
     collection = db['patents']
     entries = list(collection.find(filter = {'documentId':{'$in':ids}}))            #find patents by patent id
-    #print(entries)
-   # print("entries Length", len(entries))
+    print(entries)
+    print("entries Length", len(entries))
     txt = [p['abstract']+''+p['title'] for p in entries]                            #text hold the abstract and title
-<<<<<<< Updated upstream
     print(txt)
     print("text length", len(txt))
-    target = list(map(lambda x: 1 if x=='Yes' else 0, target))                      #target maps the label -> to a 0 or 1.
+    #target = list(map(lambda x: 1 if x=='Yes' else 0, target))                      #target maps the label -> to a 0 or 1.
     print(target)
     print("Target length",len(target))
-=======
-    #print(txt)
-    #print("text length", len(txt))
-    #target = list(map(lambda x: 1 if x=='Yes' else 0, target))                      #target maps the label -> to a 0 or 1.
-    #print(target)
-   # print("Target length",len(target))
->>>>>>> Stashed changes
     df = pd.DataFrame(data = {'id':ids,'text':txt,'target':target})                 #this will put the id, text{abstract and title}, and target{label??} into a dataframe
-    #print(df)
+    print(df)
     return vectorize(df, stopwords, vect = True)                                    
-    
 
 def vectorize(df, stopwords, target='target', vect = False):
 #     if vect:
@@ -115,8 +120,6 @@ def vectorize(df, stopwords, target='target', vect = False):
     y = df['target'].values
     return X, y
 
-<<<<<<< Updated upstream
-=======
 def calc_f1_score(learner, client):
     """
     Calculates f1_score based on labels the model has not been trained on.
@@ -131,18 +134,12 @@ def calc_f1_score(learner, client):
         ids.append(label['document'])
         target.append(get_target(label))
     
-   # print(ids)
-   # print(target)
+    print(ids)
+    print(target)
 
     x, y = svm_format(client, ids, target, '')
-
     y_predictions = learner.predict(x)
 
-    print("True Labels: ", y)
-    print("Prediction:  ", y_predictions)
     print(f1_score(target, y_predictions, average='weighted'))
 
     return 0
->>>>>>> Stashed changes
-
-  
