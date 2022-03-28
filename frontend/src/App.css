@@ -3942,6 +3942,7 @@ input[type=button].btn-block {
   align-items: center;
   justify-content: space-between;
   /* padding: 1rem 1rem; */
+  box-shadow: 1px 1px 10px 1px black;
   background-color: rgb(230, 246, 255) !important;
 }
 .navbar .container,
