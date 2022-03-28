@@ -16,23 +16,18 @@ const SearchBar = ()=> {
                 weAreSearching: true 
             }
         })
-
-        history.go(0)
+        history.go(0);
     }
-    
-    
-    return(
 
+    return(
         <Form onSubmit={handleSubmit}>
             <Form.Group className="mb-3" controlId="formSearchBar">
-                <Form.Control type="text" placeholder="Search by Patent Number" onChange={e => setPatentNum(e.target.value)}/>
-                <Button variant="primary" type="submit" >
+                <Form.Control type="text" placeholder="Search by Document Number" onChange={e => setPatentNum(e.target.value)} style={{width: "280px"}}/>
+                <Button variant="primary" type="submit" style={{ marginLeft: "5%", paddingLeft: "4%", paddingRight: "4%" }} >
                      Submit
                 </Button>
-            </Form.Group>
-            
+            </Form.Group>  
         </Form>
-      
     );
 
 }
