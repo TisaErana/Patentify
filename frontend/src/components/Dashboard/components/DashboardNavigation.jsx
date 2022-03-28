@@ -9,7 +9,7 @@ const DashboardNavigation = () => {
           DashBoard V3
           <ul className="navbar-nav mr-auto mt-2 mt-lg-0">
             <li className="nav-item">
-              <NavLink className="nav-link" to="/Dashboard">
+              <NavLink className="nav-link" exact to="/Dashboard">
                 Overview <span className="sr-only">(current)</span>{" "}
               </NavLink>
             </li>
