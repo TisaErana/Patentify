@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 
 const DashboardNavigation = () => {
   return (
@@ -8,25 +8,25 @@ const DashboardNavigation = () => {
         <div className="collapse navbar-collapse" id="navbarTogglerDemo01">
           DashBoard V3
           <ul className="navbar-nav mr-auto mt-2 mt-lg-0">
-          <li className="nav-item">
-              <Link className="nav-link" to="/Dashboard/">
+            <li className="nav-item">
+              <NavLink className="nav-link" to="/Dashboard">
                 Overview <span className="sr-only">(current)</span>{" "}
-              </Link>
+              </NavLink>
             </li>
             <li className="nav-item">
-              <Link className="nav-link" to="/Dashboard/ViewLabel">
+              <NavLink className="nav-link" to="/Dashboard/ViewLabel">
                 Labels <span className="sr-only">(current)</span>{" "}
-              </Link>
+              </NavLink>
             </li>
             <li className="nav-item">
-              <Link className="nav-link" to="/Dashboard/ViewQueues">
+              <NavLink className="nav-link" to="/Dashboard/ViewQueues">
                 Active Queues <span className="sr-only">(current)</span>{" "}
-              </Link>
+              </NavLink>
             </li>
             <li className="nav-item">
-              <Link className="nav-link" to="/Dashboard/ViewUser">
+              <NavLink className="nav-link" to="/Dashboard/ViewUser">
                 View Users <span className="sr-only">(current)</span>{" "}
-              </Link>
+                </NavLink>
             </li>
           </ul>
         </div>
