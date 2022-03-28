@@ -88,10 +88,9 @@ const PatentView = (props) => {
         <Fragment>
           <div className="col-sm-8 col-lg-3 col-md-7">
             <div style={{ 
-              backgroundColor: 'rgb(184, 229, 255)', 
-              border: '5px solid rgba(0, 0, 0, 1)', 
-              borderRadius: '0.55rem',
+              backgroundColor: 'rgb(230, 246, 255)', 
               padding: '3%',
+              boxShadow: '4px 4px 5px 3px',
               marginTop: '17%' }}>
               <h3>Abstract</h3>
               <div style={{ fontSize: "14px", color: 'black', weight: "bold" }}>{patentAbstract}</div>
