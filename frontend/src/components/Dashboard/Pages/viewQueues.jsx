@@ -161,11 +161,13 @@ const ViewQueues = () => {
         <div style={{ paddingBottom: '5%' }}>
             <Nav />
             <h1 className="text-center" style={{paddingTop: '2%', paddingBottom: '3%' }}>Active Queues by User</h1>
-            <div style={{  
+            <div className="custom-box-component"
+            style={{  
                 padding: '2%', 
                 backgroundColor: 'white', 
                 maxWidth: '95%', 
-                marginLeft: '2%' }}>
+                marginLeft: '2%'
+            }}>
                 <Fragment>
                     {
                         loaded?
