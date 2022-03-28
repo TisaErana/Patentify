@@ -160,18 +160,21 @@ const ViewQueues = () => {
     return (
         <div style={{ paddingBottom: '5%' }}>
             <Nav />
-            <h1 className="text-center" style={{paddingTop: '2%', paddingBottom: '3%' }}>Active Queues by User</h1>
             <div className="custom-box-component"
             style={{  
                 padding: '2%', 
                 backgroundColor: 'white', 
                 maxWidth: '95%', 
-                marginLeft: '2%'
+                marginLeft: '2%',
+                marginTop: "4%"
             }}>
                 <Fragment>
                     {
                         loaded?
                             <Container fluid>
+                                <div style={{ display: "flex" }}>
+                                    <h6 className="card-title">Active Queues</h6>   
+                                </div>
                                 <Tab.Container id="left-tabs-example" defaultActiveKey="first">
                                     <Row className="justify-content-sm-center">
                                     {printInfo()}
