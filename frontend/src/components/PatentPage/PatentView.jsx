@@ -90,7 +90,7 @@ const PatentView = (props) => {
             <div style={{ 
               backgroundColor: 'rgb(230, 246, 255)', 
               padding: '3%',
-              boxShadow: '4px 4px 5px 3px',
+              boxShadow: "0px 3px 1px -2px rgba(0,0,0,0.5), 0px 2px 2px 0px rgba(0,0,0,0.14), 0px 1px 5px 0px rgba(0,0,0,0.50)",
               marginTop: '17%' }}>
               <h3>Abstract</h3>
               <div style={{ fontSize: "14px", color: 'black', weight: "bold" }}>{patentAbstract}</div>
