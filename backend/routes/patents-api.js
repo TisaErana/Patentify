@@ -270,7 +270,7 @@ router.post("/search", async function (req, res, next) {
     }
     else 
     {
-      res.json({message:`Patent with the given id \'${val}\' not found.`})
+      res.json({message:`Patent with the given id \'${searchVal}\' not found.`})
     }
 });
 

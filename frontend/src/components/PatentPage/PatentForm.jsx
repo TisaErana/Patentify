@@ -73,7 +73,6 @@ const PatentForm = (props) => {
       },
     })
       .then((response) => {
-        props.updatePatentId(response.data.documentId);
         props.updatePatents(response.data);
         
         resetForm();
