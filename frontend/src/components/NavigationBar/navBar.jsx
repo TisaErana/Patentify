@@ -11,7 +11,7 @@ const navBar = (props) => {
   return (
     <div>
       <Navbar bg="primary" expand="lg" variant="light">
-        <Navbar.Brand href="/"> <img src ={patentifyLogo} alt="Patentify logo" height='75rem' /> </Navbar.Brand>
+        <Navbar.Brand href="/Home"> <img src ={patentifyLogo} alt="Patentify logo" height='55rem' /> </Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
           {displayLogout(props.isAuthed, props.role)}

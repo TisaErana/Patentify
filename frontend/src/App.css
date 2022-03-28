@@ -3941,7 +3941,7 @@ input[type=button].btn-block {
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem 1rem;
+  /* padding: 1rem 1rem; */
   background-color: rgb(230, 246, 255) !important;
 }
 .navbar .container,
@@ -7923,7 +7923,7 @@ button.bg-dark:focus {
 .ml-auto,
 .mx-auto {
   margin-left: auto !important;
-  font-size: 1.5rem;
+  font-size: 1.3rem;
 }
 
 @media (min-width: 576px) {
