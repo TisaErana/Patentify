@@ -42,9 +42,6 @@ const PatentView = (props) => {
           setError(body.message)
         }
         else {
-          setPatentTitle(title(body.title));
-          setPatentId(body.documentId);
-          setPatentAbstract(body.abstract);
           setPatents(body);
         }
       } catch(error) {}
@@ -58,9 +55,6 @@ const PatentView = (props) => {
         const body = await response.json();
         // body is an object with the response 
 
-        setPatentTitle(title(body.title));
-        setPatentId(body.documentId);
-        setPatentAbstract(body.abstract);
         setPatents(
           /* This sets the state of patents to be an object that contains only the documentID and Patent Corpus
           // we map throught the object to acxomplish this
@@ -79,6 +73,15 @@ const PatentView = (props) => {
     else { fetchData(); }
 
   }, []);
+
+  useEffect(() => {
+    if (patents !== undefined)
+    {
+      setPatentTitle(title(patents.title));
+      setPatentId(patents.documentId);
+      setPatentAbstract(patents.abstract);
+    }
+  }, [patents]);
   
   return (
     <div className="container-fluid mt-5">
