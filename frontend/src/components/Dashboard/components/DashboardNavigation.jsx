@@ -7,7 +7,7 @@ const DashboardNavigation = () => {
       <nav className="navbar navbar-expand-lg navbar-light bg-light">
         <div className="collapse navbar-collapse" id="navbarTogglerDemo01">
           DashBoard V3
-          <ul className="navbar-nav mr-auto mt-2 mt-lg-0">
+          <ul className="navbar-nav mr-auto mt-2 mt-lg-0" style={{ marginLeft: "0.5%" }}>
             <li className="nav-item">
               <NavLink className="nav-link" exact to="/Dashboard">
                 Overview <span className="sr-only">(current)</span>{" "}
