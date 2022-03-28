@@ -39,7 +39,6 @@ const ViewUser = () => {
           data={rowData}
           isLoading={rowData.length === 0}
           options={{ exportButton: true, exportAllData: true}}
-          style={{ border: '5px solid rgba(0, 0, 0, 1)', borderRadius: '0.55rem' }}
         />
       </div>
     </div>

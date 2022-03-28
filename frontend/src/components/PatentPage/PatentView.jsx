@@ -42,9 +42,6 @@ const PatentView = (props) => {
           setError(body.message)
         }
         else {
-          setPatentTitle(title(body.title));
-          setPatentId(body.documentId);
-          setPatentAbstract(body.abstract);
           setPatents(body);
         }
       } catch(error) {}
@@ -58,9 +55,6 @@ const PatentView = (props) => {
         const body = await response.json();
         // body is an object with the response 
 
-        setPatentTitle(title(body.title));
-        setPatentId(body.documentId);
-        setPatentAbstract(body.abstract);
         setPatents(
           /* This sets the state of patents to be an object that contains only the documentID and Patent Corpus
           // we map throught the object to acxomplish this
@@ -79,6 +73,15 @@ const PatentView = (props) => {
     else { fetchData(); }
 
   }, []);
+
+  useEffect(() => {
+    if (patents !== undefined)
+    {
+      setPatentTitle(title(patents.title));
+      setPatentId(patents.documentId);
+      setPatentAbstract(patents.abstract);
+    }
+  }, [patents]);
   
   return (
     <div className="container-fluid mt-5">
@@ -88,10 +91,9 @@ const PatentView = (props) => {
         <Fragment>
           <div className="col-sm-8 col-lg-3 col-md-7">
             <div style={{ 
-              backgroundColor: 'rgb(184, 229, 255)', 
-              border: '5px solid rgba(0, 0, 0, 1)', 
-              borderRadius: '0.55rem',
+              backgroundColor: 'rgb(230, 246, 255)', 
               padding: '3%',
+              boxShadow: "0px 3px 1px -2px rgba(0,0,0,0.5), 0px 2px 2px 0px rgba(0,0,0,0.14), 0px 1px 5px 0px rgba(0,0,0,0.50)",
               marginTop: '17%' }}>
               <h3>Abstract</h3>
               <div style={{ fontSize: "14px", color: 'black', weight: "bold" }}>{patentAbstract}</div>
@@ -105,7 +107,7 @@ const PatentView = (props) => {
             <PatentCard patents={patents} />
           </div>
           <div className="col-sm-7 col-lg-3 col-md-4">
-            <PatentForm patents={patents} updatePatents={setPatents} updatePatentId={setPatentId}/>
+            <PatentForm patents={patents} updatePatents={setPatents}/>
           </div>
         </Fragment>
         }  

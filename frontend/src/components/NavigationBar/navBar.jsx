@@ -1,17 +1,14 @@
 import React from "react";
 import { Navbar, Nav } from "react-bootstrap";
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import patentifyLogo from '../../patentifyLogo.png'
-
-
-
 import  SearchBar  from '../SearchBar/searchBar';
 
 const navBar = (props) => {
   return (
     <div>
       <Navbar bg="primary" expand="lg" variant="light">
-        <Navbar.Brand href="/"> <img src ={patentifyLogo} alt="Patentify logo" height='75rem' /> </Navbar.Brand>
+        <Navbar.Brand href="/Home"> <img src ={patentifyLogo} alt="Patentify logo" height='55rem' /> </Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
           {displayLogout(props.isAuthed, props.role)}
@@ -26,41 +23,37 @@ function displayLogout(AuthStatus, Role) {
     {
       return (
         <Nav className="ml-auto">
-        <Nav.Link className="active" as={Link} to="/Home">
-          Home
-        </Nav.Link>
-        <Nav.Link as={Link} to="/Patents">
-          Patents
-        </Nav.Link>
-        <Nav.Link as={Link} to="/Dashboard">
-          Dashboard
-        </Nav.Link>
-        
+          <NavLink className="nav-link" to="/Home">
+            Home
+          </NavLink>
+          <NavLink className="nav-link" to="/Patents">
+            Patents
+          </NavLink>
+          <NavLink className="nav-link" to="/Dashboard">
+            Dashboard
+          </NavLink>
           <SearchBar></SearchBar>
-       
-        <Nav.Link as={Link} to="/Logout">
-          Logout
-        </Nav.Link>
-      </Nav>
+          <NavLink className="nav-link" to="/Logout">
+            Logout
+          </NavLink>
+        </Nav>
       );
     }
     else if(Role === 'annotator')
     {
       return (
         <Nav className="ml-auto">
-        <Nav.Link className="active" as={Link} to="/Home">
-          Home
-        </Nav.Link>
-        <Nav.Link as={Link} to="/Patents">
-          Patents
-        </Nav.Link>
-        <Nav.Link as={Link} to="/Logout">
-          Logout
-        </Nav.Link>
-       
-        <SearchBar></SearchBar>
-      
-      </Nav>
+          <NavLink className="nav-link" to="/Home">
+            Home
+          </NavLink>
+          <NavLink className="nav-link" to="/Patents">
+            Patents
+          </NavLink>
+          <NavLink className="nav-link" to="/Logout">
+            Logout
+          </NavLink>
+          <SearchBar></SearchBar>
+        </Nav>
       );
     }
     
@@ -68,19 +61,18 @@ function displayLogout(AuthStatus, Role) {
   else {
     return (
       <Nav className="ml-auto">
-      <Nav.Link className="active" as={Link} to="/Home">
+        <NavLink className="nav-link" to="/Home">
           Home
-      </Nav.Link>
-        <Nav.Link as={Link} to="/Signup">
+        </NavLink>
+        <NavLink className="nav-link" to="/Signup">
           SignUp
-        </Nav.Link>
-        <Nav.Link as={Link} to="/Login">
+        </NavLink>
+        <NavLink className="nav-link" to="/Login">
           Login
-        </Nav.Link>
+        </NavLink>
       </Nav>
     );
   }
 }
-
 
 export default navBar;
