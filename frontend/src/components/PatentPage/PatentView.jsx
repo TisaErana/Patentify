@@ -107,7 +107,7 @@ const PatentView = (props) => {
             <PatentCard patents={patents} />
           </div>
           <div className="col-sm-7 col-lg-3 col-md-4">
-            <PatentForm patents={patents} updatePatents={setPatents} updatePatentId={setPatentId}/>
+            <PatentForm patents={patents} updatePatents={setPatents}/>
           </div>
         </Fragment>
         }  
