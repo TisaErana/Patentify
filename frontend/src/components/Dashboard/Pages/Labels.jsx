@@ -52,7 +52,6 @@ const Table = () => {
             columns={COLUMNS}
             data={rowData}
             isLoading={rowData.length === 0}
-            style={{ border: '5px solid rgba(0, 0, 0, 1)', borderRadius: '0.55rem' }}
             options={{
               exportButton: true,
               exportAllData: true,

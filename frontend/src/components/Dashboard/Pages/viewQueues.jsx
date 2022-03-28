@@ -161,9 +161,7 @@ const ViewQueues = () => {
         <div style={{ paddingBottom: '5%' }}>
             <Nav />
             <h1 className="text-center" style={{paddingTop: '2%', paddingBottom: '3%' }}>Active Queues by User</h1>
-            <div style={{ 
-                border: '5px solid rgba(0, 0, 0, 1)', 
-                borderRadius: '0.55rem', 
+            <div style={{  
                 padding: '2%', 
                 backgroundColor: 'white', 
                 maxWidth: '95%', 
