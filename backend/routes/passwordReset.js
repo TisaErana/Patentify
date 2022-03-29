@@ -11,6 +11,8 @@ const { UserSchema } = require("../models/User_model");
 const bcrypt = require('bcryptjs');
 const salt = bcrypt.genSaltSync(10);
 
+let passIsReset = false
+
 router.post("/requestPasswordLink", async (req, res) => {
     try {
         const user = await User.findOne({ email: req.body.email });
@@ -64,6 +66,7 @@ router.post("/verify/update", async (req, res) =>{
         let loginLink = `${process.env.DOMAIN_NAME}/Login`;
         await sendEmail(user.email, "Password reset confirmation", `Hello ${user.name} your password has been successfully updated, click the link below to login.\n${loginLink}`);
         res.status(200).send('Password Reset successfuly');
+        passIsReset = true;
 
     }else{
         return res.status(400).send('Passwords do not match\nPlease re-enter password');
