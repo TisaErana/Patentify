@@ -40,9 +40,8 @@ for patent in USPATs:
       claims.append([entry.claim_number, entry.text.strip()])
 
   claims.sort(key=lambda x : x[0])
-  print(claims)
   claims = [element[1] for element in claims]
-  print(claims)
+  #print(claims)
 
   result = dbPatents.bulk_write([
     UpdateOne({ "documentId": patent}, { 
@@ -86,7 +85,7 @@ for patent in PGPUBs:
       claims.append(entry.text.strip())
 
   claims.sort(key=lambda x : int(x[0:2].strip()))
-  print(claims)
+  #print(claims)
 
   result = dbPatents.bulk_write([
     UpdateOne({ "documentId": patent}, { 
