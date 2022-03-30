@@ -54,6 +54,8 @@ for patent in USPATs:
   ], ordered=False)
 
   print('\ Done with USPAT claim import cycle', cycle, '/')
+
+  cycle += 1
   matched_count_total += result.matched_count
   modified_count_total += result.modified_count
 
