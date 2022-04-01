@@ -37,8 +37,7 @@ for application in filtered.itertuples():
     operations.append(
         UpdateOne({ "documentId": application.documentId }, { 
             "$set": { 
-                'cpc': '',
-                'claims': '',
+                'claims': [],
                 'title': application.title.strip(),
                 'abstract': application.abstract.strip()
             } 
@@ -82,8 +81,7 @@ for application in missing_PGPUBs.itertuples():
     operations.append(
         UpdateOne({ "documentId": application.pub_no }, { 
             "$set": { 
-                'cpc': '',
-                'claims': '',
+                'claims': [],
                 'title': application.title.strip(),
                 'abstract': application.abstract.strip()
             } 
@@ -141,8 +139,7 @@ for patent in filtered.itertuples():
     operations.append(
         UpdateOne({ "documentId": patent.documentId }, { 
             "$set": { 
-                'cpc': '',
-                'claims': '',
+                'claims': [],
                 'title': patent.title.strip(),
                 'abstract': patent.abstract.strip()
             } 
