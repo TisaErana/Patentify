@@ -76,7 +76,7 @@ def get_target(entry):
 
     return int(any(values))
 
-def svm_format(client, ids, target, stopwords):
+def svm_format(client, ids, target, training=False):
     """
     Transforms annotations into something the svm model understands.
     Returns a tuple with the x and y vectorization of the annotations.
@@ -98,7 +98,7 @@ def svm_format(client, ids, target, stopwords):
     df = pd.DataFrame(data = {'id':ids,'text':txt,'target':target})      # this will put the id, text{abstract and title}, and target into a dataframe
     #print(df)
 
-    return vectorize(df)                                    
+    return vectorize(df, training=training)                                    
 
 def vectorize(df, vectorizer = None, target='target', training=False):
     if vectorizer == None:
@@ -134,7 +134,7 @@ def calc_f1_score(learner, client):
     print(ids)
     print(target)
 
-    x, y = svm_format(client, ids, target, '')
+    x, y = svm_format(client, ids, target)
     y_predictions = learner.predict(x)
 
     print(f1_score(target, y_predictions, average='weighted'))
