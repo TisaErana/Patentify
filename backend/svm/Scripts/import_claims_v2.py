@@ -33,7 +33,7 @@ for patent in USPATs:
   for year in range(1976, 2022):
     # load USPAT claims from tsv file:
     uspatClaims = pd.read_csv(
-      f'X:/Data/Patentify/patent_claims/claims_{year}.tsv',
+      f'data/patent_claims/claims_{year}.tsv',
       header = 0, # header at row 0
       sep = '\t',  # tab separated
       usecols = ['patent_id', 'text', 'claim_number'],
@@ -83,7 +83,7 @@ for patent in PGPUBs:
 
   # load USPAT claims from tsv file:
   applicationClaims = pd.read_csv(
-    f'X:/Data/Patentify/application_claims/claim_{year}.tsv',
+    f'data/application_claims/claim_{year}.tsv',
     header = 0, # header at row 0
     sep = '\t',  # tab separated
     usecols = ['document_number', 'text'],
