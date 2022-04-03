@@ -37,8 +37,7 @@ for application in filtered.itertuples():
     operations.append(
         UpdateOne({ "documentId": application.documentId }, { 
             "$set": { 
-                'cpc': '',
-                'claims': '',
+                'claims': [],
                 'title': application.title.strip(),
                 'abstract': application.abstract.strip()
             } 
@@ -82,8 +81,7 @@ for application in missing_PGPUBs.itertuples():
     operations.append(
         UpdateOne({ "documentId": application.pub_no }, { 
             "$set": { 
-                'cpc': '',
-                'claims': '',
+                'claims': [],
                 'title': application.title.strip(),
                 'abstract': application.abstract.strip()
             } 
@@ -121,7 +119,7 @@ patents.rename(columns={'id': 'documentId'}, inplace=True)
 USPATs = [element['documentId'] for element in list(dbPatents.find({"patentCorpus": "USPAT"}, {"_id": False, "documentId": 1}))]
 filtered = patents[patents['documentId'].isin(USPATs)]
 
-# missingUSPATs = filtered[filtered['abstract'].isnull()]
+# # missingUSPATs = filtered[filtered['abstract'].isnull()]
 # missingUSPATs = missingUSPATs['documentId'].tolist()
 # missingUSPATs = ['PN/{}'.format(elem) for elem in missingUSPATs]
 # missingUSPATs = ' OR '.join(missingUSPATs)
@@ -141,8 +139,7 @@ for patent in filtered.itertuples():
     operations.append(
         UpdateOne({ "documentId": patent.documentId }, { 
             "$set": { 
-                'cpc': '',
-                'claims': '',
+                'claims': [],
                 'title': patent.title.strip(),
                 'abstract': patent.abstract.strip()
             } 
@@ -160,6 +157,43 @@ del operations
 del filtered
 del result
 
+# insert missing USPAT abstracts:
+operations = []
+
+# load patent data from tsv file:
+patents = pd.read_csv(
+  'data/missing_patent_abstract_text.csv',
+  header = 0, # header at row 0
+  dtype = { 'pat_no': str, 'abstract': str } # mixed types, let's make it all strings
+)
+print('Loaded missing_patent_abstract_text.csv into dataframe.')
+print()
+
+patents.rename(columns={'pat_no': 'documentId'}, inplace=True)
+filtered = patents[patents['documentId'].isin(USPATs)]
+
+# build bulk operation:
+for patent in filtered.itertuples():  
+    operations.append(
+        UpdateOne({ "documentId": patent.documentId }, { 
+            "$set": { 
+                'abstract': patent.abstract.strip()
+            } 
+        })
+    )
+
+print('Updating missing USPAT metadata...')
+result = dbPatents.bulk_write(operations, ordered=False)
+print('Matched', result.matched_count, 'USPATs.')
+print('Updated', result.modified_count, 'USPATs.')
+print()
+
+# release resources:
+del result
+del patents
+del filtered
+del operations
+
 operations = []
 labelOperations = []
 
@@ -176,6 +210,9 @@ print()
 filtered = crosswalk[crosswalk['document_number'].isin(PGPUBs)]
 
 # build bulk operation:
+# BUG: this script does not take into account duplicates: 
+# example: there is already a USPAT entry in db when PGPUB is upgraded to that same USPAT number.
+# this was SOLVED by later removing duplicates with another script.
 for application in filtered.itertuples():
     operations.append(
         UpdateOne({ "documentId": application.document_number }, { 

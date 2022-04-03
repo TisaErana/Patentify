@@ -7,20 +7,21 @@ import pymongo
 # connect to database:
 client = pymongo.MongoClient("mongodb://localhost:27017/PatentData")
 db = client['PatentData']
-patents = db['patents']
+patents = db['labels']
 print('Connected to database.')
 
 
-patentsList =   list(patents.find({ }, {"_id": False, "documentId": 1}))
-print('Found', len(patentsList), 'unique patents.')
+labeledPatents = patents.find({ }, {"_id": False, "document": 1}).distinct('document')
+print('Found', len(labeledPatents), 'unique labels.')
 
 
-for patent in patentsList:
+for patent in labeledPatents:
     patentTotal = 0
-    match = patents.count_documents({ 'documentId': patent['documentId'] })
+    match = patents.count_documents({ 'document': patent })
+
     if match > 1:
         for i in range(1, match):
-            result = patents.delete_one({ 'documentId': patent['documentId'] })
+            result = patents.delete_one({ 'document': patent })
             patentTotal += result.deleted_count
     
     print(patent, ': found', match, 'total records,', 'deleted', patentTotal, 'duplicates.')

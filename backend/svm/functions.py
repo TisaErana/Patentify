@@ -143,3 +143,4 @@ def calc_f1_score(learner, client):
     print(f1_score(target, y_predictions, average='weighted'))
 
     return 0
+

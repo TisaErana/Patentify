@@ -1,8 +1,9 @@
 import React from "react";
 import { Form } from "react-bootstrap";
-import { Link } from "react-router-dom";
+import { Link, Redirect } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import axios from "axios";
+
 
 const Reset = (props) => {
   const { register, handleSubmit } = useForm(); // initialize the hook
@@ -26,6 +27,7 @@ const Reset = (props) => {
         if (response.status === 200) {
           alert(response.data);
           console.log("Sucess: ", response.data)
+          window.location = "/Login"
         }
       })
       .catch((error) => {
@@ -33,7 +35,9 @@ const Reset = (props) => {
         console.log("Error:", error.response.data);
       });
   };
-
+      
+    
+  
   return (
     <div>
       <div className="d-flex justify-content-center ">

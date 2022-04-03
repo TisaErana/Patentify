@@ -13,6 +13,7 @@
     "bootstrap": "^4.5.3",
     "chart.js": "^2.9.4",
     "cohens-kappa": "github:aaronnorby/cohens-kappa-JS",
+    "jspdf": "^2.5.1",
     "material-table": "^1.69.2",
     "nodemailer": "^6.7.2",
     "react": "^17.0.1",
