@@ -79,26 +79,30 @@ def get_target(entry):
 def svm_format(client, ids, target, stopwords):
     """
     Transforms annotations into something the svm model understands.
-    Result is a tuple with the x and y vectorization of the annotations.
+    Returns a tuple with the x and y vectorization of the annotations.
     """
     db = client['PatentData']
     collection = db['patents']
-    entries = list(collection.find(filter = {'documentId':{'$in':ids}}))            #find patents by patent id
-    print(entries)
-    print("entries Length", len(entries))
-    txt = [p['abstract']+''+p['title'] for p in entries]                            #text hold the abstract and title
-    print(txt)
-    print("text length", len(txt))
-    #target = list(map(lambda x: 1 if x=='Yes' else 0, target))                      #target maps the label -> to a 0 or 1.
-    print(target)
-    print("Target length",len(target))
-    df = pd.DataFrame(data = {'id':ids,'text':txt,'target':target})                 #this will put the id, text{abstract and title}, and target{label??} into a dataframe
-    print(df)
+    entries = list(collection.find(filter = {'documentId':{'$in':ids}})) # find patents by patent id
+    #print(entries)
+    #print("length of entries array:", len(entries))
+    
+    txt = [p['abstract']+''+p['title'] for p in entries]                 # text holds: {abstract + title}
+    #print(txt)
+    #print("length of text array:", len(txt))
+    #target = list(map(lambda x: 1 if x=='Yes' else 0, target))          # target maps the label -> to a 0 or 1.
+    
+    #print(target)
+    #print("length of target array",len(target))
+    
+    df = pd.DataFrame(data = {'id':ids,'text':txt,'target':target})      # this will put the id, text{abstract and title}, and target into a dataframe
+    #print(df)
+
     return vectorize(df, stopwords, vect = True)                                    
 
 def vectorize(df, target='target'):
     vectorizer = load("vectorizer.joblib")
-    x = vectorizer.transform(df['text'].values).toarray() # fit model and then transform shape of array.
+    x = vectorizer.transform(df['text'].values).toarray() # fit model and then transform shape of array
     
     # reduce dimension:
     svd = TruncatedSVD(n_components=100,random_state=42)
