@@ -103,12 +103,12 @@ try:
                     
                     cycleCount += 1
 except KeyboardInterrupt:
-    print("Interrupted")
+    print("[Interrupted]")
 
-print("Finalizing ...")
+print("Finalizing...")
 if continue_after is not continue_starter:
-    print("Dumping continue_after")
     dump(learner.estimator, f'models/Final/model_at_{time():0.0f}.joblib')
     dump(continue_after,'continue_token.joblib')
+    print("[INFO]: dumped continue_after and model.")
 else:
     print("No successful iterations... No changes will be made.")

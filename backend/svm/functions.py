@@ -40,7 +40,7 @@ def base_model_creator(client, stopwords, data='data/AI_train_df.pkl'):
     # Transforms a given text into a vector on the basis of the frequency (count) of each word that occurs in the entire text #
     vectorizer = CountVectorizer(stop_words = stopwords)
 
-    x, y = vectorize(data, vectorizer)
+    x, y = vectorize(data, vectorizer, training=True)
 
     # create active learner: 
     learner = ActiveLearner(
@@ -98,15 +98,17 @@ def svm_format(client, ids, target, stopwords):
     df = pd.DataFrame(data = {'id':ids,'text':txt,'target':target})      # this will put the id, text{abstract and title}, and target into a dataframe
     #print(df)
 
-    return vectorize(df, stopwords, vect = True)                                    
+    return vectorize(df)                                    
 
-def vectorize(df, vectorizer = None, target='target'):
+def vectorize(df, vectorizer = None, target='target', training=False):
     if vectorizer == None:
         vectorizer = load(f'vectorizer_{sklearn.__version__}.joblib')
 
-    x = vectorizer.fit_transform(df['text'].values) # fit model and then transform shape of array
-    print(x)
-    print(x.toarray())
+    if training:
+        x = vectorizer.fit_transform(df['text'].values) # fit model and then transform shape of array
+    else:
+        x = vectorizer.transform(df['text'].values).toarray() # only transform the data do not fit it
+    
     
     # reduce dimension:
     svd = TruncatedSVD(n_components=100,random_state=42)
