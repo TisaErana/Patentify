@@ -46,7 +46,7 @@ def base_model_creator(client, stopwords, data='data/AI_train_df.pkl'):
     learner = ActiveLearner(
         estimator=svm.SVC(kernel='linear', gamma='scale', C=2, probability = True), # estimator uses svm, c is penalty parameter, gamma is kernel coefficient, 
         query_strategy=uncertainty_sampling,
-        X_training=X, y_training=y                                                  # this just makes x and y the training values
+        X_training=x, y_training=y                                                  # this just makes x and y the training values
     )
     
     # save new model:
@@ -96,19 +96,16 @@ def svm_format(client, ids, target, stopwords):
     print(df)
     return vectorize(df, stopwords, vect = True)                                    
 
-def vectorize(df, stopwords, target='target', vect = False):
-#     if vect:
+def vectorize(df, target='target'):
     vectorizer = load("vectorizer.joblib")
-#     else:
-#         vectorizer = CountVectorizer(stop_words = stopwords)
-    X = vectorizer.transform(df['text'].values).toarray()
-#     print(X)
-#     print(X.shape)
+    x = vectorizer.transform(df['text'].values).toarray() # fit model and then transform shape of array.
+    
+    # reduce dimension:
     svd = TruncatedSVD(n_components=100,random_state=42)
-    X = svd.fit_transform(X)
-#     print(X)
-    y = df['target'].values
-    return X, y
+    x = svd.fit_transform(x)
+    y = df[target].values
+    
+    return x, y
 
 def calc_f1_score(learner, client):
     """
