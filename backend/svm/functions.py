@@ -20,50 +20,40 @@ import numpy as np
 from time import sleep
 
 # Create base model and save into file
-def base_model_creator(client, stopwords):
-    db = client['PatentData']
-    collection = db['CSV_Patents']
-    results = collection.find(limit = 500, filter = {'grp_ml': 'seed'})
-    seeds = pd.DataFrame(list(results))
-    antiseeds = pd.DataFrame(list(collection.find(limit = 500, filter = {'grp_ml': 'antiseed'})))
+def base_model_creator(client, stopwords, data='data/AI_train_df.pkl'):
+    """
+    Creates a new base model from seed and antiseed data.
+    """
     
+    # import training data from pickle file:
+    pickledDataFile = open(data, 'rb')
+    data = pickle.load(pickledDataFile)
+    #print(data)
     
-    seeds['text'] = seeds['abstract']+""+seeds['title']
-    antiseeds['text'] = antiseeds['abstract']+""+antiseeds['title']
-    df = seeds.append(antiseeds)
-    df = df.reset_index(drop=True)
-    data = df[['_id','text','grp_ml']]
-    data['grp_ml']= data.grp_ml.map(dict(seed=1, antiseed=0))
+    # format training data for new model:
+    data.rename(columns={'AI': 'target'}, inplace=True)
+    data['target'] = data.target.map(dict(seed=1, antiseed=0))
+    data['text'] = data['abstract_text']+''+data['title']
+    data = data.reindex(columns=['id', 'text', 'target'])
+    #print(data)
 
-#     stopwords = []
-#     with open('stopwords.txt') as f:
-#         lines = f.readlines()
-#         for line in lines:
-#             stopwords.append(line[:-1])
-    #Prepare Data                                           #the stop words are the words that arent going to be used in the model
-    
-    vectorizer = CountVectorizer(stop_words = stopwords)    #Transform a given text into a vector on the basis of the frequency (count) of each word that occurs in the entire text#
-    X = vectorizer.fit_transform(data['text'].values)       #fit model and then transform shape of array
-    svd = TruncatedSVD(n_components=100,random_state=42)       #reduces dimension
-    X = svd.fit_transform(X)
-    y = data['grp_ml'].values                                   
-    #X, y = vectorize(data, stopwords, target = 'grp_ml')
+    # Transforms a given text into a vector on the basis of the frequency (count) of each word that occurs in the entire text #
+    vectorizer = CountVectorizer(stop_words = stopwords)
 
+    x, y = vectorize(data)
 
-    # Create Learner
+    # create active learner: 
     learner = ActiveLearner(
-        estimator=svm.SVC(kernel='linear', gamma='scale', C=2, probability = True),         #estimator uses svm, c is penalty parameter, gamma is kernel coeeficcient, 
+        estimator=svm.SVC(kernel='linear', gamma='scale', C=2, probability = True), # estimator uses svm, c is penalty parameter, gamma is kernel coefficient, 
         query_strategy=uncertainty_sampling,
-        X_training=X, y_training=y                                                          #this just makes x and y the training values
+        X_training=X, y_training=y                                                  # this just makes x and y the training values
     )
     
-    # joblib dump
-    
+    # save new model:
     dump(learner.estimator,'models/Final/base_model.joblib')
     dump(vectorizer, 'vectorizer.joblib')
-    sleep(3)
 
-def model_loader(model = 'base_model_working'):
+def model_loader(model = 'base_model'):
     estimator = load(f"models/Final/{model}.joblib")
     return estimator
 
@@ -125,7 +115,7 @@ def calc_f1_score(learner, client):
     Calculates f1_score based on labels the model has not been trained on.
     """
     db = client['PatentData']
-    test_labels = db['labels'].find() # labels which the model has not been trained on.
+    test_labels = db['test_labels'].find() # labels which the model has not been trained on.
 
     ids = [] #               document ids of newly annotated documents.
     target = [] #            classification of newly annotated documents.
