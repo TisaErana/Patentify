@@ -40,7 +40,7 @@ def base_model_creator(client, stopwords, data='data/AI_train_df.pkl'):
     # Transforms a given text into a vector on the basis of the frequency (count) of each word that occurs in the entire text #
     vectorizer = CountVectorizer(stop_words = stopwords)
 
-    x, y = vectorize(data)
+    x, y = vectorize(data, vectorizer)
 
     # create active learner: 
     learner = ActiveLearner(
@@ -50,11 +50,11 @@ def base_model_creator(client, stopwords, data='data/AI_train_df.pkl'):
     )
     
     # save new model:
-    dump(learner.estimator,'models/Final/base_model.joblib')
-    dump(vectorizer, 'vectorizer.joblib')
+    dump(learner.estimator,f'models/Final/base_model_{sklearn.__version__}.joblib')
+    dump(vectorizer, f'vectorizer_{sklearn.__version__}.joblib')
 
-def model_loader(model = 'base_model'):
-    estimator = load(f"models/Final/{model}.joblib")
+def model_loader(model = f'base_model_{sklearn.__version__}'):
+    estimator = load(f'models/Final/{model}.joblib')
     return estimator
 
 def get_target(entry):
@@ -100,9 +100,13 @@ def svm_format(client, ids, target, stopwords):
 
     return vectorize(df, stopwords, vect = True)                                    
 
-def vectorize(df, target='target'):
-    vectorizer = load("vectorizer.joblib")
-    x = vectorizer.transform(df['text'].values).toarray() # fit model and then transform shape of array
+def vectorize(df, vectorizer = None, target='target'):
+    if vectorizer == None:
+        vectorizer = load(f'vectorizer_{sklearn.__version__}.joblib')
+
+    x = vectorizer.fit_transform(df['text'].values) # fit model and then transform shape of array
+    print(x)
+    print(x.toarray())
     
     # reduce dimension:
     svd = TruncatedSVD(n_components=100,random_state=42)
