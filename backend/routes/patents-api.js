@@ -81,6 +81,7 @@ async function getNextPatent(req, transaction = { "mode": "new", "documentId": u
     {
       queueItem.title =  patent.title,
       queueItem.abstract = patent.abstract,
+      queueItem.claims = patent.claims,
       queueItem.documentId = patent.documentId;
       queueItem.patentCorpus = patent.patentCorpus;
       queueItem.updatedAt = Date.now();
@@ -98,6 +99,7 @@ async function getNextPatent(req, transaction = { "mode": "new", "documentId": u
     await (new Queue({
       userId: req.user._id,
       title: patent.title,
+      claims: patent.claims,
       abstract: patent.abstract,
       documentId: patent.documentId,
       patentCorpus: patent.patentCorpus

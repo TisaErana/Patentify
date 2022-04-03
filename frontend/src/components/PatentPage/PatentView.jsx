@@ -1,4 +1,5 @@
 import React, { useState, useEffect, Fragment } from "react";
+import { ListGroup } from "react-bootstrap";
 import { useHistory } from "react-router";
 import PatentCard from "../PatentPage/PatentCard";
 import PatentForm from "../PatentPage/PatentForm";
@@ -21,7 +22,7 @@ const PatentView = (props) => {
   const [patentId, setPatentId] = useState(); //              stores the documentId of the current patent.
   const [patentTitle, setPatentTitle] = useState(); //        stores the title of the current patent.
   const [patentAbstract, setPatentAbstract] = useState(); //  stores the abstract of the current patent.
-  const [patentClaims, setPatentClaims] = useState("lorem ipsum"); //      stores the claims of the current patent.
+  const [patentClaims, setPatentClaims] = useState([]); //      stores the claims of the current patent.
 
   useEffect(() => {
     const weAreSearching = history.location.state ? history.location.state['weAreSearching'] : false;
@@ -79,6 +80,7 @@ const PatentView = (props) => {
     {
       setPatentTitle(title(patents.title));
       setPatentId(patents.documentId);
+      setPatentClaims(patents.claims);
       setPatentAbstract(patents.abstract);
     }
   }, [patents]);
@@ -97,8 +99,17 @@ const PatentView = (props) => {
               marginTop: '17%' }}>
               <h3>Abstract</h3>
               <div style={{ fontSize: "14px", color: 'black', weight: "bold" }}>{patentAbstract}</div>
+              <br/>
               <h3>Claims</h3>
-              <div style={{ fontSize: "14px", color: 'black', weight: "bold" }}>{patentClaims}</div>
+              <div style={{ fontSize: "14px", color: 'black', weight: "bold" }}>
+                <ListGroup>
+                  {
+                    patentClaims.map(item => (
+                      <ListGroup.Item key={item}>{item}</ListGroup.Item>
+                    ))
+                  }
+                </ListGroup>
+              </div>
             </div>
           </div>
           <div className="col-sm-10 col-lg-6 col-md-8">
