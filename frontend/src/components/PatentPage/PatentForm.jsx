@@ -53,8 +53,7 @@ const PatentForm = (props) => {
         vis: data.vis,
         nlp: data.nlp,
         pln: data.pln,
-        kpr: data.kpr,
-        none: data.none
+        kpr: data.kpr
       },
     })
       .then((response) => {
