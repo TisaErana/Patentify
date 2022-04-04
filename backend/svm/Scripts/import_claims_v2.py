@@ -56,14 +56,12 @@ for patent in USPATs:
           } 
       })
 
+    print('--> Done with USPAT', patent,'claim import cycle', cycle, ', year:', year ,'<--')
     break # short-circuit: found claims in current year, no need to check all other files.
 
-
-  print('--> Done with USPAT', patent,'claim import cycle', cycle, ', year:', year ,'<--')
-
   cycle += 1
-  matched_count_total +=1
-  modified_count_total +=1
+  matched_count_total += result.matched_count
+  modified_count_total += result.modified_count
 print()
 
 ## import PGPUB claims:
@@ -108,8 +106,8 @@ for patent in PGPUBs:
   print('--> Done with PGPUB', patent,'claim import cycle', cycle, ', year:', year ,'<--')
 
   cycle += 1
-  matched_count_total +=1
-  modified_count_total +=1
+  matched_count_total += result.matched_count
+  modified_count_total += result.modified_count
 print()
 
 print('----------------> Summary <----------------')
