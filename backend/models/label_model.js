@@ -12,8 +12,7 @@ const labelSchema = new Schema(
     vis:{type:String},
     nlp:{type:String},
     pln:{type:String},
-    kpr:{type:String},
-    none:{type:String}
+    kpr:{type:String}
   }, 
   {
     timestamps: true
