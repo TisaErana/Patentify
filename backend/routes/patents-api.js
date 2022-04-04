@@ -149,47 +149,133 @@ router.get("/", async function (req, res, next) {
 
 });
 
-// This route is sending a post to the DB with labeling information aswell as documentid and userid
+/**
+ * ADDs or UPDATEs an annotation in the database.
+ * 
+ * @returns the newly added or updated annotation from the database.  
+*/
 router.post("/labels", async function (req, res, next) { 
+  
+  // find annotation in labels (diff. category) (should only be one entry / document / user):
   const annotation = await Label.findOne({
-    user: req.user._id,
     document: req.body.documentId
   }).catch((error) => {
     res.status(500).json({ error: error });
   });
   
   // check if there is already an annotation in the database by the current user:
-  if (annotation !== null) // let's update it:
+  if(annotation !== null) // let's update it:
   {
-    const result = await Label.updateOne(
-      { _id: annotation._id },
+    // check if same user is updating their own annotation (via search):
+    if(annotation.user === req.user._id)
+    {
+      const result = await Label.updateOne(
+        { _id: annotation._id },
+        {
+          mal:req.body.mal, // Machine Learning
+          hdw:req.body.hdw, // Hardware
+          evo:req.body.evo, // Evolution
+          spc:req.body.spc, // Speech
+          vis:req.body.vis, // Vision
+          nlp:req.body.nlp, // Natural Language Processing 
+          pln:req.body.pln, // Planning 
+          kpr:req.body.kpr // Knowledge Processing
+        }
+      ).catch((error) => {
+        res.status(500).json({ error: error });
+      });
+
+      res.json(result);
+    }
+    else // check if the annotations agree or disagree with each other:
+    {
+      // map new annotation values to true or false for each category:
+      newAnnotation = [
+        req.body.mal === "Yes",
+        req.body.hdw === "Yes",
+        req.body.evo === "Yes",
+        req.body.spc === "Yes", 
+        req.body.vis === "Yes", 
+        req.body.nlp === "Yes", 
+        req.body.pln === "Yes", 
+        req.body.kpr === "Yes"
+      ]
+
+      // map stored annotation values to true or false for each category:
+      storedAnnotation = [
+        annotation.mal === "Yes",
+        annotation.hdw === "Yes",
+        annotation.evo === "Yes",
+        annotation.spc === "Yes",
+        annotation.vis === "Yes",
+        annotation.nlp === "Yes",
+        annotation.pln === "Yes",
+        annotation.kpr === "Yes"
+      ]
+
+      // determine if annotations think document is AI or not AI: 
+      newIsAI = newAnnotation.some(category => category === true);
+      storedIsAI = storedAnnotation.some(category => category === true);
+
+      // find consensus amongst annotations:
+      if (newIsAI == storedIsAI)
       {
-        mal:req.body.mal, // Machine Learning
-        hdw:req.body.hdw, // Hardware
-        evo:req.body.evo, // Evolution
-        spc:req.body.spc, // speech
-        vis:req.body.vis, // Vision
-        nlp:req.body.nlp, // Natural Language Processing 
-        pln:req.body.pln, // Planning 
-        kpr:req.body.kpr, // Knowledge Processing
+         const agreedLabel = new AgreedLabel({
+           userIds: [
+            annotation.user,
+            req.user._id
+           ],
+           document: req.body.documentId,
+           mal: (newAnnotation[0] ? "Yes" : annotation.mal),
+           hdw: (newAnnotation[1] ? "Yes" : annotation.hdw),
+           evo: (newAnnotation[2] ? "Yes" : annotation.evo),
+           spc: (newAnnotation[3] ? "Yes" : annotation.spc),
+           vis: (newAnnotation[4] ? "Yes" : annotation.vis),
+           nlp: (newAnnotation[5] ? "Yes" : annotation.nlp),
+           pln: (newAnnotation[6] ? "Yes" : annotation.pln),
+           kpr: (newAnnotation[7] ? "Yes" : annotation.kpr)
+         });
+
+        res.json(await agreedLabel.save().catch((error) => {
+          res.status(500).json({ error: error });
+        }));
       }
-    ).catch((error) => {
-      res.status(500).json({ error: error });
-    });
-
-    // only way to get here is through search feature,
-    // in this case, there is no need to remove queue:
-
-    /*await getNextPatent(req, 
+      else
       {
-        "mode": "update", 
-        "documentId": req.body.documentId
-      }).catch((error) => {
-        res.status(400).json({ error: error })
-      }
-    );*/
+        const disagreedLabel = new DisagreedLabel({
+          document: req.body.documentId,
+          disagreement: [
+            {
+              user: req.user._id,
+              mal:req.body.mal,
+              hdw:req.body.hdw,
+              evo:req.body.evo, 
+              spc:req.body.spc, 
+              vis:req.body.vis,
+              nlp:req.body.nlp, 
+              pln:req.body.pln,  
+              kpr:req.body.kpr
+            },
+            {
+              user: annotation.user,
+              mal:annotation.mal,
+              hdw:annotation.hdw,
+              evo:annotation.evo, 
+              spc:annotation.spc,
+              vis:annotation.vis,
+              nlp:annotation.nlp,
+              pln:annotation.pln,
+              kpr:annotation.kpr
+            }
+          ]
+        });
 
-    res.json(result);
+       res.json(await disagreedLabel.save().catch((error) => {
+         res.status(500).json({ error: error });
+       }));
+      }
+
+    }
   }
   else // new entry:
   {
@@ -199,27 +285,17 @@ router.post("/labels", async function (req, res, next) {
       mal:req.body.mal, // Machine Learning
       hdw:req.body.hdw, // Hardware
       evo:req.body.evo, // Evolution
-      spc:req.body.spc, // speech
+      spc:req.body.spc, // Speech
       vis:req.body.vis, // Vision
       nlp:req.body.nlp, // Natural Language Processing 
       pln:req.body.pln, // Planning 
       kpr:req.body.kpr, // Knowledge Processing
     });
 
-    await getNextPatent(req, 
-      {
-        "mode": "update", 
-        "documentId": req.body.documentId
-      }).catch((error) => {
-        res.status(400).json({ error: error })
-      }
-    );
-
     res.json(await label.save().catch((error) => {
       res.status(500).json({ error: error });
     }));
   }
-
 });
 
 /**
