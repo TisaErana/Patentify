@@ -172,7 +172,6 @@ router.post("/labels", async function (req, res, next) {
         nlp:req.body.nlp, // Natural Language Processing 
         pln:req.body.pln, // Planning 
         kpr:req.body.kpr, // Knowledge Processing
-        none:req.body.none // None of the Above
       }
     ).catch((error) => {
       res.status(500).json({ error: error });
@@ -205,7 +204,6 @@ router.post("/labels", async function (req, res, next) {
       nlp:req.body.nlp, // Natural Language Processing 
       pln:req.body.pln, // Planning 
       kpr:req.body.kpr, // Knowledge Processing
-      none:req.body.none // None of the Above
     });
 
     await getNextPatent(req, 
