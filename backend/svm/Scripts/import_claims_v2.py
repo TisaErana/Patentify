@@ -36,17 +36,17 @@ for patent in USPATs:
       f'data/patent_claims/claims_{year}.tsv',
       header = 0, # header at row 0
       sep = '\t',  # tab separated
-      usecols = ['patent_id', 'text', 'claim_number'],
-      dtype = { 'patent_id': str, 'claim_number': int } # let's make it's all strings
+      usecols = ['patent_id', 'text'],
+      dtype = { 'patent_id': str } # let's make it's all strings
     )
 
     filtered = uspatClaims[uspatClaims['patent_id'].isin([patent])]
 
     for claim in filtered.itertuples():
-        claims.append([claim.claim_number, claim.text.strip()])
+        claims.append(claim.text.strip())
 
-    claims.sort(key=lambda x : x[0])
-    claims = [element[1] for element in claims]
+    # sort based on number in text (ex: '1 .' or '12.')
+    claims.sort(key=lambda x : int(x[0:2].replace('.','').strip()))
 
     if len(claims) > 0:
       result = dbPatents.update_one({ "documentId": patent}, 
@@ -71,7 +71,8 @@ print()
 print('Started processing 2005-2021 PGPUB claims...')
 print()
 
-PGPUBs = [element['documentId'] for element in list(dbPatents.find({"patentCorpus": "PGPUB"}, {"_id": False, "documentId": 1}))]
+PGPUBs = [element['documentId'] for element in list(dbPatents.find({"patentCorpus": "PGPUB"}, {"_id": False, "documentId": 1})) if int(element['documentId'][0:4]) >= 2005]
+PGPUBs.sort(key=int)
 
 total_patents_in_db += len(PGPUBs)
 print('Total PGPUBs in database:', len(PGPUBs))
