@@ -57,7 +57,7 @@ const PatentForm = (props) => {
       },
     })
       .then((response) => {
-        window.location.reload(false);
+        dequeue();
       })
       .catch((error) => {
         console.log("error: ", error.data);
