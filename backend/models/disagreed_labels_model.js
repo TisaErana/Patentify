@@ -2,16 +2,42 @@ const { Schema, model } = require("mongoose");
 
 const disagreedLabelsSchema = new Schema(
     {
-        userIds:{ type: [Schema.Types.ObjectId] },
         document:{ type:String},
-        mal:{type:String},
-        hdw:{type:String},
-        evo:{type:String},
-        spc:{type:String},
-        vis:{type:String},
-        nlp:{type:String},
-        pln:{type:String},
-        kpr:{type:String}
+        disagreement: [ 
+            {
+                user:{ type: Schema.Types.ObjectId, ref: "User"},
+                mal:{type:String},
+                hdw:{type:String},
+                evo:{type:String},
+                spc:{type:String},
+                vis:{type:String},
+                nlp:{type:String},
+                pln:{type:String},
+                kpr:{type:String}
+            },
+            {
+                user:{ type: Schema.Types.ObjectId, ref: "User"},
+                mal:{type:String},
+                hdw:{type:String},
+                evo:{type:String},
+                spc:{type:String},
+                vis:{type:String},
+                nlp:{type:String},
+                pln:{type:String},
+                kpr:{type:String}
+            }
+         ],
+        consensus: {
+            user:{ type: Schema.Types.ObjectId, ref: "User"},
+            mal:{type:String},
+            hdw:{type:String},
+            evo:{type:String},
+            spc:{type:String},
+            vis:{type:String},
+            nlp:{type:String},
+            pln:{type:String},
+            kpr:{type:String}
+        }
     }, 
     {
         timestamps: true
