@@ -2,7 +2,7 @@ const { Schema, model } = require("mongoose");
 
 const disagreedLabelsSchema = new Schema(
     {
-        document:{ type:String},
+        document:{ type:String, index: {unique: true, dropDups: true}},
         disagreement: [ 
             {
                 user:{ type: Schema.Types.ObjectId, ref: "User"},
