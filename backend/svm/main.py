@@ -10,7 +10,6 @@ from sklearn.metrics import f1_score
 MIN_TRAINING_SIZE = 3
 MIN_AUTO_SAVE_CYCLES = 10
 
-
 # establish connection to the database
 client = MongoClient("mongodb://localhost:27017/PatentData")
 db = client['PatentData']       
@@ -30,20 +29,20 @@ except FileNotFoundError:
 #create learner and check for base_learner
 learner = None
 try:
-    print("Checking for Base Model")
+    print("Checking for base model...")
     base_estimator = model_loader()
-    print("Model Successfully loaded")
+    print("Base model successfully loaded.")
 except FileNotFoundError:
-    print("File not Found, creating a base model")
+    print("Base model not found, creating a new base model...")
     base_model_creator(client, stopwords)
     base_estimator = model_loader()
+    print('Base model successfully created.')
 
 if learner is None:
     learner = ActiveLearner(
         estimator=base_estimator,
         query_strategy=uncertainty_sampling
     )
-
 
 # main logic loop: opens the stream and looks for updates to labels database, once it finds two distinct classes in target array (1 and 0),
 # the svm model will train. Finally, it will dump the latest databse and resume token. Once the script is started up again, it will continue where
@@ -104,12 +103,12 @@ try:
                     
                     cycleCount += 1
 except KeyboardInterrupt:
-    print("Interrupted")
+    print("[Interrupted]")
 
-print("Finalizing ...")
+print("Finalizing...")
 if continue_after is not continue_starter:
-    print("Dumping continue_after")
     dump(learner.estimator, f'models/Final/model_at_{time():0.0f}.joblib')
     dump(continue_after,'continue_token.joblib')
+    print("[INFO]: dumped continue_after and model.")
 else:
     print("No successful iterations... No changes will be made.")

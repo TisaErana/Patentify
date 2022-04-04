@@ -4,7 +4,7 @@ const labelSchema = new Schema(
   
   {
     user:{ type: Schema.Types.ObjectId, ref: "User"},
-    document:{ type:String, index: true},
+    document:{ type:String, index: {unique: true, dropDups: true}},
     mal:{type:String},
     hdw:{type:String},
     evo:{type:String},
@@ -12,8 +12,7 @@ const labelSchema = new Schema(
     vis:{type:String},
     nlp:{type:String},
     pln:{type:String},
-    kpr:{type:String},
-    none:{type:String}
+    kpr:{type:String}
   }, 
   {
     timestamps: true

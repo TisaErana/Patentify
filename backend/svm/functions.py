@@ -20,51 +20,41 @@ import numpy as np
 from time import sleep
 
 # Create base model and save into file
-def base_model_creator(client, stopwords):
-    db = client['PatentData']
-    collection = db['CSV_Patents']
-    results = collection.find(limit = 500, filter = {'grp_ml': 'seed'})
-    seeds = pd.DataFrame(list(results))
-    antiseeds = pd.DataFrame(list(collection.find(limit = 500, filter = {'grp_ml': 'antiseed'})))
+def base_model_creator(client, stopwords, data='data/AI_train_df.pkl'):
+    """
+    Creates a new base model from seed and antiseed data.
+    """
     
+    # import training data from pickle file:
+    pickledDataFile = open(data, 'rb')
+    data = pickle.load(pickledDataFile)
+    #print(data)
     
-    seeds['text'] = seeds['abstract']+""+seeds['title']
-    antiseeds['text'] = antiseeds['abstract']+""+antiseeds['title']
-    df = seeds.append(antiseeds)
-    df = df.reset_index(drop=True)
-    data = df[['_id','text','grp_ml']]
-    data['grp_ml']= data.grp_ml.map(dict(seed=1, antiseed=0))
+    # format training data for new model:
+    data.rename(columns={'AI': 'target'}, inplace=True)
+    data['target'] = data.target.map(dict(seed=1, antiseed=0))
+    data['text'] = data['abstract_text']+''+data['title']
+    data = data.reindex(columns=['id', 'text', 'target'])
+    #print(data)
 
-#     stopwords = []
-#     with open('stopwords.txt') as f:
-#         lines = f.readlines()
-#         for line in lines:
-#             stopwords.append(line[:-1])
-    #Prepare Data                                           #the stop words are the words that arent going to be used in the model
-    
-    vectorizer = CountVectorizer(stop_words = stopwords)    #Transform a given text into a vector on the basis of the frequency (count) of each word that occurs in the entire text#
-    X = vectorizer.fit_transform(data['text'].values)       #fit model and then transform shape of array
-    svd = TruncatedSVD(n_components=100,random_state=42)       #reduces dimension
-    X = svd.fit_transform(X)
-    y = data['grp_ml'].values                                   
-    #X, y = vectorize(data, stopwords, target = 'grp_ml')
+    # Transforms a given text into a vector on the basis of the frequency (count) of each word that occurs in the entire text #
+    vectorizer = CountVectorizer(stop_words = stopwords)
 
+    x, y = vectorize(data, vectorizer, training=True)
 
-    # Create Learner
+    # create active learner: 
     learner = ActiveLearner(
-        estimator=svm.SVC(kernel='linear', gamma='scale', C=2, probability = True),         #estimator uses svm, c is penalty parameter, gamma is kernel coeeficcient, 
+        estimator=svm.SVC(kernel='linear', gamma='scale', C=2, probability = True), # estimator uses svm, c is penalty parameter, gamma is kernel coefficient, 
         query_strategy=uncertainty_sampling,
-        X_training=X, y_training=y                                                          #this just makes x and y the training values
+        X_training=x, y_training=y                                                  # this just makes x and y the training values
     )
     
-    # joblib dump
-    
-    dump(learner.estimator,'models/Final/base_model.joblib')
-    dump(vectorizer, 'vectorizer.joblib')
-    sleep(3)
+    # save new model:
+    dump(learner.estimator,f'models/Final/base_model_{sklearn.__version__}.joblib')
+    dump(vectorizer, f'vectorizer_{sklearn.__version__}.joblib')
 
-def model_loader(model = 'base_model_working'):
-    estimator = load(f"models/Final/{model}.joblib")
+def model_loader(model = f'base_model_{sklearn.__version__}'):
+    estimator = load(f'models/Final/{model}.joblib')
     return estimator
 
 def get_target(entry):
@@ -86,46 +76,53 @@ def get_target(entry):
 
     return int(any(values))
 
-def svm_format(client, ids, target, stopwords):
+def svm_format(client, ids, target, training=False):
     """
     Transforms annotations into something the svm model understands.
-    Result is a tuple with the x and y vectorization of the annotations.
+    Returns a tuple with the x and y vectorization of the annotations.
     """
     db = client['PatentData']
     collection = db['patents']
-    entries = list(collection.find(filter = {'documentId':{'$in':ids}}))            #find patents by patent id
-    print(entries)
-    print("entries Length", len(entries))
-    txt = [p['abstract']+''+p['title'] for p in entries]                            #text hold the abstract and title
-    print(txt)
-    print("text length", len(txt))
-    #target = list(map(lambda x: 1 if x=='Yes' else 0, target))                      #target maps the label -> to a 0 or 1.
-    print(target)
-    print("Target length",len(target))
-    df = pd.DataFrame(data = {'id':ids,'text':txt,'target':target})                 #this will put the id, text{abstract and title}, and target{label??} into a dataframe
-    print(df)
-    return vectorize(df, stopwords, vect = True)                                    
+    entries = list(collection.find(filter = {'documentId':{'$in':ids}})) # find patents by patent id
+    #print(entries)
+    #print("length of entries array:", len(entries))
+    
+    txt = [p['abstract']+''+p['title'] for p in entries]                 # text holds: {abstract + title}
+    #print(txt)
+    #print("length of text array:", len(txt))
+    #target = list(map(lambda x: 1 if x=='Yes' else 0, target))          # target maps the label -> to a 0 or 1.
+    
+    #print(target)
+    #print("length of target array",len(target))
+    
+    df = pd.DataFrame(data = {'id':ids,'text':txt,'target':target})      # this will put the id, text{abstract and title}, and target into a dataframe
+    #print(df)
 
-def vectorize(df, stopwords, target='target', vect = False):
-#     if vect:
-    vectorizer = load("vectorizer.joblib")
-#     else:
-#         vectorizer = CountVectorizer(stop_words = stopwords)
-    X = vectorizer.transform(df['text'].values).toarray()
-#     print(X)
-#     print(X.shape)
+    return vectorize(df, training=training)                                    
+
+def vectorize(df, vectorizer = None, target='target', training=False):
+    if vectorizer == None:
+        vectorizer = load(f'vectorizer_{sklearn.__version__}.joblib')
+
+    if training:
+        x = vectorizer.fit_transform(df['text'].values) # fit model and then transform shape of array
+    else:
+        x = vectorizer.transform(df['text'].values).toarray() # only transform the data do not fit it
+    
+    
+    # reduce dimension:
     svd = TruncatedSVD(n_components=100,random_state=42)
-    X = svd.fit_transform(X)
-#     print(X)
-    y = df['target'].values
-    return X, y
+    x = svd.fit_transform(x)
+    y = df[target].values
+    
+    return x, y
 
 def calc_f1_score(learner, client):
     """
     Calculates f1_score based on labels the model has not been trained on.
     """
     db = client['PatentData']
-    test_labels = db['labels'].find() # labels which the model has not been trained on.
+    test_labels = db['test_labels'].find() # labels which the model has not been trained on.
 
     ids = [] #               document ids of newly annotated documents.
     target = [] #            classification of newly annotated documents.
@@ -137,7 +134,7 @@ def calc_f1_score(learner, client):
     print(ids)
     print(target)
 
-    x, y = svm_format(client, ids, target, '')
+    x, y = svm_format(client, ids, target)
     y_predictions = learner.predict(x)
 
     print(f1_score(target, y_predictions, average='weighted'))
