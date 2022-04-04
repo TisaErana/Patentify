@@ -48,22 +48,23 @@ for patent in USPATs:
     claims.sort(key=lambda x : x[0])
     claims = [element[1] for element in claims]
 
-    
-    result = dbPatents.update_one({ "documentId": patent}, 
+    if len(claims) > 0:
+      result = dbPatents.update_one({ "documentId": patent}, 
       { 
         "$set": { 
             "claims": claims
           } 
       })
 
-    break # short-circuit: found claims in current year, no need to check all other files.
+      print('--> Done with USPAT', patent,'claim import cycle', cycle, ', year:', year,'<--')
+      break # short-circuit: found claims in current year, no need to check all other files.
 
-
-  print('--> Done with USPAT', patent,'claim import cycle', cycle, ', year:', year ,'<--')
+  if len(claims) == 0:
+    print('/--> PROBLEM with USPAT', patent, 'claim import cycle', cycle, 'missing claims, checked all years <--\\')
 
   cycle += 1
-  matched_count_total +=1
-  modified_count_total +=1
+  matched_count_total += result.matched_count
+  modified_count_total += result.modified_count
 print()
 
 ## import PGPUB claims:
@@ -98,18 +99,21 @@ for patent in PGPUBs:
   # sort based on number in text (ex: '1 .' or '12.')
   claims.sort(key=lambda x : int(x[0:2].strip()))
   
-  result = dbPatents.update_one({ "documentId": patent}, 
+  if len(claims) > 0:
+    result = dbPatents.update_one({ "documentId": patent}, 
     { 
       "$set": { 
           "claims": claims
         } 
     })
 
-  print('--> Done with PGPUB', patent,'claim import cycle', cycle, ', year:', year ,'<--')
+    print('--> Done with PGPUB', patent,'claim import cycle', cycle, ', year:', year ,'<--')
+  else:
+    print('/--> PROBLEM with PGPUB', patent, 'claim import cycle', cycle, 'missing claims, year: ', year, '<--\\')
 
   cycle += 1
-  matched_count_total +=1
-  modified_count_total +=1
+  matched_count_total += result.matched_count
+  modified_count_total += result.modified_count
 print()
 
 print('----------------> Summary <----------------')

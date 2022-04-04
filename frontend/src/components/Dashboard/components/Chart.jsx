@@ -31,7 +31,7 @@ catch (error) {
         datasets: [{
             label: '# of Patents Annotated',
             data: [data.unique, data.agreed, data.disagreed, data.total], // number of patents annotated
-            backgroundColor:'rgba(14,30,64,1)',
+            backgroundColor:'rgba(121, 173, 220,1)',
            
           }],
         borderWidth: 0,
@@ -41,7 +41,7 @@ catch (error) {
         datasets: [{
             label: '# of Patents Annotated',
             data: [data.ml, data.hard, data.evol, data.natural, data.spee, data.vision, data.know, data.plan], // number of patents annotated
-            backgroundColor:['rgba(30,30,30,1)', 'rgba(36,56,85,1)', 'rgba(98,60,5,1)', 'rgba(38,74,31,1)', 'rgba(70,150,18,1)', 'rgba(150,39,69,1)', 'rgba(70,46,70,1)', 'rgba(200,100,5,1)'],
+            backgroundColor:['rgba(255, 192, 159, 1)', 'rgba(255, 238, 147,1)', 'rgba(252, 245, 199,1)', 'rgba(160, 206, 217,1)', 'rgba(173, 247, 182,1)', 'rgba(128, 155, 206,1)', 'rgba(214, 234, 223,1)', 'rgba(234, 196, 213,1)'],
            
           }],
         borderWidth: 0,
