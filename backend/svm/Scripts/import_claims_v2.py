@@ -75,7 +75,7 @@ PGPUBs = [element['documentId'] for element in list(dbPatents.find({"patentCorpu
 PGPUBs.sort(key=int)
 
 total_patents_in_db += len(PGPUBs)
-print('Total PGPUBs in database:', len(PGPUBs))
+print('Total PGPUBs 2005+ in database:', len(PGPUBs))
 
 
 cycle = 0
