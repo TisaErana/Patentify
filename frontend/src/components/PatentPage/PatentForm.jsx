@@ -82,7 +82,24 @@ const PatentForm = (props) => {
   };
 
   const updateFormCheck = (val, setFunction) => {
-    setFunction((val === "Yes") ? "No" : "Yes");
+
+    // enforce none of the above:
+    if (setFunction == setNone && val === "No")
+    {
+      setMal("No");
+      setHdw("No");
+      setEvo("No");
+      setNlp("No");
+      setSpc("No");
+      setVis("No");
+      setKpr("No");
+      setPln("No");
+      setNone("Yes")
+    }
+    else
+    {
+      setFunction((val === "Yes") ? "No" : "Yes");
+    }
   }
 
   const resetForm = () => {
@@ -112,7 +129,7 @@ const PatentForm = (props) => {
           </ReactTooltip>
           </Form.Label>
           <div className='row-2'>
-          <FormCheck name="mal" inline type="radio" label="Yes" value='Yes' ref={register} checked={mal === "Yes"} onChange={() => {updateFormCheck(mal, setMal)}}/>
+          <FormCheck name="mal" inline type="radio" label="Yes" value='Yes' ref={register} checked={mal === "Yes"} disabled={none === "Yes"} onChange={() => {updateFormCheck(mal, setMal)}}/>
           <FormCheck name="mal" inline type="radio" label="No"  value= 'No' ref={register} checked={mal === "No"} onChange={() => {updateFormCheck(mal, setMal)}}/>
           </div>
         </Form.Group>
@@ -125,7 +142,7 @@ const PatentForm = (props) => {
           </ReactTooltip>
           </Form.Label>
           <div className='row-2'>
-          <FormCheck  name="hdw" inline type="radio" label="Yes"  value='Yes' ref={register} checked={hdw === "Yes"} onChange={() => {updateFormCheck(hdw, setHdw)}}/>
+          <FormCheck  name="hdw" inline type="radio" label="Yes"  value='Yes' ref={register} checked={hdw === "Yes"} disabled={none === "Yes"} onChange={() => {updateFormCheck(hdw, setHdw)}}/>
           <FormCheck  name="hdw"inline type="radio" label="No"  value= 'No' ref={register} checked={hdw === "No"} onChange={() => {updateFormCheck(hdw, setHdw)}}/>
           </div>
         </Form.Group>
@@ -138,7 +155,7 @@ const PatentForm = (props) => {
           </ReactTooltip>
           </Form.Label>
           <div className='row-2'>
-          <FormCheck  name="evo" inline type="radio" label="Yes" value='Yes' ref={register} checked={evo === "Yes"} onChange={() => {updateFormCheck(evo, setEvo)}}/>
+          <FormCheck  name="evo" inline type="radio" label="Yes" value='Yes' ref={register} checked={evo === "Yes"} disabled={none === "Yes"} onChange={() => {updateFormCheck(evo, setEvo)}}/>
           <FormCheck  name="evo" inline type="radio" label="No" value= 'No' ref={register} checked={evo === "No"} onChange={() => {updateFormCheck(evo, setEvo)}}/>
           </div>
         </Form.Group>
@@ -151,7 +168,7 @@ const PatentForm = (props) => {
           </ReactTooltip>
           </Form.Label>
           <div className='row-2'>
-          <FormCheck name="nlp" inline type="radio" label="Yes" value='Yes' ref={register} checked={nlp === "Yes"} onChange={() => {updateFormCheck(nlp, setNlp)}}/>
+          <FormCheck name="nlp" inline type="radio" label="Yes" value='Yes' ref={register} checked={nlp === "Yes"} disabled={none === "Yes"} onChange={() => {updateFormCheck(nlp, setNlp)}}/>
           <FormCheck name="nlp" inline type="radio" label="No"  value= 'No' ref={register} checked={nlp === "No"} onChange={() => {updateFormCheck(nlp, setNlp)}}/>
           </div>
         </Form.Group>
@@ -164,7 +181,7 @@ const PatentForm = (props) => {
           </ReactTooltip>
           </Form.Label>
           <div className='row-2'>
-          <FormCheck name="spc" inline type="radio" label="Yes" value='Yes' ref={register} checked={spc === "Yes"} onChange={() => {updateFormCheck(spc, setSpc)}}/>
+          <FormCheck name="spc" inline type="radio" label="Yes" value='Yes' ref={register} checked={spc === "Yes"} disabled={none === "Yes"} onChange={() => {updateFormCheck(spc, setSpc)}}/>
           <FormCheck name="spc" inline type="radio" label="No"  value= 'No' ref={register} checked={spc === "No"} onChange={() => {updateFormCheck(spc, setSpc)}}/>
           </div>
         </Form.Group>
@@ -177,7 +194,7 @@ const PatentForm = (props) => {
           </ReactTooltip>
           </Form.Label>
           <div className='row-2'>
-          <FormCheck name="vis" inline type="radio" label="Yes" value='Yes' ref={register} checked={vis === "Yes"} onChange={() => {updateFormCheck(vis, setVis)}}/>
+          <FormCheck name="vis" inline type="radio" label="Yes" value='Yes' ref={register} checked={vis === "Yes"} disabled={none === "Yes"} onChange={() => {updateFormCheck(vis, setVis)}}/>
           <FormCheck name="vis" inline type="radio" label="No"  value= 'No' ref={register} checked={vis === "No"} onChange={() => {updateFormCheck(vis, setVis)}}/>
           </div>
         </Form.Group>
@@ -190,7 +207,7 @@ const PatentForm = (props) => {
           </ReactTooltip>
           </Form.Label>
           <div className='row-2'>
-          <FormCheck name="kpr" inline type="radio" label="Yes" value='Yes' ref={register} checked={kpr === "Yes"} onChange={() => {updateFormCheck(kpr, setKpr)}}/>
+          <FormCheck name="kpr" inline type="radio" label="Yes" value='Yes' ref={register} checked={kpr === "Yes"} disabled={none === "Yes"} onChange={() => {updateFormCheck(kpr, setKpr)}}/>
           <FormCheck name="kpr" inline type="radio" label="No"  value= 'No' ref={register} checked={kpr === "No"} onChange={() => {updateFormCheck(kpr, setKpr)}}/>
           </div>
         </Form.Group>
@@ -203,7 +220,7 @@ const PatentForm = (props) => {
           </ReactTooltip>
           </Form.Label>
           <div className='row-2'>
-          <FormCheck  name="pln" inline type="radio" label="Yes" value='Yes' ref={register} checked={pln === "Yes"} onChange={() => {updateFormCheck(pln, setPln)}}/>
+          <FormCheck  name="pln" inline type="radio" label="Yes" value='Yes' ref={register} checked={pln === "Yes"} disabled={none === "Yes"} onChange={() => {updateFormCheck(pln, setPln)}}/>
           <FormCheck  name="pln" inline type="radio" label="No"  value= 'No' ref={register} checked={pln === "No"} onChange={() => {updateFormCheck(pln, setPln)}}/>
           </div>
         </Form.Group>
