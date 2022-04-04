@@ -314,9 +314,18 @@ router.get('/status', function (req, res) {
 });
 
 router.get("/labels", async function (req, res, next) {
-  res.json(await Label.find().catch((error) => {
-    res.status(500).json({ error: error });
-  }));
+  res.json(
+    { 
+      labels: await Label.find().catch((error) => {
+        res.status(500).json({ error: error });
+      }),
+      agreedLabels: await AgreedLabel.find().catch((error) => {
+        res.status(500).json({ error: error });
+      }),
+      disagreedLabels: await DisagreedLabel.find().catch((error) => {
+        res.status(500).json({ error: error });
+      })
+    });
 });
 
 //Search for Patents by documentID + retrieve any annotations:
