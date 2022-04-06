@@ -163,7 +163,7 @@ router.post("/labels", async function (req, res, next) {
     res.status(500).json({ error: error });
   });
   
-  // check if there is already an annotation in the database by the current user:
+  // check if there is already an annotation in the database:
   if(annotation !== null) // let's update it:
   {
     // check if same user is updating their own annotation (via search):
@@ -221,26 +221,50 @@ router.post("/labels", async function (req, res, next) {
       if (newIsAI == storedIsAI)
       {
          const agreedLabel = new AgreedLabel({
-           userIds: [
-            annotation.user,
-            req.user._id
-           ],
            document: req.body.documentId,
-           mal: (newAnnotation[0] ? "Yes" : annotation.mal),
-           hdw: (newAnnotation[1] ? "Yes" : annotation.hdw),
-           evo: (newAnnotation[2] ? "Yes" : annotation.evo),
-           spc: (newAnnotation[3] ? "Yes" : annotation.spc),
-           vis: (newAnnotation[4] ? "Yes" : annotation.vis),
-           nlp: (newAnnotation[5] ? "Yes" : annotation.nlp),
-           pln: (newAnnotation[6] ? "Yes" : annotation.pln),
-           kpr: (newAnnotation[7] ? "Yes" : annotation.kpr)
+           individual: [
+             {
+               user: req.user._id, // new annotation by current user
+               mal: req.body.mal,
+               hdw: req.body.hdw,
+               evo: req.body.evo,
+               spc: req.body.spc,
+               vis: req.body.vis,
+               nlp: req.body.nlp,
+               pln: req.body.pln,
+               kpr: req.body.kpr
+             },
+             {
+               user: annotation.user, // stored annotation by another user
+               mal: annotation.mal,
+               hdw: annotation.hdw,
+               evo: annotation.evo,
+               spc: annotation.spc,
+               vis: annotation.vis,
+               nlp: annotation.nlp,
+               pln: annotation.pln,
+               kpr: annotation.kpr
+             }
+           ],
+           consensus: {
+             mal: (newAnnotation[0] ? "Yes" : annotation.mal),
+             hdw: (newAnnotation[1] ? "Yes" : annotation.hdw),
+             evo: (newAnnotation[2] ? "Yes" : annotation.evo),
+             spc: (newAnnotation[3] ? "Yes" : annotation.spc),
+             vis: (newAnnotation[4] ? "Yes" : annotation.vis),
+             nlp: (newAnnotation[5] ? "Yes" : annotation.nlp),
+             pln: (newAnnotation[6] ? "Yes" : annotation.pln),
+             kpr: (newAnnotation[7] ? "Yes" : annotation.kpr)
+           }
          });
 
+        annotation.deleteOne();
+
         res.json(await agreedLabel.save().catch((error) => {
-          res.status(500).json({ error: error });
+           res.status(500).json({ error: error });
         }));
       }
-      else
+      else // they disagree, let's store them for a 3rd party to decide:
       {
         const disagreedLabel = new DisagreedLabel({
           document: req.body.documentId,
@@ -270,7 +294,9 @@ router.post("/labels", async function (req, res, next) {
           ]
         });
 
-       res.json(await disagreedLabel.save().catch((error) => {
+      annotation.deleteOne();
+       
+      res.json(await disagreedLabel.save().catch((error) => {
          res.status(500).json({ error: error });
        }));
       }
