@@ -5,9 +5,11 @@ const Cohen = require('cohens-kappa');
 
 const Table = () => {
     
-    const [rowData, setRowData] = useState([]);
+    const [labels, setLabels] = useState();
+    const [agreedLabels, setAgreedLabels] = useState();
+    const [disagreedLabels, setDisagreedLabels] = useState();
 
-    const COLUMNS = [ 
+    const labelColumns = [ 
       { title:'Label ID', field:'_id'},
       { title:'Document ID', field:'document', defaultGroupOrder:0},
       { title:'User', field:'user', defaultGroupOrder:1},
@@ -21,7 +23,27 @@ const Table = () => {
       { title:'Evolutionary Computation', field:'evo'},
       { title:'Knowledge Processing', field:'kpr'},
       { title:'None', field:'none'}
-  ]
+    ];
+
+    const agreedColumns = [ 
+      { title:'Document ID', field:'document', defaultGroupOrder:0},
+      { title:'Users', field:'userIds', defaultGroupOrder:1},
+      { title:'Date', field:'createdAt'},
+      { title:'Machine Learning', field:'mal'},
+      { title:'AI Hardware', field:'hdw'},
+      { title:'Speech', field:'spc'},
+      { title:'Vision', field:'vis'},
+      { title:'Natural Language Processing', field:'nlp'},
+      { title:'Planning/Control', field:'pln'},
+      { title:'Evolutionary Computation', field:'evo'},
+      { title:'Knowledge Processing', field:'kpr'}
+    ];
+
+    const disagreedColumns = [ 
+      { title:'Document ID', field:'document', defaultGroupOrder:0},
+      { title:'Created At', field:'createdAt'},
+      { title:'Updated At', field:'updatedAt'}
+    ];
   
     useEffect(() => {
       async function fetchData() {
@@ -33,8 +55,9 @@ const Table = () => {
           const body = await response.json();
           // body is an object with the response 
           
-          setRowData(body);
-          
+          setLabels(body.labels);
+          setAgreedLabels(body.agreedLabels);
+          setDisagreedLabels(body.disagreedLabels);
 
         } catch (error) {}
       }
@@ -49,9 +72,9 @@ const Table = () => {
         <div className="container-fluid mt-5" style={{ paddingBottom: '5%' }}>
           <MaterialTable
             title="Labels"
-            columns={COLUMNS}
-            data={rowData}
-            isLoading={rowData.length === 0}
+            columns={labelColumns}
+            data={labels}
+            isLoading={labels === undefined}
             options={{
               exportButton: true,
               exportAllData: true,
@@ -105,6 +128,34 @@ const Table = () => {
                 },
               },
             ]}
+          />
+
+          <br/>
+          <MaterialTable
+            title="Agreed Labels"
+            columns={agreedColumns}
+            data={agreedLabels}
+            isLoading={agreedLabels === undefined}
+            options={{
+              exportButton: true,
+              exportAllData: true,
+              grouping: true,
+              selection: true,
+            }}
+          />
+
+          <br/>
+          <MaterialTable
+            title="Diagreed Labels"
+            columns={disagreedColumns}
+            data={disagreedLabels}
+            isLoading={disagreedLabels === undefined}
+            options={{
+              exportButton: true,
+              exportAllData: true,
+              grouping: true,
+              selection: true,
+            }}
           />
         </div>
       </div>
