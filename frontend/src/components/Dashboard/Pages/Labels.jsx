@@ -132,7 +132,7 @@ const Table = () => {
 
           <br/>
           <MaterialTable
-            title="Agreed Labels"
+            title="Labels in Agreement"
             columns={agreedColumns}
             data={agreedLabels}
             isLoading={agreedLabels === undefined}
@@ -146,7 +146,7 @@ const Table = () => {
 
           <br/>
           <MaterialTable
-            title="Diagreed Labels"
+            title="Labels in Disagreement"
             columns={disagreedColumns}
             data={disagreedLabels}
             isLoading={disagreedLabels === undefined}
