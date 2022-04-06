@@ -6,6 +6,7 @@ const db = mongoose.connection.db
 const Patent = require("../models/patent_model");
 
 // Import label model
+const User = require("../models/User_model");
 const Label = require("../models/label_model");
 const AgreedLabel = require("../models/agreed_labels_model");
 const DisagreedLabel = require("../models/disagreed_labels_model");
@@ -163,7 +164,7 @@ router.post("/labels", async function (req, res, next) {
     res.status(500).json({ error: error });
   });
   
-  // check if there is already an annotation in the database by the current user:
+  // check if there is already an annotation in the database:
   if(annotation !== null) // let's update it:
   {
     // check if same user is updating their own annotation (via search):
@@ -221,26 +222,50 @@ router.post("/labels", async function (req, res, next) {
       if (newIsAI == storedIsAI)
       {
          const agreedLabel = new AgreedLabel({
-           userIds: [
-            annotation.user,
-            req.user._id
-           ],
            document: req.body.documentId,
-           mal: (newAnnotation[0] ? "Yes" : annotation.mal),
-           hdw: (newAnnotation[1] ? "Yes" : annotation.hdw),
-           evo: (newAnnotation[2] ? "Yes" : annotation.evo),
-           spc: (newAnnotation[3] ? "Yes" : annotation.spc),
-           vis: (newAnnotation[4] ? "Yes" : annotation.vis),
-           nlp: (newAnnotation[5] ? "Yes" : annotation.nlp),
-           pln: (newAnnotation[6] ? "Yes" : annotation.pln),
-           kpr: (newAnnotation[7] ? "Yes" : annotation.kpr)
+           individual: [
+             {
+               user: req.user._id, // new annotation by current user
+               mal: req.body.mal,
+               hdw: req.body.hdw,
+               evo: req.body.evo,
+               spc: req.body.spc,
+               vis: req.body.vis,
+               nlp: req.body.nlp,
+               pln: req.body.pln,
+               kpr: req.body.kpr
+             },
+             {
+               user: annotation.user, // stored annotation by another user
+               mal: annotation.mal,
+               hdw: annotation.hdw,
+               evo: annotation.evo,
+               spc: annotation.spc,
+               vis: annotation.vis,
+               nlp: annotation.nlp,
+               pln: annotation.pln,
+               kpr: annotation.kpr
+             }
+           ],
+           consensus: {
+             mal: (newAnnotation[0] ? "Yes" : annotation.mal),
+             hdw: (newAnnotation[1] ? "Yes" : annotation.hdw),
+             evo: (newAnnotation[2] ? "Yes" : annotation.evo),
+             spc: (newAnnotation[3] ? "Yes" : annotation.spc),
+             vis: (newAnnotation[4] ? "Yes" : annotation.vis),
+             nlp: (newAnnotation[5] ? "Yes" : annotation.nlp),
+             pln: (newAnnotation[6] ? "Yes" : annotation.pln),
+             kpr: (newAnnotation[7] ? "Yes" : annotation.kpr)
+           }
          });
 
+        annotation.deleteOne();
+
         res.json(await agreedLabel.save().catch((error) => {
-          res.status(500).json({ error: error });
+           res.status(500).json({ error: error });
         }));
       }
-      else
+      else // they disagree, let's store them for a 3rd party to decide:
       {
         const disagreedLabel = new DisagreedLabel({
           document: req.body.documentId,
@@ -270,7 +295,9 @@ router.post("/labels", async function (req, res, next) {
           ]
         });
 
-       res.json(await disagreedLabel.save().catch((error) => {
+      annotation.deleteOne();
+       
+      res.json(await disagreedLabel.save().catch((error) => {
          res.status(500).json({ error: error });
        }));
       }
@@ -313,9 +340,73 @@ router.get('/status', function (req, res) {
   }
 });
 
+//Search for Patents by documentID + retrieve any annotations:
+router.post("/search", async function (req, res, next) {
+  let searchVal = req.body.patentSearchId
+
+  const patent = await Patent.findOne({
+    documentId: searchVal
+  }).select("-_id");
+
+  if(patent !== null)
+  {
+    // find annotation done by current user:
+    const annotation = await Label.findOne({
+      user: req.user._id,
+      document: searchVal
+    }).select("-_id");
+
+    if(annotation !== null)
+    {
+      res.json(Object.assign(patent.toObject(), annotation.toObject()));
+    }
+    else
+    {
+      res.json(patent);
+    }
+  }
+  else 
+  {
+    res.json({message:`Patent with the given id \'${searchVal}\' not found.`})
+  }
+});
+
+// Remove a patent from the current user's queue:
+router.post("/queue/remove", async function (req, res, next) {
+res.json(
+  await getNextPatent(req, {"mode": "update", "documentId": req.body.documentId}).catch((error) => {
+    res.status(400).json({ error: error });
+}));
+});
+
+// clears the cookie on the backend side:
+router.get('/logout', function (req, res) {
+  req.logOut();
+  res.status(200).json({ status: "unauthenticated"});
+});
+
+/** **************************************************************************************************************************************
+ * Restricted Access: 
+ * any routes declared after this point will require 'admin' role.
+ * to make public routes, declare the specific routes before this router.use(..) statement.
+ * ***************************************************************************************************************************************/
+router.use((req, res, next) => {
+  if(req.user.role === 'admin') { next(); }
+  else { 
+    console.log('[Unauthorized]:', req.user.email, '<', req.user._id, '> attempted to access', req.originalUrl)
+    res.status(401).json({ error: 'unauthorized' });
+  }
+});
+
+/**
+ * GETs all annotated data for the admin.
+ */
 router.get("/labels", async function (req, res, next) {
   res.json(
     { 
+      users: await User.find({}, 'name email').catch((error) => {
+        res.status(500).json({ error: error });
+      }),
       labels: await Label.find().catch((error) => {
         res.status(500).json({ error: error });
       }),
@@ -328,66 +419,52 @@ router.get("/labels", async function (req, res, next) {
     });
 });
 
-//Search for Patents by documentID + retrieve any annotations:
-router.post("/search", async function (req, res, next) {
-    let searchVal = req.body.patentSearchId
-
-    const patent = await Patent.findOne({
-      documentId: searchVal
-    }).select("-_id");
-
-    if(patent !== null)
-    {
-      // find annotation done by current user:
-      const annotation = await Label.findOne({
-        user: req.user._id,
-        document: searchVal
-      }).select("-_id");
-
-      if(annotation !== null)
-      {
-        res.json(Object.assign(patent.toObject(), annotation.toObject()));
-      }
-      else
-      {
-        res.json(patent);
-      }
-    }
-    else 
-    {
-      res.json({message:`Patent with the given id \'${searchVal}\' not found.`})
-    }
+/**
+ * EXPORTs labels to JSON file.
+ */
+ router.get("/export/labels", async function (req, res, next) {
+  res.setHeader('Content-disposition', 'attachment; filename=labels.json');
+  res.header("Content-Type",'application/json');
+  res.send(
+    JSON.stringify(await Label.find().catch((error) => {
+      res.status(500).json({ error: error });
+    }), null, 2)
+  );
 });
 
-// Remove a patent from the current user's queue:
-router.post("/queue/remove", async function (req, res, next) {
-  res.json(
-    await getNextPatent(req, {"mode": "update", "documentId": req.body.documentId}).catch((error) => {
-      res.status(400).json({ error: error });
-  }));
+/**
+ * EXPORTs agreed labels to JSON file.
+ */
+ router.get("/export/agreedLabels", async function (req, res, next) {
+  res.setHeader('Content-disposition', 'attachment; filename=agreed-labels.json');
+  res.header("Content-Type",'application/json');
+  res.send(
+    JSON.stringify(await AgreedLabel.find().catch((error) => {
+      res.status(500).json({ error: error });
+    }), null, 2)
+  );
+});
+
+/**
+ * EXPORTs disagreed labels to JSON file.
+ */
+ router.get("/export/disagreedLabels", async function (req, res, next) {
+  res.setHeader('Content-disposition', 'attachment; filename=disagreed-labels.json');
+  res.header("Content-Type",'application/json');
+  res.send(
+    JSON.stringify(await DisagreedLabel.find().catch((error) => {
+      res.status(500).json({ error: error });
+    }), null, 2)
+  );
 });
 
 router.get("/getAllQueues", async function (req,res,next){
-
-  if(req.user.role === 'admin')
-  {
-    const queues = await Queue.find().catch((error) => {
-      console.log(error);
-      res.status(500);
-    });
-    res.status(200).json(queues);
-  }
-  else
-  {
-    res.status(401).json({ error: "unauthorized" });
-  }
+  const queues = await Queue.find().catch((error) => {
+    console.log(error);
+    res.status(500);
+  });
+  res.status(200).json(queues);
 })
-
-// clears the cookie on the backend side:
-router.get('/logout', function (req, res) {
-  req.logOut();
-  res.status(200).json({ status: "unauthenticated"});
-});
 
 router.get("/chart", async function (req, res, next) {
  
