@@ -29,8 +29,16 @@ print('Total USPATs in database:', total_patents_in_db)
 cycle = 0
 for patent in USPATs:
   claims = []
-
-  for year in range(1976, 2022):
+  
+  # improve speed by starting at lower end when patent number is newer: 
+  if len(patent) >= 8:
+    lookupRange = list(range(2021, 1977, -1))
+  else:
+    lookupRange = list(range(1976, 2022))
+  
+  for year in lookupRange:
+    print('Scanning', year, '...')
+    
     # load USPAT claims from tsv file:
     uspatClaims = pd.read_csv(
       f'data/patent_claims/claims_{year}.tsv',
