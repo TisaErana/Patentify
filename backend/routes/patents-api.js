@@ -6,6 +6,7 @@ const db = mongoose.connection.db
 const Patent = require("../models/patent_model");
 
 // Import label model
+const User = require("../models/User_model");
 const Label = require("../models/label_model");
 const AgreedLabel = require("../models/agreed_labels_model");
 const DisagreedLabel = require("../models/disagreed_labels_model");
@@ -403,6 +404,9 @@ router.use((req, res, next) => {
 router.get("/labels", async function (req, res, next) {
   res.json(
     { 
+      users: await User.find({}, 'name email').catch((error) => {
+        res.status(500).json({ error: error });
+      }),
       labels: await Label.find().catch((error) => {
         res.status(500).json({ error: error });
       }),
