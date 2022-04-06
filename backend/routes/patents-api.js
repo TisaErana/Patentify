@@ -419,6 +419,45 @@ router.get("/labels", async function (req, res, next) {
     });
 });
 
+/**
+ * EXPORTs labels to JSON file.
+ */
+ router.get("/export/labels", async function (req, res, next) {
+  res.setHeader('Content-disposition', 'attachment; filename=labels.json');
+  res.header("Content-Type",'application/json');
+  res.send(
+    JSON.stringify(await Label.find().catch((error) => {
+      res.status(500).json({ error: error });
+    }), null, 2)
+  );
+});
+
+/**
+ * EXPORTs agreed labels to JSON file.
+ */
+ router.get("/export/agreedLabels", async function (req, res, next) {
+  res.setHeader('Content-disposition', 'attachment; filename=agreed-labels.json');
+  res.header("Content-Type",'application/json');
+  res.send(
+    JSON.stringify(await AgreedLabel.find().catch((error) => {
+      res.status(500).json({ error: error });
+    }), null, 2)
+  );
+});
+
+/**
+ * EXPORTs disagreed labels to JSON file.
+ */
+ router.get("/export/disagreedLabels", async function (req, res, next) {
+  res.setHeader('Content-disposition', 'attachment; filename=disagreed-labels.json');
+  res.header("Content-Type",'application/json');
+  res.send(
+    JSON.stringify(await DisagreedLabel.find().catch((error) => {
+      res.status(500).json({ error: error });
+    }), null, 2)
+  );
+});
+
 router.get("/getAllQueues", async function (req,res,next){
   const queues = await Queue.find().catch((error) => {
     console.log(error);
