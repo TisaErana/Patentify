@@ -32,7 +32,7 @@ for patent in USPATs:
   
   # improve speed by starting at lower end when patent number is newer: 
   if len(patent) >= 8:
-    lookupRange = list(range(2021, 1977, -1))
+    lookupRange = list(range(2021, 1975, -1))
   else:
     lookupRange = list(range(1976, 2022))
   
