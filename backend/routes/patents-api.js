@@ -416,19 +416,11 @@ router.get("/labels", async function (req, res, next) {
 });
 
 router.get("/getAllQueues", async function (req,res,next){
-
-  if(req.user.role === 'admin')
-  {
-    const queues = await Queue.find().catch((error) => {
-      console.log(error);
-      res.status(500);
-    });
-    res.status(200).json(queues);
-  }
-  else
-  {
-    res.status(401).json({ error: "unauthorized" });
-  }
+  const queues = await Queue.find().catch((error) => {
+    console.log(error);
+    res.status(500);
+  });
+  res.status(200).json(queues);
 })
 
 router.get("/chart", async function (req, res, next) {
