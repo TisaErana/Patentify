@@ -339,6 +339,67 @@ router.get('/status', function (req, res) {
   }
 });
 
+//Search for Patents by documentID + retrieve any annotations:
+router.post("/search", async function (req, res, next) {
+  let searchVal = req.body.patentSearchId
+
+  const patent = await Patent.findOne({
+    documentId: searchVal
+  }).select("-_id");
+
+  if(patent !== null)
+  {
+    // find annotation done by current user:
+    const annotation = await Label.findOne({
+      user: req.user._id,
+      document: searchVal
+    }).select("-_id");
+
+    if(annotation !== null)
+    {
+      res.json(Object.assign(patent.toObject(), annotation.toObject()));
+    }
+    else
+    {
+      res.json(patent);
+    }
+  }
+  else 
+  {
+    res.json({message:`Patent with the given id \'${searchVal}\' not found.`})
+  }
+});
+
+// Remove a patent from the current user's queue:
+router.post("/queue/remove", async function (req, res, next) {
+res.json(
+  await getNextPatent(req, {"mode": "update", "documentId": req.body.documentId}).catch((error) => {
+    res.status(400).json({ error: error });
+}));
+});
+
+// clears the cookie on the backend side:
+router.get('/logout', function (req, res) {
+  req.logOut();
+  res.status(200).json({ status: "unauthenticated"});
+});
+
+/** **************************************************************************************************************************************
+ * Restricted Access: 
+ * any routes declared after this point will require 'admin' role.
+ * to make public routes, declare the specific routes before this router.use(..) statement.
+ * ***************************************************************************************************************************************/
+router.use((req, res, next) => {
+  if(req.user.role === 'admin') { next(); }
+  else { 
+    console.log('[Unauthorized]:', req.user.email, '<', req.user._id, '> attempted to access', req.originalUrl)
+    res.status(401).json({ error: 'unauthorized' });
+  }
+});
+
+/**
+ * GETs all annotated data for the admin.
+ */
 router.get("/labels", async function (req, res, next) {
   res.json(
     { 
@@ -352,45 +413,6 @@ router.get("/labels", async function (req, res, next) {
         res.status(500).json({ error: error });
       })
     });
-});
-
-//Search for Patents by documentID + retrieve any annotations:
-router.post("/search", async function (req, res, next) {
-    let searchVal = req.body.patentSearchId
-
-    const patent = await Patent.findOne({
-      documentId: searchVal
-    }).select("-_id");
-
-    if(patent !== null)
-    {
-      // find annotation done by current user:
-      const annotation = await Label.findOne({
-        user: req.user._id,
-        document: searchVal
-      }).select("-_id");
-
-      if(annotation !== null)
-      {
-        res.json(Object.assign(patent.toObject(), annotation.toObject()));
-      }
-      else
-      {
-        res.json(patent);
-      }
-    }
-    else 
-    {
-      res.json({message:`Patent with the given id \'${searchVal}\' not found.`})
-    }
-});
-
-// Remove a patent from the current user's queue:
-router.post("/queue/remove", async function (req, res, next) {
-  res.json(
-    await getNextPatent(req, {"mode": "update", "documentId": req.body.documentId}).catch((error) => {
-      res.status(400).json({ error: error });
-  }));
 });
 
 router.get("/getAllQueues", async function (req,res,next){
@@ -408,12 +430,6 @@ router.get("/getAllQueues", async function (req,res,next){
     res.status(401).json({ error: "unauthorized" });
   }
 })
-
-// clears the cookie on the backend side:
-router.get('/logout', function (req, res) {
-  req.logOut();
-  res.status(200).json({ status: "unauthenticated"});
-});
 
 router.get("/chart", async function (req, res, next) {
  
