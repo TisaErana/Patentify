@@ -117,12 +117,13 @@ def vectorize(df, vectorizer = None, target='target', training=False):
     
     return x, y
 
-def calc_f1_score(learner, client):
+def calc_f1_score(learner, client, collection='labels'):
     """
     Calculates f1_score based on labels the model has not been trained on.
+    collection must be a collection with schema of type ../models/label_model.
     """
     db = client['PatentData']
-    test_labels = db['test_labels'].find() # labels which the model has not been trained on.
+    test_labels = db[collection].find() # labels which the model has not been trained on.
 
     ids = [] #               document ids of newly annotated documents.
     target = [] #            classification of newly annotated documents.
@@ -137,7 +138,18 @@ def calc_f1_score(learner, client):
     x, y = svm_format(client, ids, target)
     y_predictions = learner.predict(x)
 
-    print(f1_score(target, y_predictions, average='weighted'))
+    return f1_score(target, y_predictions, average='weighted')
 
-    return 0
+def calc_f1_score(learner, client, file):
+    """
+    Calculates f1_score based on annotations saved in pickled dataframe file.
+    """
+    # import training data from pickle file:
+    pickledDataFile = open(file, 'rb')
+    data = pickle.load(pickledDataFile)
+    print(data)
 
+    x, y_true = svm_format(client, data['doc_id'].values.tolist(), data['Annotated_value'].values.tolist())
+    y_predictions = learner.predict(x)
+
+    return f1_score(y_true, y_predictions, average='weighted')
