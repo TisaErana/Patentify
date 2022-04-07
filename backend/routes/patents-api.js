@@ -495,9 +495,9 @@ router.get("/getAllQueues", async function (req,res,next){
 
 router.get("/chart", async function (req, res, next) {
  
-  unique = await Label.count();
-  agreed = await AgreedLabel.count();
-  disagreed = await DisagreedLabel.count();
+  unique = await Label.countDocuments();
+  agreed = await AgreedLabel.countDocuments();
+  disagreed = await DisagreedLabel.countDocuments();
 
   total = unique + agreed + disagreed;
 
