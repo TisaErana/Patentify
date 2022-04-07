@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from "react";
 import Nav from "../components/DashboardNavigation";
 import MaterialTable from "material-table";
+import { useHistory } from 'react-router';
 
 import {Form} from "react-bootstrap";
 import Button from "react-bootstrap/Button";
 
 const ViewPatent = () => {
+  const history = useHistory();
+
   const [users, setUsers] = useState([]);
   const [allPatents, setAllPatents] = useState([]);
   const [uncertainPatents, setUncertainPatents] = useState([]);
@@ -63,6 +66,21 @@ const ViewPatent = () => {
               onClick: (event, rowData) => {
                 
               }
+            },
+            {
+                icon: 'search',
+                tooltip: 'View Patent',
+                position: 'row',
+                onClick: (event, rowData) => {
+                    history.push({
+                        pathname: '/Search',
+                        state: { 
+                            patentSearchId: rowData.documentId,
+                            weAreSearching: true 
+                        }
+                    })
+                    history.go(0);
+                }
             }
           ]}
           options={{
@@ -87,6 +105,21 @@ const ViewPatent = () => {
               onClick: (event, rowData) => {
                 
               }
+            },
+            {
+                icon: 'search',
+                tooltip: 'View Patent',
+                position: 'row',
+                onClick: (event, rowData) => {
+                    history.push({
+                        pathname: '/Search',
+                        state: { 
+                            patentSearchId: rowData.documentId,
+                            weAreSearching: true 
+                        }
+                    })
+                    history.go(0);
+                }
             }
           ]}
           options={{

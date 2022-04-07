@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
 import Nav from "../components/DashboardNavigation";
 import MaterialTable from "material-table";
+import { useHistory } from 'react-router';
+
 const Cohen = require('cohens-kappa');
 
 const Table = () => {
-    
+    const history = useHistory();
     
     const [data, setData] = useState();
     const [labels, setLabels] = useState();
@@ -194,7 +196,22 @@ const Table = () => {
                 onClick: (event, rowData) => {
                   window.location = '/patents-api/export/labels';
                 }
-              }
+              },
+              {
+                icon: 'search',
+                tooltip: 'View Patent',
+                position: 'row',
+                onClick: (event, rowData) => {
+                    history.push({
+                        pathname: '/Search',
+                        state: { 
+                            patentSearchId: rowData.document,
+                            weAreSearching: true 
+                        }
+                    })
+                    history.go(0);
+                }
+            }
             ]}
           />
 
