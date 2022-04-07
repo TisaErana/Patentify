@@ -135,8 +135,94 @@ def process_PGPUBs():
   print('PGPUB Updated', modified_count_total, 'documents.')
   print()
 
+def process_Missing():
+  ## import missing claims:
+
+  count = 1
+  total = 0
+
+  operations = []
+  missing_match_count = 0
+  missing_update_count = 0
+
+  missingPatentClaims = pd.read_csv(
+      'data/missing_patent_claims_text.csv',
+      header = 0, # header at row 0
+      usecols = ['pat_no', 'claim_text'],
+      dtype = { 'pat_no': str, 'claim_text': str } # let's make it's all strings
+  )
+
+  # go through each patent and create bulk operations:
+  uniquePatents = pd.Series({c: missingPatentClaims['pat_no'].unique() for c in missingPatentClaims})
+  total = len(uniquePatents['pat_no'])
+
+  for patent in uniquePatents['pat_no']:
+    claims = missingPatentClaims[missingPatentClaims['pat_no'] == patent]
+    claimList = []
+
+    for claim in claims.itertuples():
+      claimList.append(claim.claim_text)
+
+    operations.append(
+        UpdateOne({ "documentId": patent }, { 
+            "$set": { 
+                'claims': claimList
+            } 
+        })
+    )
+    if count % 10 == 0:
+      print('Missing USPAT claims', f'{count}/{total}', 'metadata found.')
+    count += 1
+
+  missingApplicationClaims = pd.read_csv(
+      'data/missing_pgpub_claims_text.csv',
+      header = 0, # header at row 0
+      usecols = ['pub_no', 'claim_idx', 'claim_text'],
+      dtype = { 'pub_no': str, 'claim_idx': int, 'claim_text': str } # set types
+  )
+
+  count = 1
+  total = 0
+
+  # go through each patent and create bulk operations:
+  uniquePatents = pd.Series({c: missingApplicationClaims['pub_no'].unique() for c in missingApplicationClaims})
+  total = len(uniquePatents['pub_no'])
+
+  for patent in uniquePatents['pub_no']:
+    claims = missingApplicationClaims[missingApplicationClaims['pub_no'] == patent]
+    claimList = []
+
+    for claim in claims.itertuples():
+      claimList.append([claim.claim_idx, claim.claim_text])
+
+    claimList.sort(key=lambda x : x[0])
+    claimList = [element[1] for element in claimList]
+    
+    operations.append(
+        UpdateOne({ "documentId": patent }, { 
+            "$set": { 
+                'claims': claimList
+            } 
+        })
+    )
+    if count % 2000 == 0:
+      print('Missing PGPUB claims', f'{count}/{total}', 'metadata found.')
+    count += 1
+
+  print()
+  print('Executing missing bulk operation...')
+  result = dbPatents.bulk_write(operations, ordered=False)
+  missing_match_count += result.matched_count
+  missing_update_count += result.modified_count
+
+  print('----------------> Summary <----------------')
+  print('Missing Matched', missing_match_count, 'documents.')
+  print('Missing Updated', missing_update_count, 'documents.')
+  print()
+
 uspats_thread = Thread(target=process_USPATs)
 pgpubs_thread = Thread(target=process_PGPUBs)
+missing_thread = Thread(target=process_Missing)
 
 print('Started processing USPAT claims...')
 uspats_thread.start()
@@ -144,89 +230,10 @@ print('Started processing 2005-2021 PGPUB claims...')
 pgpubs_thread.start()
 print()
 
-uspats_thread.join()
 pgpubs_thread.join()
 
-# ## import missing claims:
-# print('Started processing missing claims...')
-# print()
+print('Started processing missing claims...')
+missing_thread.start()
 
-# count = 1
-# total = 0
-
-# operations = []
-# missing_match_count = 0
-# missing_update_count = 0
-
-# missingPatentClaims = pd.read_csv(
-#     'data/missing_patent_claims_text.csv',
-#     header = 0, # header at row 0
-#     usecols = ['pat_no', 'claim_text'],
-#     dtype = { 'pat_no': str, 'claim_text': str } # let's make it's all strings
-# )
-
-# # go through each patent and create bulk operations:
-# uniquePatents = pd.Series({c: missingPatentClaims['pat_no'].unique() for c in missingPatentClaims})
-# total = len(uniquePatents['pat_no'])
-
-# for patent in uniquePatents['pat_no']:
-#   claims = missingPatentClaims[missingPatentClaims['pat_no'] == patent]
-#   claimList = []
-
-#   for claim in claims.itertuples():
-#     claimList.append(claim.claim_text)
-
-#   operations.append(
-#       UpdateOne({ "documentId": patent }, { 
-#           "$set": { 
-#               'claims': claimList
-#           } 
-#       })
-#   )
-#   print('Missing USPAT claims', f'{count}/{total}', 'metadata found.')
-#   count += 1
-
-# missingApplicationClaims = pd.read_csv(
-#     'data/missing_pgpub_claims_text.csv',
-#     header = 0, # header at row 0
-#     usecols = ['pub_no', 'claim_idx', 'claim_text'],
-#     dtype = { 'pub_no': str, 'claim_idx': int, 'claim_text': str } # set types
-# )
-
-# count = 1
-# total = 0
-
-# # go through each patent and create bulk operations:
-# uniquePatents = pd.Series({c: missingApplicationClaims['pub_no'].unique() for c in missingApplicationClaims})
-# total = len(uniquePatents['pub_no'])
-
-# for patent in uniquePatents['pub_no']:
-#   claims = missingApplicationClaims[missingApplicationClaims['pub_no'] == patent]
-#   claimList = []
-
-#   for claim in claims.itertuples():
-#     claimList.append([claim.claim_idx, claim.claim_text])
-
-#   claimList.sort(key=lambda x : x[0])
-#   claimList = [element[1] for element in claimList]
-  
-#   operations.append(
-#       UpdateOne({ "documentId": patent }, { 
-#           "$set": { 
-#               'claims': claimList
-#           } 
-#       })
-#   )
-#   print('Missing PGPUB claims', f'{count}/{total}', 'metadata found.')
-#   count += 1
-
-# print()
-# print('Executing bulk operation...')
-# result = dbPatents.bulk_write(operations, ordered=False)
-# missing_match_count += result.matched_count
-# missing_update_count += result.modified_count
-
-# print('----------------> Summary <----------------')
-# print('Missing Matched', missing_match_count, 'documents.')
-# print('Missing Updated', missing_update_count, 'documents.')
-# print()
+uspats_thread.join()
+missing_thread.join()
