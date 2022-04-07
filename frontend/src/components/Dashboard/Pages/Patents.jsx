@@ -38,7 +38,7 @@ const ViewPatent = () => {
             <Form.Control as="select">
                 {
                    users.map((user) => (
-                    <option value={user.email}>{user.name + ' <' + user.email + '>'}</option>
+                    <option key={user.email} value={user.email}>{user.name + ' <' + user.email + '>'}</option>
                    ))
                 }
             </Form.Control>
