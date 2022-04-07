@@ -15,6 +15,7 @@ import ViewUser from './components/Dashboard/Pages/viewUser';
 import Logout from './components/Logout/Logout';
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
 import Labels from './components/Dashboard/Pages/Labels';
+import Patents from './components/Dashboard/Pages/Patents';
 import ViewQueues from './components/Dashboard/Pages/viewQueues';
 import Forgot from './components/Forgot/Forgot';
 import ResetPage from './components/ResetPage/ResetPage';
@@ -83,6 +84,9 @@ const App = () => {
 
           {Role === "admin" ? 
           (<ProtectedRoute exact path="/Dashboard/ViewLabel" isAuthed = {Auth} component={Labels} /> ) : (<Redirect to="/" />)}
+
+          {Role === "admin" ? 
+          (<ProtectedRoute exact path="/Dashboard/ViewPatents" isAuthed = {Auth} component={Patents} /> ) : (<Redirect to="/" />)}
           
         </Switch>
       </div>
