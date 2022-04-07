@@ -347,7 +347,7 @@ router.post("/search", async function (req, res, next) {
 
   const patent = await Patent.findOne({
     documentId: searchVal
-  }).select("-_id");
+  }).select("-_id").lean();
 
   if(patent !== null)
   {
@@ -355,7 +355,7 @@ router.post("/search", async function (req, res, next) {
     const annotation = await Label.findOne({
       user: req.user._id,
       document: searchVal
-    }).select("-_id");
+    }).select("-_id").lean();
 
     if(annotation !== null)
     {
@@ -405,16 +405,16 @@ router.use((req, res, next) => {
 router.get("/labels", async function (req, res, next) {
   res.json(
     { 
-      users: await User.find({}, 'name email').catch((error) => {
+      users: await User.find({}, 'name email').lean().catch((error) => {
         res.status(500).json({ error: error });
       }),
-      labels: await Label.find().catch((error) => {
+      labels: await Label.find().lean().catch((error) => {
         res.status(500).json({ error: error });
       }),
-      agreedLabels: await AgreedLabel.find().catch((error) => {
+      agreedLabels: await AgreedLabel.find().lean().catch((error) => {
         res.status(500).json({ error: error });
       }),
-      disagreedLabels: await DisagreedLabel.find().catch((error) => {
+      disagreedLabels: await DisagreedLabel.find().lean().catch((error) => {
         res.status(500).json({ error: error });
       })
     });
@@ -426,10 +426,10 @@ router.get("/labels", async function (req, res, next) {
  router.get("/patents/fast", async function (req, res, next) {
   res.json(
     {
-      users: await User.find({}, 'name email').catch((error) => {
+      users: await User.find({}, 'name email').lean().catch((error) => {
         res.status(500).json({ error: error });
       }),
-      uncertain: await UncertainPatent.find().catch((error) => {
+      uncertain: await UncertainPatent.find().lean().catch((error) => {
         res.status(500).json({ error: error });
       })
     });
@@ -453,7 +453,7 @@ router.get("/labels", async function (req, res, next) {
   res.setHeader('Content-disposition', 'attachment; filename=labels.json');
   res.header("Content-Type",'application/json');
   res.send(
-    JSON.stringify(await Label.find().catch((error) => {
+    JSON.stringify(await Label.find().lean().catch((error) => {
       res.status(500).json({ error: error });
     }), null, 2)
   );
@@ -466,7 +466,7 @@ router.get("/labels", async function (req, res, next) {
   res.setHeader('Content-disposition', 'attachment; filename=agreed-labels.json');
   res.header("Content-Type",'application/json');
   res.send(
-    JSON.stringify(await AgreedLabel.find().catch((error) => {
+    JSON.stringify(await AgreedLabel.find().lean().catch((error) => {
       res.status(500).json({ error: error });
     }), null, 2)
   );
@@ -479,14 +479,14 @@ router.get("/labels", async function (req, res, next) {
   res.setHeader('Content-disposition', 'attachment; filename=disagreed-labels.json');
   res.header("Content-Type",'application/json');
   res.send(
-    JSON.stringify(await DisagreedLabel.find().catch((error) => {
+    JSON.stringify(await DisagreedLabel.find().lean().catch((error) => {
       res.status(500).json({ error: error });
     }), null, 2)
   );
 });
 
 router.get("/getAllQueues", async function (req,res,next){
-  const queues = await Queue.find().catch((error) => {
+  const queues = await Queue.find().lean().catch((error) => {
     console.log(error);
     res.status(500);
   });
