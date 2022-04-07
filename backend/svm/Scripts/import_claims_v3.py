@@ -17,8 +17,6 @@ print('Connected to database.')
 
 def process_USPATs():
   ## import USPAT claims:
-  print('Started processing USPAT claims...')
-  print()
 
   total_patents_in_db = 0
   matched_count_total = 0
@@ -27,6 +25,7 @@ def process_USPATs():
   USPATs = [element['documentId'] for element in list(dbPatents.find({"patentCorpus": "USPAT"}, {"_id": False, "documentId": 1}))]
 
   total_patents_in_db += len(USPATs)
+
   print('Total USPATs in database:', total_patents_in_db)
 
   cycle = 0
@@ -40,7 +39,7 @@ def process_USPATs():
       lookupRange = list(range(1976, 2022))
     
     for year in lookupRange:
-      print('Scanning', year, '...')
+      #print('USPAT Scanning', year, '...')
       
       # load USPAT claims from tsv file:
       uspatClaims = pd.read_csv(
@@ -76,17 +75,14 @@ def process_USPATs():
     cycle += 1
     matched_count_total += result.matched_count
     modified_count_total += result.modified_count
-    print()
 
-    print('----------------> USPAT Summary <----------------')
-    print('USPAT Matched', matched_count_total, 'documents.')
-    print('USPAT Updated', modified_count_total, 'documents.')
-    print()
+  print('----------------> USPAT Summary <----------------')
+  print('USPAT Matched', matched_count_total, 'documents.')
+  print('USPAT Updated', modified_count_total, 'documents.')
+  print()
 
 def process_PGPUBs():
   ## import PGPUB claims:
-  print('Started processing 2005-2021 PGPUB claims...')
-  print()
 
   matched_count_total = 0
   modified_count_total = 0
@@ -142,8 +138,11 @@ def process_PGPUBs():
 uspats_thread = Thread(target=process_USPATs)
 pgpubs_thread = Thread(target=process_PGPUBs)
 
+print('Started processing USPAT claims...')
 uspats_thread.start()
+print('Started processing 2005-2021 PGPUB claims...')
 pgpubs_thread.start()
+print()
 
 uspats_thread.join()
 pgpubs_thread.join()
