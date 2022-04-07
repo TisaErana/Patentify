@@ -16,20 +16,30 @@ const ViewPatent = () => {
   useEffect(() => {
     async function fetchData() {
       try {
-        // fetch all users in the database:
+        // fetch all users and uncertain documents in the database:
         const fast = await fetch("/patents-api/patents/fast");
-        const allPatents = await fetch("/patents-api/patents/slow");
-
         const body = await fast.json();
-        const patentIds = await allPatents.json();
 
         setUsers(body.users);
-        setAllPatents(patentIds);
         setUncertainPatents(body.uncertain);
       } catch (error) {}
     }
 
     fetchData();
+  }, []);
+
+  useEffect(() => {
+    async function fetchAllPatents() {
+      try {
+        // fetch all patents in the database:
+        const allPatents = await fetch("/patents-api/patents/slow");
+        const patentIds = await allPatents.json();
+
+        setAllPatents(patentIds);
+      } catch (error) {}
+    }
+
+    fetchAllPatents();
   }, []);
 
   return (
