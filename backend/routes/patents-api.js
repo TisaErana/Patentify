@@ -10,6 +10,7 @@ const User = require("../models/User_model");
 const Label = require("../models/label_model");
 const AgreedLabel = require("../models/agreed_labels_model");
 const DisagreedLabel = require("../models/disagreed_labels_model");
+const UncertainPatent = require("../models/uncertain_patent");
 
 // Import queue model
 const Queue = require("../models/queue_model");
@@ -417,6 +418,32 @@ router.get("/labels", async function (req, res, next) {
         res.status(500).json({ error: error });
       })
     });
+});
+
+/**
+ * GETs uncertain patents and user data for 'patents' dashboard tab.
+ */
+ router.get("/patents/fast", async function (req, res, next) {
+  res.json(
+    {
+      users: await User.find({}, 'name email').catch((error) => {
+        res.status(500).json({ error: error });
+      }),
+      uncertain: await UncertainPatent.find().catch((error) => {
+        res.status(500).json({ error: error });
+      })
+    });
+});
+
+/**
+ * GETs list of all patents in database.
+ */
+ router.get("/patents/slow", async function (req, res, next) {
+  res.json(
+    await Patent.find().select({ _id: false, documentId: true, title: true }).lean().catch((error) => {
+      res.status(500).json({ error: error });
+    })
+  );
 });
 
 /**
