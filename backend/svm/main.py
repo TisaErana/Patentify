@@ -4,7 +4,6 @@ from itertools import cycle
 from functions import *
 from time import time
 
-from sklearn.metrics import f1_score
 
 # Configuration:
 MIN_TRAINING_SIZE = 3
@@ -14,6 +13,8 @@ MIN_AUTO_SAVE_CYCLES = 10
 client = MongoClient("mongodb://localhost:27017/PatentData")
 db = client['PatentData']       
 cluster = db['labels']
+
+uncertain_patents = db['uncertain_patents']
 
 # load stopwords
 try:
@@ -43,6 +44,11 @@ if learner is None:
         estimator=base_estimator,
         query_strategy=uncertainty_sampling
     )
+
+# check if we need to find new uncertain patents:
+if (uncertain_patents.count_documents({}) == 0):
+    print('[INFO]: looking for new uncertain patents...')
+    find_uncertain_patents(learner, client)
 
 # main logic loop: opens the stream and looks for updates to labels database, once it finds two distinct classes in target array (1 and 0),
 # the svm model will train. Finally, it will dump the latest databse and resume token. Once the script is started up again, it will continue where
