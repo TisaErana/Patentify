@@ -11,6 +11,7 @@ const Label = require("../models/label_model");
 const AgreedLabel = require("../models/agreed_labels_model");
 const DisagreedLabel = require("../models/disagreed_labels_model");
 const UncertainPatent = require("../models/uncertain_patent");
+const PatentAssignment = require("../models/patent_assignments_model");
 
 // Import queue model
 const Queue = require("../models/queue_model");
@@ -444,6 +445,94 @@ router.get("/labels", async function (req, res, next) {
       res.status(500).json({ error: error });
     })
   );
+});
+
+/**
+ * POSTs patents for a specific user.
+ * This will assign the user those patents.
+ */
+router.post("/users/assign", async function (req, res, next) {
+  const documents = req.body.documents;
+
+  user = await User.findOne({
+    email: req.body.user
+  })
+  .select('_id') // we only need the id
+  .lean()
+  .catch((error) => {
+    res.status(500).json({ error: error })
+  });
+
+  // check if user exists:
+  if(user !== null) {
+    assignment = await PatentAssignment.findOne({
+      user: user._id
+    })
+    .catch((error) => {
+      res.status(500).json({ error: error })
+    });
+
+    // check if the user already has assignments:
+    if (assignment !== null) {
+
+      for (document of documents) {
+         // check if user has already been assigned that patent:
+         if (!assignment.assignments.some(e => e.documentId === document.documentId)) {
+          data = await Patent.findOne({
+            documentId: document
+          })
+          .lean()
+          .catch((error) => {
+            res.status(500).json({ error: error })
+          });
+
+          // check if we have metadata on that patent:
+          if(data !== null) {
+            assignment.assignments.push(data);
+          }
+          else { // we don't have metadata for that patent:
+            res.status(400).json({ error: document + ' is not in our database' })
+          }
+        }
+        else { // user already has that patent assigned:
+          // nothing to do for this patent...
+        }
+      }
+
+      res.json(await assignment.save().catch((error) => {
+        res.status(500).json({ error: error })
+      }));
+    }
+    else { // let's make a new entry for this user:
+      
+      data = await Patent.find({
+        documentId: documents
+      })
+      .lean()
+      .catch((error) => {
+        res.status(500).json({ error: error })
+      });
+      
+      // check if we have metadata on that patent:
+      if(data.length > 0) {
+        assignment = new PatentAssignment({
+          user:user._id,
+          assignments: data
+        });
+  
+        res.json(await assignment.save().catch((error) => {
+          res.status(500).json({ error: error })
+        }));
+      }
+      else { // we don't have metadata for that patent:
+        res.status(400).json({ error: 'one or more documents are not in our database' })
+      }
+    }
+  }
+  else { // user does not exist:
+    res.status(400).json({ error: 'invalid user' });
+  }
+
 });
 
 /**

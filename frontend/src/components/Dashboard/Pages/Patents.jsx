@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 import Nav from "../components/DashboardNavigation";
 import MaterialTable from "material-table";
-import { useHistory } from 'react-router';
 
-import {Form} from "react-bootstrap";
-import Button from "react-bootstrap/Button";
+import { useHistory } from 'react-router';
+import { Form } from "react-bootstrap";
+
+import axios from "axios";
 
 const ViewPatent = () => {
   const history = useHistory();
@@ -15,6 +16,28 @@ const ViewPatent = () => {
   const [allPatents, setAllPatents] = useState([]);
   const [uncertainPatents, setUncertainPatents] = useState([]);
 
+
+  const assignPatents = (rowData) => {
+    axios({
+      url: "/patents-api/users/assign", // route in backend
+      method: "POST",
+      data: {
+        user: selectedUser,
+        documents: rowData.map(document => (document.documentId))
+      },
+    })
+    .then((response) => {
+      if (response.status === 200) {
+        console.log(response.data)
+        // update future patent assignments table
+      }
+    })
+    .catch((error) => {
+      alert(error.response.data);
+    });
+  }
+
+
   useEffect(() => {
     async function fetchData() {
       try {
@@ -24,7 +47,6 @@ const ViewPatent = () => {
 
         setUsers(body.users);
         setSelectedUser(body.users[0].email);
-
         setUncertainPatents(body.uncertain);
       } catch (error) {}
     }
@@ -82,7 +104,7 @@ const ViewPatent = () => {
               icon: 'people',
               tooltip: 'Assign',
               onClick: (event, rowData) => {
-                alert(selectedUser)
+                assignPatents(rowData);
               }
             },
             {
@@ -121,7 +143,7 @@ const ViewPatent = () => {
               icon: 'people',
               tooltip: 'Assign',
               onClick: (event, rowData) => {
-
+                assignPatents(rowData);
               }
             },
             {
