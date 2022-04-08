@@ -20,7 +20,7 @@ const ViewPatent = () => {
 
   const assignPatents = (rowData) => {
     axios({
-      url: "/patents-api/users/assign", // route in backend
+      url: "/patents-api/assignments/assign", // route in backend
       method: "POST",
       data: {
         user: selectedUser,
@@ -35,15 +35,6 @@ const ViewPatent = () => {
     })
     .catch((error) => {
       alert(error.response.data);
-    });
-  }
-
-  const tableFormatAssignments = () => {
-    data.assigned.forEach(document => {
-      document.assignments.forEach(d => {
-        d.user = data.users.find(user => user._id === document.user);
-        data.assigned.tableFormat.push(d); 
-      });
     });
   }
 
@@ -116,7 +107,7 @@ const ViewPatent = () => {
               icon: 'delete',
               tooltip: 'Unassign from User',
               onClick: (event, rowData) => {
-                alert('placeholder')
+                
               }
             },
             {

@@ -454,7 +454,7 @@ router.get("/labels", async function (req, res, next) {
  * POSTs patents for a specific user.
  * This will assign the user those patents.
  */
-router.post("/users/assign", async function (req, res, next) {
+router.post("/assignments/assign", async function (req, res, next) {
   const documents = req.body.documents;
 
   user = await User.findOne({
