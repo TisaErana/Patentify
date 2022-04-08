@@ -13,8 +13,9 @@ const ViewPatent = () => {
   const [selectedUser, setSelectedUser] = useState();
 
   const [users, setUsers] = useState([]);
-  const [allPatents, setAllPatents] = useState([]);
-  const [uncertainPatents, setUncertainPatents] = useState([]);
+  const [allPatents, setAllPatents] = useState();
+  const [assignedPatents, setAssignedPatents] = useState();
+  const [uncertainPatents, setUncertainPatents] = useState();
 
 
   const assignPatents = (rowData) => {
@@ -41,12 +42,14 @@ const ViewPatent = () => {
   useEffect(() => {
     async function fetchData() {
       try {
-        // fetch all users and uncertain documents in the database:
+        // fetch all users, uncertain documents, assigned documents in the database:
         const fast = await fetch("/patents-api/patents/fast");
         const body = await fast.json();
 
         setUsers(body.users);
         setSelectedUser(body.users[0].email);
+
+        setAssignedPatents([]);
         setUncertainPatents(body.uncertain);
       } catch (error) {}
     }
@@ -72,6 +75,49 @@ const ViewPatent = () => {
     <div>
       <Nav />
       <div className="container-fluid mt-5" style={{ paddingBottom: '5%' }}>
+        <MaterialTable
+          title="Assigned Patents"
+          columns={[
+            { title: "User", field: "user" },
+            { title: "DocumentId", field: "documentId" },
+            { title: "title", field: "title" },
+          ]}
+          data={assignedPatents}
+          isLoading={assignedPatents === undefined}
+          actions={[
+            {
+              icon: 'delete',
+              tooltip: 'Unassign from User',
+              onClick: (event, rowData) => {
+                alert('placeholder')
+              }
+            },
+            {
+                icon: 'search',
+                tooltip: 'View Patent',
+                position: 'row',
+                onClick: (event, rowData) => {
+                    history.push({
+                        pathname: '/Search',
+                        state: { 
+                            patentSearchId: rowData.documentId,
+                            weAreSearching: true 
+                        }
+                    })
+                    history.go(0);
+                }
+            }
+          ]}
+          options={{
+              selection: true, 
+              exportButton: true, 
+              exportAllData: true
+            }}
+        />
+        
+        <br/>
+        <br/>
+        
         <Form>
             <h3>Choose an Annotator to Assign</h3>
             <Form.Control 
@@ -98,7 +144,7 @@ const ViewPatent = () => {
             { title: "abstract", field: "abstract" },
           ]}
           data={uncertainPatents}
-          isLoading={uncertainPatents.length === 0}
+          isLoading={uncertainPatents === undefined}
           actions={[
             {
               icon: 'people',
@@ -137,7 +183,7 @@ const ViewPatent = () => {
             { title: "Title", field: "title" }
           ]}
           data={allPatents}
-          isLoading={allPatents.length === 0}
+          isLoading={allPatents === undefined}
           actions={[
             {
               icon: 'people',
