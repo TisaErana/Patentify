@@ -12,7 +12,7 @@ const ViewPatent = () => {
 
   const [selectedUser, setSelectedUser] = useState();
 
-  const [users, setUsers] = useState([]);
+  const [data, setData] = useState({ users: [], preventDefault: true });
   const [allPatents, setAllPatents] = useState();
   const [assignedPatents, setAssignedPatents] = useState();
   const [uncertainPatents, setUncertainPatents] = useState();
@@ -29,8 +29,8 @@ const ViewPatent = () => {
     })
     .then((response) => {
       if (response.status === 200) {
-        console.log(response.data)
-        // update future patent assignments table
+        data.assigned = response.data.assigned
+        setAssignedPatents([]); // trigger table refresh
       }
     })
     .catch((error) => {
@@ -38,6 +38,14 @@ const ViewPatent = () => {
     });
   }
 
+  const tableFormatAssignments = () => {
+    data.assigned.forEach(document => {
+      document.assignments.forEach(d => {
+        d.user = data.users.find(user => user._id === document.user);
+        data.assigned.tableFormat.push(d); 
+      });
+    });
+  }
 
   useEffect(() => {
     async function fetchData() {
@@ -45,21 +53,8 @@ const ViewPatent = () => {
         // fetch all users, uncertain documents, assigned documents in the database:
         const fast = await fetch("/patents-api/patents/fast");
         const body = await fast.json();
-
-        setUsers(body.users);
-        setSelectedUser(body.users[0].email);
-
-        // make each patent assignment an individual row so it is easier to understand:
-        body.assigned.tableFormat = []
-        body.assigned.forEach(document => {
-          document.assignments.forEach(d => {
-            d.user = body.users.find(user => user._id === document.user);
-            body.assigned.tableFormat.push(d); 
-          });
-        });
-
-        setAssignedPatents(body.assigned.tableFormat);
-        setUncertainPatents(body.uncertain);
+        
+        setData(body);
       } catch (error) {}
     }
 
@@ -79,6 +74,28 @@ const ViewPatent = () => {
 
     fetchAllPatents();
   }, []);
+
+  // save selected user and set uncertain patent list: 
+  useEffect(() => {
+    if(!data.preventDefault)
+    {
+      setSelectedUser(data.users[0].email);
+      setUncertainPatents(data.uncertain);
+    }
+  }, [data.users, data.uncertain]);
+
+  // format assigned patent data:
+  useEffect(() => {
+    if(!data.preventDefault)
+    {
+      // make table information easier to understand:
+      // each entry will be a new row:
+      data.assigned.tableFormat = []
+      tableFormatAssignments();
+  
+      setAssignedPatents(data.assigned.tableFormat);
+    }
+  }, [data.assigned]);
 
   return (
     <div>
@@ -137,7 +154,7 @@ const ViewPatent = () => {
               onChange={e => setSelectedUser(e.target.value)}
             >
                 {
-                   users.map((user) => (
+                   data.users.map((user) => (
                     <option key={user.email} value={user.email}>{user.name + ' <' + user.email + '>'}</option>
                    ))
                 }

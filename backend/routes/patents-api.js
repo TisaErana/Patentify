@@ -480,6 +480,7 @@ router.post("/users/assign", async function (req, res, next) {
 
       for (document of documents) {
          // check if user has already been assigned that patent:
+         console.log(assignment.assignments.some(e => e.documentId === document.documentId))
          if (!assignment.assignments.some(e => e.documentId === document.documentId)) {
           data = await Patent.findOne({
             documentId: document
@@ -502,9 +503,14 @@ router.post("/users/assign", async function (req, res, next) {
         }
       }
 
-      res.json(await assignment.save().catch((error) => {
+      await assignment.save().catch((error) => {
         res.status(500).json({ error: error })
-      }));
+      });
+
+      res.json({
+        assigned: await PatentAssignment.find().lean().catch((error) => {
+          res.status(500).json({ error: error })
+      })});
     }
     else { // let's make a new entry for this user:
       
@@ -523,9 +529,14 @@ router.post("/users/assign", async function (req, res, next) {
           assignments: data
         });
   
-        res.json(await assignment.save().catch((error) => {
+        await assignment.save().catch((error) => {
           res.status(500).json({ error: error })
-        }));
+        });
+
+        res.json({
+          assigned: await PatentAssignment.find().lean().catch((error) => {
+            res.status(500).json({ error: error })
+        })});
       }
       else { // we don't have metadata for that patent:
         res.status(400).json({ error: 'one or more documents are not in our database' })
