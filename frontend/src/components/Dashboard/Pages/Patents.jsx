@@ -9,6 +9,8 @@ import Button from "react-bootstrap/Button";
 const ViewPatent = () => {
   const history = useHistory();
 
+  const [selectedUser, setSelectedUser] = useState();
+
   const [users, setUsers] = useState([]);
   const [allPatents, setAllPatents] = useState([]);
   const [uncertainPatents, setUncertainPatents] = useState([]);
@@ -21,6 +23,8 @@ const ViewPatent = () => {
         const body = await fast.json();
 
         setUsers(body.users);
+        setSelectedUser(body.users[0].email);
+
         setUncertainPatents(body.uncertain);
       } catch (error) {}
     }
@@ -48,7 +52,11 @@ const ViewPatent = () => {
       <div className="container-fluid mt-5" style={{ paddingBottom: '5%' }}>
         <Form>
             <h3>Choose an Annotator to Assign</h3>
-            <Form.Control as="select">
+            <Form.Control 
+              as="select"
+              value={selectedUser}
+              onChange={e => setSelectedUser(e.target.value)}
+            >
                 {
                    users.map((user) => (
                     <option key={user.email} value={user.email}>{user.name + ' <' + user.email + '>'}</option>
@@ -74,7 +82,7 @@ const ViewPatent = () => {
               icon: 'people',
               tooltip: 'Assign',
               onClick: (event, rowData) => {
-                
+                alert(selectedUser)
               }
             },
             {
@@ -113,7 +121,7 @@ const ViewPatent = () => {
               icon: 'people',
               tooltip: 'Assign',
               onClick: (event, rowData) => {
-                
+
               }
             },
             {
