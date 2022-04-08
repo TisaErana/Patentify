@@ -112,7 +112,7 @@ def process_PGPUBs():
         claims.append(claim.text.strip())
 
     # sort based on number in text (ex: '1 .' or '12.')
-    claims.sort(key=lambda x : int(x[0:2].strip()))
+    claims.sort(key=lambda x : int(x[0:2].replace('.','').strip()))
     
     if len(claims) > 0:
       result = dbPatents.update_one({ "documentId": patent}, 
