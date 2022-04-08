@@ -14,6 +14,11 @@ const DashboardNavigation = () => {
               </NavLink>
             </li>
             <li className="nav-item">
+              <NavLink className="nav-link" to="/Dashboard/ViewPatents">
+                Patents <span className="sr-only">(current)</span>{" "}
+              </NavLink>
+            </li>
+            <li className="nav-item">
               <NavLink className="nav-link" to="/Dashboard/ViewLabel">
                 Labels <span className="sr-only">(current)</span>{" "}
               </NavLink>
