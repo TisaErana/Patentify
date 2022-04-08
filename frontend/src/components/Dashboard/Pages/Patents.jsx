@@ -38,6 +38,15 @@ const ViewPatent = () => {
     });
   }
 
+  const tableFormatAssignments = () => {
+    data.assigned.forEach(document => {
+      document.assignments.forEach(d => {
+        d.user = data.users.find(user => user._id === document.user);
+        data.assigned.tableFormat.push(d); 
+      });
+    });
+  }
+
   useEffect(() => {
     async function fetchData() {
       try {
