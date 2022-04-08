@@ -432,6 +432,9 @@ router.get("/labels", async function (req, res, next) {
       }),
       uncertain: await UncertainPatent.find().lean().catch((error) => {
         res.status(500).json({ error: error });
+      }),
+      assigned: await PatentAssignment.find().lean().catch((error) => {
+        res.status(500).json({ error: error });
       })
     });
 });

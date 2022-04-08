@@ -49,7 +49,16 @@ const ViewPatent = () => {
         setUsers(body.users);
         setSelectedUser(body.users[0].email);
 
-        setAssignedPatents([]);
+        // make each patent assignment an individual row so it is easier to understand:
+        body.assigned.tableFormat = []
+        body.assigned.forEach(document => {
+          document.assignments.forEach(d => {
+            d.user = body.users.find(user => user._id === document.user);
+            body.assigned.tableFormat.push(d); 
+          });
+        });
+
+        setAssignedPatents(body.assigned.tableFormat);
         setUncertainPatents(body.uncertain);
       } catch (error) {}
     }
@@ -78,9 +87,10 @@ const ViewPatent = () => {
         <MaterialTable
           title="Assigned Patents"
           columns={[
-            { title: "User", field: "user" },
+            { title: "User", field: "user.email", defaultGroupOrder:0},
             { title: "DocumentId", field: "documentId" },
             { title: "title", field: "title" },
+            { title: "abstract", field: "abstract" }
           ]}
           data={assignedPatents}
           isLoading={assignedPatents === undefined}
@@ -109,7 +119,8 @@ const ViewPatent = () => {
             }
           ]}
           options={{
-              selection: true, 
+              selection: true,
+              grouping: true, 
               exportButton: true, 
               exportAllData: true
             }}
