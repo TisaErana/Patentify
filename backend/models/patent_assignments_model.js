@@ -4,7 +4,7 @@ const patentAssignmentSchema = new Schema(
   
   {
     user:{ type: Schema.Types.ObjectId, ref: "User", index: {unique: true, dropDups: true}},
-    assignments: [{type: String}]
+    assignments: [{type: Object}]
   },
 
   { collection: "patent_assignments" }
