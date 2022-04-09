@@ -350,25 +350,58 @@ router.post("/labels", async function (req, res, next) {
   }
   else // new entry:
   {
-    const label = new Label({
-      user:req.user._id,
-      document: req.body.documentId,
-      mal:req.body.mal, // Machine Learning
-      hdw:req.body.hdw, // Hardware
-      evo:req.body.evo, // Evolution
-      spc:req.body.spc, // Speech
-      vis:req.body.vis, // Vision
-      nlp:req.body.nlp, // Natural Language Processing 
-      pln:req.body.pln, // Planning 
-      kpr:req.body.kpr, // Knowledge Processing
+    disagreedLabel = await DisagreedLabel.findOne({
+      document: req.body.documentId
+    }).catch((error) => {
+      res.status(500).json({ error: error });
     });
 
-    // if this patent was assigned, let's update the user's list of assignments:
-    await removeFromAssignedPatents(res, req.user._id, req.body.documentId);
+    console.log(disagreedLabel)
+    
+    // check if this patent is being decided on by 3rd annotator:
+    if(disagreedLabel !== null) {
+      disagreedLabel.consensus = {
+        user:req.user._id,
+        document: req.body.documentId,
+        mal:req.body.mal, // Machine Learning
+        hdw:req.body.hdw, // Hardware
+        evo:req.body.evo, // Evolution
+        spc:req.body.spc, // Speech
+        vis:req.body.vis, // Vision
+        nlp:req.body.nlp, // Natural Language Processing 
+        pln:req.body.pln, // Planning 
+        kpr:req.body.kpr, // Knowledge Processing
+      }
 
-    res.json(await label.save().catch((error) => {
-      res.status(500).json({ error: error });
-    }));
+       // if this patent was assigned, let's update the user's list of assignments:
+       await removeFromAssignedPatents(res, req.user._id, req.body.documentId);
+
+      res.json(await disagreedLabel.save().catch((error) => {
+        res.status(500).json({ error: error });
+      }));
+    }
+    else // new entry: 
+    {
+      const label = new Label({
+        user:req.user._id,
+        document: req.body.documentId,
+        mal:req.body.mal, // Machine Learning
+        hdw:req.body.hdw, // Hardware
+        evo:req.body.evo, // Evolution
+        spc:req.body.spc, // Speech
+        vis:req.body.vis, // Vision
+        nlp:req.body.nlp, // Natural Language Processing 
+        pln:req.body.pln, // Planning 
+        kpr:req.body.kpr, // Knowledge Processing
+      });
+  
+      // if this patent was assigned, let's update the user's list of assignments:
+      await removeFromAssignedPatents(res, req.user._id, req.body.documentId);
+  
+      res.json(await label.save().catch((error) => {
+        res.status(500).json({ error: error });
+      }));
+    }
   }
 });
 
