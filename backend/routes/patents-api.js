@@ -32,13 +32,14 @@ const QUEUE_CANDIDATE_LOOKUP_SIZE = 3;
 /**
  * Finds the next best patent to show the user.
  * @param {*} req the api request to the server.
+ * @param {*} res response object.
  * @param {Object} transaction update existing entry or make a new one.
  *    transaction: 
  *      mode: new | update
  *      documentId: the documentId of the patent currently in the queue.
  * @return an Object with patent information.
  */
-async function getNextPatent(req, transaction = { "mode": "new", "documentId": undefined }) {
+async function getNextPatent(req, res, transaction = { "mode": "new", "documentId": undefined }) {
   var patent = undefined; // the patent to insert into the queue
   
   assignedPatents = await PatentAssignment.findOne({
@@ -48,7 +49,7 @@ async function getNextPatent(req, transaction = { "mode": "new", "documentId": u
   });
 
   // check if the user has assigned patents:
-  if(assignedPatents !== null)
+  if(assignedPatents !== null && assignedPatents.assignments.length > 0)
   {
     patent = assignedPatents.assignments[0]; // pick first patent in list
   }
@@ -161,12 +162,36 @@ router.get("/", async function (req, res, next) {
   else // let's find a new patent for the user:
   {
     res.json(
-      await getNextPatent(req).catch((error) => {
+      await getNextPatent(req, res).catch((error) => {
         res.status(500).json({ error: error });
     }));
   }
 
 });
+
+/***
+ * Removes a patent from a user's assigned patent list.
+ * @param res the response object.
+ * @param userId the user id of the user who's assignments to modify.
+ * @param docId the document id to remove from the list.
+ */
+async function removeFromAssignedPatents(res, userId, docId) { 
+  dbAssignments = await PatentAssignment.findOne({ user: userId }).catch((error) => {
+    res.status(500).json({ error: error })
+  });
+
+  // check if there are assingments for the user:
+  if(dbAssignments !== null)
+  {
+    dbAssignments.assignments = dbAssignments.assignments.filter(({ documentId }) => !documentId.includes(docId))
+    console.log(dbAssignments.assignments)
+
+    await dbAssignments.save().catch((error) => {
+      res.status(500).json({ error: error })
+    });
+  }
+  else { } // user does not have any patent assignments: do nothing 
+}
 
 /**
  * ADDs or UPDATEs an annotation in the database.
@@ -208,6 +233,8 @@ router.post("/labels", async function (req, res, next) {
     }
     else // check if the annotations agree or disagree with each other:
     {
+      var newLabel = undefined; // new label to be inserted into database
+
       // map new annotation values to true or false for each category:
       newAnnotation = [
         req.body.mal === "Yes",
@@ -239,7 +266,7 @@ router.post("/labels", async function (req, res, next) {
       // find consensus amongst annotations:
       if (newIsAI == storedIsAI)
       {
-         const agreedLabel = new AgreedLabel({
+         newLabel = new AgreedLabel({
            document: req.body.documentId,
            individual: [
              {
@@ -278,14 +305,10 @@ router.post("/labels", async function (req, res, next) {
          });
 
         annotation.deleteOne();
-
-        res.json(await agreedLabel.save().catch((error) => {
-           res.status(500).json({ error: error });
-        }));
       }
       else // they disagree, let's store them for a 3rd party to decide:
       {
-        const disagreedLabel = new DisagreedLabel({
+        newLabel = new DisagreedLabel({
           document: req.body.documentId,
           disagreement: [
             {
@@ -313,13 +336,16 @@ router.post("/labels", async function (req, res, next) {
           ]
         });
 
-      annotation.deleteOne();
-       
-      res.json(await disagreedLabel.save().catch((error) => {
-         res.status(500).json({ error: error });
-       }));
+      annotation.deleteOne();      
       }
+      
+      // if this patent was assigned, let's update the user's list of assignments:
+      await removeFromAssignedPatents(res, req.user._id, req.body.documentId);
 
+      // save the new annotation:
+      res.json(await newLabel.save().catch((error) => {
+        res.status(500).json({ error: error });
+     }));
     }
   }
   else // new entry:
@@ -336,6 +362,9 @@ router.post("/labels", async function (req, res, next) {
       pln:req.body.pln, // Planning 
       kpr:req.body.kpr, // Knowledge Processing
     });
+
+    // if this patent was assigned, let's update the user's list of assignments:
+    await removeFromAssignedPatents(res, req.user._id, req.body.documentId);
 
     res.json(await label.save().catch((error) => {
       res.status(500).json({ error: error });
@@ -376,7 +405,7 @@ router.post("/search", async function (req, res, next) {
 
     if(annotation !== null)
     {
-      res.json(Object.assign(patent.toObject(), annotation.toObject()));
+      res.json(Object.assign(patent, annotation));
     }
     else
     {
@@ -391,7 +420,7 @@ router.post("/search", async function (req, res, next) {
 
 // Remove a patent from the current user's queue:
 router.post("/queue/remove", async function (req, res, next) {
-  res.json(await getNextPatent(req, {"mode": "update", "documentId": req.body.documentId}));
+  res.json(await getNextPatent(req, res, {"mode": "update", "documentId": req.body.documentId}));
 });
 
 // clears the cookie on the backend side:
@@ -578,22 +607,7 @@ router.post("/assignments/assign", async function (req, res, next) {
   
     // check if user exists:
     if(user !== null) {
-      dbAssignments = await PatentAssignment.findOne({ user: user._id }).catch((error) => {
-        res.status(500).json({ error: error })
-      });
-
-      // check if there are assingments for the user:
-      if(dbAssignments !== null)
-      {
-        dbAssignments.assignments = dbAssignments.assignments.filter(({ documentId }) => !documentId.includes(assignment.documentId))
-
-        await dbAssignments.save().catch((error) => {
-          res.status(500).json({ error: error })
-        });
-      }
-      else { // user does not have any patent assignments:
-        // ignore this removal: response will have updated assignment list
-      }
+      await removeFromAssignedPatents(res, user._id, assignment.documentId);
     }
     else { // user does not exist:
       res.status(400).json({ error: 'invalid user' });
