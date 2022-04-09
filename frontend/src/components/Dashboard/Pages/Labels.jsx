@@ -2,14 +2,17 @@ import React, { useState, useEffect } from "react";
 import Nav from "../components/DashboardNavigation";
 import MaterialTable from "material-table";
 import { useHistory } from 'react-router';
+import { Form } from "react-bootstrap";
+import axios from "axios";
 
 const Cohen = require('cohens-kappa');
 
 const Table = () => {
     const history = useHistory();
     
-    const [data, setData] = useState();
+    const [data, setData] = useState({ users: [], preventDefault: true });
     const [labels, setLabels] = useState();
+    const [selectedUser, setSelectedUser] = useState();
 
     const [agreedLabelsTableFormat, setAgreedLabelsTableFormat] = useState();
     const [disagreedLabelsTableFormat, setDisagreedLabelsTableFormat] = useState();
@@ -58,6 +61,25 @@ const Table = () => {
       { title:'Created At', field:'createdAt'},
       { title:'Updated At', field:'updatedAt'}
     ];
+
+    const assignPatents = (rowData) => {
+      axios({
+        url: "/patents-api/assignments/assign", // route in backend
+        method: "POST",
+        data: {
+          user: selectedUser,
+          documents: rowData.map(document => (document.document))
+        }
+      })
+      .then((response) => {
+        if (response.status === 200) {
+          alert('patents have been assigned')
+        }
+      })
+      .catch((error) => {
+        alert(error.response.data);
+      });
+    }
   
     useEffect(() => {
       async function fetchData() {
@@ -115,15 +137,19 @@ const Table = () => {
               d.updatedAt = annotation.updatedAt;
               body.disagreedLabels.tableFormat.push(d);
             });
-            annotation.consensus.document = annotation.document;
-            annotation.consensus.createdAt = annotation.createdAt;
-            annotation.consensus.updatedAt = annotation.updatedAt;
-            annotation.consensus.user = {email: '[Consensus] ' + body.users.find(user => user._id === annotation.consensus.user).email };
-            body.disagreedLabels.tableFormat.push(annotation.consensus);
+            
+            if(annotation.consensus !== undefined) {
+              annotation.consensus.document = annotation.document;
+              annotation.consensus.createdAt = annotation.createdAt;
+              annotation.consensus.updatedAt = annotation.updatedAt;
+              annotation.consensus.user = {email: '[Consensus] ' + body.users.find(user => user._id === annotation.consensus.user).email };
+              body.disagreedLabels.tableFormat.push(annotation.consensus);
+            }
           });
 
           setData(body);
           setLabels(body.labels);
+          setSelectedUser(body.users[0].email);
           setAgreedLabelsTableFormat(body.agreedLabels.tableFormat);
           setDisagreedLabelsTableFormat(body.disagreedLabels.tableFormat);
 
@@ -236,14 +262,40 @@ const Table = () => {
               selection: false
             }}
           />
+        <br/>
+        <br/>
+        
+        <Form>
+            <h3>Choose an Annotator to Assign</h3>
+            <Form.Control 
+              as="select"
+              value={selectedUser}
+              onChange={e => setSelectedUser(e.target.value)}
+            >
+                {
+                   data.users.map((user) => (
+                    <option key={user.email} value={user.email}>{user.name + ' <' + user.email + '>'}</option>
+                   ))
+                }
+            </Form.Control>
+        </Form>
 
-          <br/>
+        <br/>
+        <br/>
+
           <MaterialTable
             title="Labels in Disagreement"
             columns={disagreedColumns}
             data={disagreedLabelsTableFormat}
             isLoading={disagreedLabelsTableFormat === undefined}
             actions={[
+              {
+                icon: 'people',
+                tooltip: 'Assign',
+                onClick: (event, rowData) => {
+                  assignPatents(rowData);
+                }
+              },
               {
                 icon: 'download',
                 tooltip: 'Export as JSON File',
@@ -255,7 +307,7 @@ const Table = () => {
             ]}
             options={{
               grouping: true,
-              selection: false
+              selection: true
             }}
           />
         </div>
