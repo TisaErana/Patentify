@@ -44,7 +44,7 @@ async function getNextPatent(req, transaction = { "mode": "new", "documentId": u
   assignedPatents = await PatentAssignment.findOne({
     user: req.user._id
   }).catch((error) => {
-    throw error;
+    res.status(500).json({ error: error });
   });
 
   // check if the user has assigned patents:
@@ -93,7 +93,7 @@ async function getNextPatent(req, transaction = { "mode": "new", "documentId": u
       documentId: transaction.documentId
     })
     .catch((error) => {
-      throw error;
+      res.status(500).json({ error: error });
     });
 
     if(queueItem !== null)
@@ -106,11 +106,11 @@ async function getNextPatent(req, transaction = { "mode": "new", "documentId": u
       queueItem.updatedAt = Date.now();
 
       await queueItem.save().catch((error) => {
-        throw error;
+        res.status(500).json({ error: error });
       });
     }
     else { 
-      throw "invalid queue: check user and documentId"; 
+      res.status(500).json({ error: 'invalid queue: check user and documentId' }); 
     }
   }
   else
@@ -125,7 +125,7 @@ async function getNextPatent(req, transaction = { "mode": "new", "documentId": u
     }))
     .save()
     .catch((error) => {
-      console.log(error);
+      res.status(500).json({ error: error });
     });
   }
 
