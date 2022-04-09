@@ -25,7 +25,32 @@ const ViewPatent = () => {
       data: {
         user: selectedUser,
         documents: rowData.map(document => (document.documentId))
-      },
+      }
+    })
+    .then((response) => {
+      if (response.status === 200) {
+        data.assigned = response.data.assigned
+        setAssignedPatents([]); // trigger table refresh
+      }
+    })
+    .catch((error) => {
+      alert(error.response.data);
+    });
+  }
+
+  const removeAssignments = (rowData) => {
+    // when only one document is selected only that object is returned:
+    if(!Array.isArray(rowData))
+    {
+      rowData = [rowData] // let's make the format consistent
+    }
+    
+    axios({
+      url: "/patents-api/assignments/remove", // route in backend
+      method: "POST",
+      data: {
+        assignments: rowData
+      }
     })
     .then((response) => {
       if (response.status === 200) {
@@ -114,9 +139,9 @@ const ViewPatent = () => {
           actions={[
             {
               icon: 'delete',
-              tooltip: 'Unassign from User',
+              tooltip: 'Remove Selected Assignments',
               onClick: (event, rowData) => {
-                
+                removeAssignments(rowData);
               }
             },
             {
@@ -133,6 +158,14 @@ const ViewPatent = () => {
                     })
                     history.go(0);
                 }
+            },
+            {
+              icon: 'delete',
+              position: 'row',
+              tooltip: 'Remove Assignment',
+              onClick: (event, rowData) => {
+                removeAssignments(rowData);
+              }
             }
           ]}
           options={{
@@ -182,6 +215,14 @@ const ViewPatent = () => {
               }
             },
             {
+              icon: 'download',
+              tooltip: 'Export Uncertain Patents from Database as JSON File',
+              isFreeAction: true,
+              onClick: (event, rowData) => {
+                window.location = '/patents-api/export/uncertainPatents';
+              }
+            },
+            {
                 icon: 'search',
                 tooltip: 'View Patent',
                 position: 'row',
@@ -201,7 +242,14 @@ const ViewPatent = () => {
               selection: true, 
               exportButton: true, 
               exportAllData: true
-            }}
+          }}
+          localization={{
+            toolbar: {
+              exportTitle: "Export Table Data",
+              exportCSVName: "Export Table Data as CSV",
+              exportPDFName: "Export Table Data as PDF"
+            }
+          }}
         />
         <br/>
         <MaterialTable
@@ -237,9 +285,7 @@ const ViewPatent = () => {
             }
           ]}
           options={{
-              selection: true, 
-              exportButton: true, 
-              exportAllData: true
+              selection: true
             }}
         />
       </div>

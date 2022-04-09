@@ -451,8 +451,7 @@ router.get("/labels", async function (req, res, next) {
 });
 
 /**
- * POSTs patents for a specific user.
- * This will assign the user those patents.
+ * Assigns a patent/s to a user's patent assignments.
  */
 router.post("/assignments/assign", async function (req, res, next) {
   const documents = req.body.documents;
@@ -550,6 +549,53 @@ router.post("/assignments/assign", async function (req, res, next) {
 });
 
 /**
+ * Removes a patent/s from a user's patent assignements.
+ */
+ router.post("/assignments/remove", async function (req, res, next) {
+
+  // loop through 'assignment' to remove:
+  for (const assignment of req.body.assignments) {
+    user = await User.findOne({
+      email: assignment.user.email
+    })
+    .select('_id') // we only need the id
+    .lean()
+    .catch((error) => {
+      res.status(500).json({ error: error })
+    });
+  
+    // check if user exists:
+    if(user !== null) {
+      dbAssignments = await PatentAssignment.findOne({ user: user._id }).catch((error) => {
+        res.status(500).json({ error: error })
+      });
+
+      // check if there are assingments for the user:
+      if(dbAssignments !== null)
+      {
+        dbAssignments.assignments = dbAssignments.assignments.filter(({ documentId }) => !documentId.includes(assignment.documentId))
+
+        await dbAssignments.save().catch((error) => {
+          res.status(500).json({ error: error })
+        });
+      }
+      else { // user does not have any patent assignments:
+        // ignore this removal: response will have updated assignment list
+      }
+    }
+    else { // user does not exist:
+      res.status(400).json({ error: 'invalid user' });
+    }
+  }
+
+  res.json({
+    assigned: await PatentAssignment.find().lean().catch((error) => {
+      res.status(500).json({ error: error })
+  })});
+
+});
+
+/**
  * EXPORTs labels to JSON file.
  */
  router.get("/export/labels", async function (req, res, next) {
@@ -583,6 +629,19 @@ router.post("/assignments/assign", async function (req, res, next) {
   res.header("Content-Type",'application/json');
   res.send(
     JSON.stringify(await DisagreedLabel.find().lean().catch((error) => {
+      res.status(500).json({ error: error });
+    }), null, 2)
+  );
+});
+
+/**
+ * EXPORTs uncertain patents to JSON file.
+ */
+ router.get("/export/uncertainPatents", async function (req, res, next) {
+  res.setHeader('Content-disposition', 'attachment; filename=uncertain-patents.json');
+  res.header("Content-Type",'application/json');
+  res.send(
+    JSON.stringify(await UncertainPatent.find().lean().catch((error) => {
       res.status(500).json({ error: error });
     }), null, 2)
   );
