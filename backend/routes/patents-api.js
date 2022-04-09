@@ -39,35 +39,51 @@ const QUEUE_CANDIDATE_LOOKUP_SIZE = 3;
  * @return an Object with patent information.
  */
 async function getNextPatent(req, transaction = { "mode": "new", "documentId": undefined }) {
-  // find patents the user has already labeled:
-  var alreadyLabeled = await Label.find({
-    user: req.user._id
-  }).select(['-_id', 'document']).distinct('document');
-
-  // find patents in someone else's queue:
-  var inQueues = await Queue.find({
-    userId: req.user._id
-  }).select(['-_id', 'documentId']).distinct('documentId')
+  var patent = undefined; // the patent to insert into the queue
   
-  var candidates = await Patent.aggregate([
-    { $sample: { size: QUEUE_CANDIDATE_LOOKUP_SIZE } }
-  ]); // find some random patent candidates
+  assignedPatents = await PatentAssignment.findOne({
+    user: req.user._id
+  }).catch((error) => {
+    throw error;
+  });
 
-  var i = 0; // current index
-  var patent = candidates[i]; // current patent
-  const patentIdsToExclude = alreadyLabeled.concat(inQueues);
-
-  // this is a lot faster than excluding them in the MongoDB aggregate function:
-  while(patentIdsToExclude.includes(patent.documentId))
+  // check if the user has assigned patents:
+  if(assignedPatents !== null)
   {
-    if(i == (QUEUE_CANDIDATE_LOOKUP_SIZE - 1)) {
-      candidates = await Patent.aggregate([
-        { $sample: { size: QUEUE_CANDIDATE_LOOKUP_SIZE } }
-      ]); // find some random patent candidates
+    patent = assignedPatents.assignments[0]; // pick first patent in list
+  }
+  else // let's find the user a random patent to annotate:
+  {
+    // find patents the user has already labeled:
+    var alreadyLabeled = await Label.find({
+      user: req.user._id
+    }).select(['-_id', 'document']).distinct('document');
 
-      i = 0;
+    // find patents in someone else's queue:
+    var inQueues = await Queue.find({
+      userId: req.user._id
+    }).select(['-_id', 'documentId']).distinct('documentId')
+    
+    var candidates = await Patent.aggregate([
+      { $sample: { size: QUEUE_CANDIDATE_LOOKUP_SIZE } }
+    ]); // find some random patent candidates
+
+    var i = 0; // current index
+    patent = candidates[i]; // current patent
+    const patentIdsToExclude = alreadyLabeled.concat(inQueues);
+
+    // this is a lot faster than excluding them in the MongoDB aggregate function:
+    while(patentIdsToExclude.includes(patent.documentId))
+    {
+      if(i == (QUEUE_CANDIDATE_LOOKUP_SIZE - 1)) {
+        candidates = await Patent.aggregate([
+          { $sample: { size: QUEUE_CANDIDATE_LOOKUP_SIZE } }
+        ]); // find some random patent candidates
+
+        i = 0;
+      }
+      patent = candidates[++i];
     }
-    patent = candidates[++i];
   }
   
   if(transaction.mode === "update")
@@ -375,10 +391,7 @@ router.post("/search", async function (req, res, next) {
 
 // Remove a patent from the current user's queue:
 router.post("/queue/remove", async function (req, res, next) {
-res.json(
-  await getNextPatent(req, {"mode": "update", "documentId": req.body.documentId}).catch((error) => {
-    res.status(400).json({ error: error });
-}));
+  res.json(await getNextPatent(req, {"mode": "update", "documentId": req.body.documentId}));
 });
 
 // clears the cookie on the backend side:
