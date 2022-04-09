@@ -479,8 +479,7 @@ router.post("/assignments/assign", async function (req, res, next) {
 
       for (document of documents) {
          // check if user has already been assigned that patent:
-         console.log(assignment.assignments.some(e => e.documentId === document.documentId))
-         if (!assignment.assignments.some(e => e.documentId === document.documentId)) {
+         if (!assignment.assignments.some(e => e.documentId === document)) {
           data = await Patent.findOne({
             documentId: document
           })
