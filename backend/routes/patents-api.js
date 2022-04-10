@@ -781,11 +781,7 @@ router.get("/svm/calc_f1_score", async function (req, res, next) {
     command: "calc_f1_score"
    }, { upsert: true, useFindAndModify: true }).lean()
 
-  await SVM_Command.findOneAndUpdate({}, { 
-    command: ""
-   }).lean()
-
-   res.status(200).json({ status: 'executed' });
+  res.status(200).json({ status: 'executed' });
 })
 
 module.exports = router;

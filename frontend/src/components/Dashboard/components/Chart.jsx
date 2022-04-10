@@ -17,6 +17,8 @@ const Chart = (props) => {
   const [chartData2, setChartData2] = useState({});
   const [svmMetrics, setSvmMetrics] = useState({});
 
+  const [isExecuting, setIsExecuting] = useState(false);
+
   const chart = async () => {
     axios({
       url: "/patents-api/chart", // route in backend
@@ -34,17 +36,24 @@ const Chart = (props) => {
   };
 
   const update_f1_score = async () => {
+    setIsExecuting(true);
     axios({
       url: "/patents-api/svm/calc_f1_score", // route in backend
       method: "GET"
     })
-    .then((response) => {
+    .then(async (response) => {
       if (response.status === 200) {
+        // wait 5 seconds for command to be processed:
+        await new Promise(resolve => setTimeout(resolve, 5000));
+        
+        // update charts:
         setData({ svm_metrics: { 
           model_filename: 'Loading...',
           initializedAt: 'Loading...'  
         }}); // trigger table refresh
         chart()
+
+        setIsExecuting(false);
       }
     })
     .catch((error) => {
@@ -173,7 +182,7 @@ const Chart = (props) => {
                             variant="success"
                             onClick={update_f1_score}
                             disabled={data.svm_metrics.model_filename == 'offline'}>
-                            Update F1 Score
+                            {isExecuting ? 'Executing Command...' : 'Update F1 Score'}
                           </Button>
                         </Card.Subtitle>
                       </td>

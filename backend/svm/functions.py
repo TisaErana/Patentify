@@ -135,10 +135,12 @@ def svm_metrics_init(learner, client):
     """
     db = client['PatentData']
     svm_metrics = db.svm_metrics.find_one()
+    svm_command = db.svm_command.find_one()
 
     f1_score = calc_f1_score(learner, client)
     currentDateTime = datetime.utcnow()
 
+    # check if there is already a metrics entry:
     if svm_metrics == None:
         db.svm_metrics.insert_one({ 
             "model_filename": model_filename,
@@ -150,8 +152,8 @@ def svm_metrics_init(learner, client):
             "updatedAt": currentDateTime,
             "initializedAt": currentDateTime,
             "uncertainUpdatedAt": datetime.utcnow()
-         })
-    else:
+        })
+    else: # let's update it:
         db.svm_metrics.update_one(
         {
             "_id": svm_metrics["_id"]
@@ -167,12 +169,19 @@ def svm_metrics_init(learner, client):
                 "initializedAt": currentDateTime
             }
         })
+
+    # insert command entry if it does not alreay exist:
+    if svm_command == None:
+        db.svm_command.insert_one({ 
+            "command": 'ready'
+        })
+    
     print('[INFO]: svm metrics initialized')
 
 def update_svm_metrics(client, values):
     """
     Updates the svm metrics in the database.
-    @param client: the db client.
+    @param client: the db client connection.
     @param values: an object of values to update in collection.
     """
     db = client['PatentData']
@@ -185,16 +194,35 @@ def update_svm_metrics(client, values):
         "$set": values
     })
 
+def acknowledge_svm_command(client):
+    """
+    Acknowledge the last command was successfully executed.
+    @param client: the db client connection.
+    """
+    client['PatentData'].svm_command.find_one_and_update({}, {
+        "$set": {
+            "command": 'acknowledged'
+        }
+    })
+
 def handle_command(client, learner, change):
+    """
+    Process commands sent from frontend.
+    @param client: the db client connection.
+    @param learner: the active learner object.
+    @param the change object from the watch stream.
+    """
     command = change['updateDescription']['updatedFields']['command']
 
     if command == 'calc_f1_score':
         currentDateTime = datetime.utcnow()
+        
         update_svm_metrics(client, {
             "current_F1_score": calc_f1_score(learner, client),
             "updatedAt": currentDateTime
         })
 
+        acknowledge_svm_command(client)
 
 # def calc_f1_score(learner, client, collection='labels'):
 #     """
