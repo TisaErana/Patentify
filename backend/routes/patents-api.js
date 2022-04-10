@@ -12,6 +12,7 @@ const AgreedLabel = require("../models/agreed_labels_model");
 const DisagreedLabel = require("../models/disagreed_labels_model");
 const UncertainPatent = require("../models/uncertain_patent");
 const PatentAssignment = require("../models/patent_assignments_model");
+const SVM_Metrics = require("../models/svm_metrics_model");
 
 // Import queue model
 const Queue = require("../models/queue_model");
@@ -754,7 +755,24 @@ router.get("/chart", async function (req, res, next) {
   knowAgreed = await AgreedLabel.countDocuments({kpr:{$eq:"Yes"}});
   know += knowAgreed
 
-  res.status(200).json({total: total, unique: unique, agreed: agreed, disagreed: disagreed, ml: ml, hard: hard, evol: evol, spee: spee, vision: vision, natural: natural, plan: plan, know: know});
+  res.status(200).json(
+    {
+      total: total, 
+      unique: unique, 
+      agreed: agreed, 
+      disagreed: disagreed, 
+      ml: ml, 
+      hard: hard, 
+      evol: evol, 
+      spee: spee, 
+      vision: vision, 
+      natural: natural, 
+      plan: plan, 
+      know: know,
+      svm_metrics: await SVM_Metrics.findOne().lean().catch((error) => {
+        res.status(500).json({ error: error });
+      })
+    });
 })
 
 module.exports = router;

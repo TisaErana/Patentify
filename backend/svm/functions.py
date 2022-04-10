@@ -137,7 +137,7 @@ def svm_metrics_init(learner, client):
     svm_metrics = db.svm_metrics.find_one()
 
     f1_score = calc_f1_score(learner, client)
-    currentDateTime = datetime.now()
+    currentDateTime = datetime.utcnow()
 
     if svm_metrics == None:
         db.svm_metrics.insert_one({ 
@@ -149,7 +149,7 @@ def svm_metrics_init(learner, client):
 
             "updatedAt": currentDateTime,
             "initializedAt": currentDateTime,
-            "uncertainUpdatedAt": datetime.today()
+            "uncertainUpdatedAt": datetime.utcnow()
          })
     else:
         db.svm_metrics.update_one(
@@ -271,7 +271,7 @@ def find_uncertain_patents(learner, client, file='data/decision_boundary-462.pkl
     print(result.bulk_api_result)
 
     # update uncertain f1_score
-    currentDateTime = datetime.now()
+    currentDateTime = datetime.utcnow()
     update_svm_metrics(client, {
             "uncertain_F1_score": calc_f1_score(learner, client),
             "updatedAt": currentDateTime,
