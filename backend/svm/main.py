@@ -1,3 +1,5 @@
+# Requires: Python 3.7+ (dictionaries must maintain order)
+
 from pymongo import MongoClient
 
 from itertools import cycle
@@ -66,12 +68,10 @@ if (uncertain_patents.count_documents({}) == 0):
 # the svm model will train. Finally, it will dump the latest databse and resume token. Once the script is started up again, it will continue where
 # it left off and not skip any patents that it missed while it was not running.
 
-ids = [] #               document ids of newly annotated documents.
-target = [] #            classification of newly annotated documents.
 cycleCount = 1 #         number of training cycles completed by svm since launch.
+annotations = {} #       dictionary to store all annotations until they are trained on (this will keep only the latest).
 
 entries = 0 #            stores the number of entries the model is going to be trained on.
-
 try:
     db_stream = None
     continue_starter = None
@@ -84,7 +84,7 @@ try:
         print('[INFO]: found resume token:', continue_starter)
     except FileNotFoundError:
         db_stream = db.watch(match_pipeline)  
-        continue_after = continue_starter = db_stream._resume_token
+        continue_after = db_stream._resume_token
         print('[INFO]: no resume token found, using latest resume token:', continue_starter)
 
     # begin training model loop:  
@@ -92,8 +92,7 @@ try:
         print("Listening...")
         while stream.alive:
             change = stream.next()
-            if change is not None:
-                
+            if change is not None:                
                 collection = change['ns']['coll'] # collection updated
 
                 if collection == 'svm_command' and change['operationType'] == 'update':
@@ -103,11 +102,8 @@ try:
                     entries += 1
                     entry = change['fullDocument']
 
-                    ids.append(entry['document'])
-                    #print(f'Entry:{entry}')
-
                     isAI = get_target(entry)
-                    target.append(isAI)
+                    annotations[entry['document']] = isAI
 
                 # process labels which have been agreed by two annotators:
                 if collection == 'agreed_labels':
@@ -122,10 +118,9 @@ try:
 
                         # add to list of items to train on:
                         entries += 1
-                        ids.append(entry['document'])
 
                         isAI = get_target(consensus)
-                        target.append(isAI)
+                        annotations[entry['document']] = isAI
                                   
                 
                 # process labels which have been disagreed upon by two annotators (decided by 3rd):
@@ -143,20 +138,22 @@ try:
 
                         # add to list of items to train on:
                         entries += 1
-                        ids.append(documentId)
 
                         isAI = get_target(consensus)
-                        target.append(isAI)
+                        annotations[documentId] = isAI
 
                 # check target has multiple classes(1 and 0)
+                ids = list(annotations.keys()) #               document ids of newly annotated documents.
+                target = list(annotations.values()) #            classification of newly annotated documents.
+
                 if entries > MIN_TRAINING_SIZE and not (any(target) and all(target)):
                     print(ids)
                     print(target)
 
-                    X, y = svm_format(client, ids, target, stopwords)
+                    X, y = svm_format(client, ids, target, training=True)
                     learner.teach(X=X, y=y)
-                    ids = []
-                    target = []    
+
+                    annotations = {} # done with these annotations  
 
                     print("[INFO]: done with cycle", cycleCount)
                     continue_after = change['_id']
@@ -172,11 +169,15 @@ try:
 except KeyboardInterrupt:
     print("[Interrupted]")
 
-except Exception as e:
-    print(e) # 'handle' exception and safely exit program.
+# except Exception as e:
+#     print(e) # 'handle' exception and safely exit program.
 
 print("Finalizing...")
-if continue_after is not continue_starter:
+if continue_starter == None:
+    dump(continue_after,'continue_token.joblib')
+    print("[INFO]: dumped continue_after.")
+
+if not(continue_after == continue_starter) and not(continue_starter == None):
     dump(learner.estimator, f'models/Final/model_at_{time():0.0f}.joblib')
     dump(continue_after,'continue_token.joblib')
     print("[INFO]: dumped continue_after and model.")
