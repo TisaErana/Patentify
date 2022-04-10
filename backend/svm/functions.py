@@ -131,20 +131,25 @@ def vectorize(df, vectorizer = None, target='target', training=False):
 
 def svm_metrics_init(learner, client):
     """
-    Saves the boot time of active learning service, the model name, 
+    Saves the model filename, the boot time, and current f1_score.
     """
     db = client['PatentData']
     svm_metrics = db.svm_metrics.find_one()
+
     f1_score = calc_f1_score(learner, client)
+    currentDateTime = datetime.now()
 
     if svm_metrics == None:
         db.svm_metrics.insert_one({ 
             "model_filename": model_filename,
+
             "init_F1_score": f1_score,
+            "uncertain_F1_score": -1,
             "current_F1_score": f1_score,
 
-            "updatedAt": datetime.now(),
-            "initializedAt": datetime.now()
+            "updatedAt": currentDateTime,
+            "initializedAt": currentDateTime,
+            "uncertainUpdatedAt": datetime.today()
          })
     else:
         db.svm_metrics.update_one(
@@ -154,31 +159,30 @@ def svm_metrics_init(learner, client):
         {
             "$set": {
                 "model_filename": model_filename,
+
                 "init_F1_score": f1_score,
                 "current_F1_score": f1_score,
                 
-                "updatedAt": datetime.now(),
-                "initializedAt": datetime.now()
+                "updatedAt": currentDateTime,
+                "initializedAt": currentDateTime
             }
         })
     print('[INFO]: svm metrics initialized')
 
-def update_svm_metrics(learner, client):
+def update_svm_metrics(client, values):
     """
     Updates the svm metrics in the database.
+    @param client: the db client.
+    @param values: an object of values to update in collection.
     """
     db = client['PatentData']
     svm_metrics = db.svm_metrics.find_one()
-    f1_score = calc_f1_score(learner, client)
 
     db.svm_metrics.update_one({
         "_id": svm_metrics["_id"]
     }, 
     {
-        "$set": {
-            "current_F1_score": f1_score,
-            "updatedAt": datetime.now()
-        }
+        "$set": values
     })
 
 # def calc_f1_score(learner, client, collection='labels'):
@@ -265,3 +269,11 @@ def find_uncertain_patents(learner, client, file='data/decision_boundary-462.pkl
 
     result = db['uncertain_patents'].bulk_write(operations, ordered=False)
     print(result.bulk_api_result)
+
+    # update uncertain f1_score
+    currentDateTime = datetime.now()
+    update_svm_metrics(client, {
+            "uncertain_F1_score": calc_f1_score(learner, client),
+            "updatedAt": currentDateTime,
+            "uncertainUpdatedAt": currentDateTime
+    })
