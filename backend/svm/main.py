@@ -95,52 +95,38 @@ try:
             if change is not None:
                 
                 collection = change['ns']['coll'] # collection updated
-                entries.pancakes = '56'
 
                 if collection == 'svm_command' and change['operationType'] == 'update':
                     handle_command(client, learner, change)
                 
                 if collection == 'labels':
                     entries += 1
-                
                     entry = change['fullDocument']
 
                     ids.append(entry['document'])
-                    print(f'Entry:{entry}')
+                    #print(f'Entry:{entry}')
 
                     isAI = get_target(entry)
                     target.append(isAI)
 
-                    # check target has multiple classes(1 and 0)
-                    if entries > MIN_TRAINING_SIZE and not (any(target) and all(target)):
-                        continue_after = change['_id']
-                        print(ids)
-                        print(target)
-                        X, y = svm_format(client, ids, target, stopwords)
-                        learner.teach(X=X, y=y)
-                        ids = []
-                        target = []    
-
-                        print("[INFO]: done with cycle", cycleCount)
-
-                        if cycleCount % MIN_AUTO_SAVE_CYCLES == 0:
-                            print(f'[AUTO-SAVE {time():0.0f}]: saved latest model and continue_token')
-                            dump(learner.estimator, f'models/Final/auto-save_latest.joblib')
-                            dump(continue_after,'continue_token.joblib')
-                        
-                        cycleCount += 1
-
                 # process labels which have been agreed by two annotators:
                 if collection == 'agreed_labels':
                     if change['operationType'] == 'insert':
-                        entry = change['fullDocument']['consensus'] # the agreed labels entry
+                        entry = change['fullDocument'] # the agreed labels entry
+                        consensus = entry['consensus'] # the agreed upon label for the document
                         
                         # check if patent is from uncertain documents list:
                         removal = db.uncertain_patents.find_one_and_delete({ 'documentId': entry['document'] })
                         if removal != None:
                             print('[Active_Learning]: uncertain document annotated:', removal['documentId'])
 
-                        # train model on consensus:          
+                        # add to list of items to train on:
+                        entries += 1
+                        ids.append(entry['document'])
+
+                        isAI = get_target(consensus)
+                        target.append(isAI)
+                                  
                 
                 # process labels which have been disagreed upon by two annotators (decided by 3rd):
                 if collection == 'disagreed_labels':
@@ -153,7 +139,34 @@ try:
                             print('[Active_Learning]: uncertain document annotated:', removal['documentId'])
 
                         # train model on consensus:
-                        entry = change['updateDescription']['updatedFields']['consensus']
+                        consensus = change['updateDescription']['updatedFields']['consensus']
+
+                        # add to list of items to train on:
+                        entries += 1
+                        ids.append(documentId)
+
+                        isAI = get_target(consensus)
+                        target.append(isAI)
+
+                # check target has multiple classes(1 and 0)
+                if entries > MIN_TRAINING_SIZE and not (any(target) and all(target)):
+                    print(ids)
+                    print(target)
+
+                    X, y = svm_format(client, ids, target, stopwords)
+                    learner.teach(X=X, y=y)
+                    ids = []
+                    target = []    
+
+                    print("[INFO]: done with cycle", cycleCount)
+                    continue_after = change['_id']
+
+                    if cycleCount % MIN_AUTO_SAVE_CYCLES == 0:
+                        print(f'[AUTO-SAVE {time():0.0f}]: saved latest model and continue_token')
+                        dump(learner.estimator, f'models/Final/auto-save_latest.joblib')
+                        dump(continue_after,'continue_token.joblib')
+                    
+                    cycleCount += 1
 
 
 except KeyboardInterrupt:
