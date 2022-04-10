@@ -4,23 +4,9 @@ import { Bar, Pie } from "react-chartjs-2";
 import axios from "axios";
 
 import Card from "react-bootstrap/Card";
+import Button from "react-bootstrap/Button";
 
-let data = {}
 const Chart = (props) => {
-  
-  async function testaxios(){
-    try{
-  let res = await axios({
-    url: "/patents-api/chart", // route in backend
-    method: "GET",
-  })
-
-    return res.data
-}
-catch (error) {
-  
-};
-}
 
   const [data, setData] = useState({ svm_metrics: { 
     model_filename: 'Loading...',
@@ -40,6 +26,25 @@ catch (error) {
       if (response.status === 200) {
         console.log(response.data)
         setData(response.data)
+      }
+    })
+    .catch((error) => {
+      alert(error.response.data);
+    });
+  };
+
+  const update_f1_score = async () => {
+    axios({
+      url: "/patents-api/svm/calc_f1_score", // route in backend
+      method: "GET"
+    })
+    .then((response) => {
+      if (response.status === 200) {
+        setData({ svm_metrics: { 
+          model_filename: 'Loading...',
+          initializedAt: 'Loading...'  
+        }}); // trigger table refresh
+        chart()
       }
     })
     .catch((error) => {
@@ -129,7 +134,7 @@ catch (error) {
                   <table style={{ width: '100%' }}>
                     <tr>
                       <td>
-                        <Card.Subtitle className="mb-2 text-muted">
+                        <Card.Subtitle className="mb-4 text-muted">
                           Model Loaded:
                         </Card.Subtitle>
                       </td>
@@ -142,7 +147,7 @@ catch (error) {
                     <tr>
                       <td>
                         <Card.Subtitle className="mb-2 text-muted">
-                          Service Started:
+                          Service {data.svm_metrics.model_filename == 'offline' ? 'Last' : ''} Started:
                         </Card.Subtitle>
                       </td>
                       <td style={{textAlign: 'center'}}>
@@ -160,6 +165,16 @@ catch (error) {
                       <td style={{textAlign: 'center'}}>
                         <Card.Subtitle className="mb-2">
                           {new Date(data.svm_metrics.updatedAt).toString()}
+                        </Card.Subtitle>
+                      </td>
+                      <td>
+                        <Card.Subtitle className="mb-2">
+                          <Button 
+                            variant="success"
+                            onClick={update_f1_score}
+                            disabled={data.svm_metrics.model_filename == 'offline'}>
+                            Update F1 Score
+                          </Button>
                         </Card.Subtitle>
                       </td>
                     </tr>
