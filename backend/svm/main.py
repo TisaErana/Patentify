@@ -10,8 +10,19 @@ MIN_AUTO_SAVE_CYCLES = 10
 
 # establish connection to the database
 client = MongoClient("mongodb://localhost:27017/PatentData")
-db = client['PatentData']       
-cluster = db['labels']
+db = client['PatentData']
+
+collectionsToWatch = [
+    { 'db': 'PatentData', 'coll': 'labels' },
+    { 'db': 'PatentData', 'coll': 'svm_command' },
+    { 'db': 'PatentData', 'coll': 'agreed_labels' },
+    { 'db': 'PatentData', 'coll': 'disagreed_labels' }
+]
+
+match_pipeline = [
+    { '$match': { 'ns': { '$in': collectionsToWatch } } },
+    { '$match': { 'operationType': { '$in': ['insert', 'update'] } } }
+]
 
 uncertain_patents = db['uncertain_patents']
 
@@ -69,10 +80,10 @@ try:
     # load saved model into memory:
     try:
         continue_after = continue_starter = load('continue_token.joblib')
-        db_stream = cluster.watch(resume_after=continue_starter)
+        db_stream = db.watch(match_pipeline, resume_after=continue_starter)
         print('[INFO]: found resume token:', continue_starter)
     except FileNotFoundError:
-        db_stream = cluster.watch()  
+        db_stream = db.watch(match_pipeline)  
         continue_after = continue_starter = db_stream._resume_token
         print('[INFO]: no resume token found, using latest resume token:', continue_starter)
 
@@ -82,33 +93,41 @@ try:
         while stream.alive:
             change = stream.next()
             if change is not None:
-                entries += 1
+                
+                collection = change['ns']['coll'] # collection updated
 
-                entry = change['fullDocument']
-                ids.append(entry['document'])
-                print(f'Entry:{entry}')
+                if collection == 'svm_command' and change['operationType'] == 'update':
+                    handle_command(client, learner, change)
+                
+                if collection == 'labels':
+                    entries += 1
+                
+                    entry = change['fullDocument']
 
-                isAI = get_target(entry)
-                target.append(isAI)
+                    ids.append(entry['document'])
+                    print(f'Entry:{entry}')
 
-                # check target has multiple classes(1 and 0)
-                if entries > MIN_TRAINING_SIZE and not (any(target) and all(target)):
-                    continue_after = change['_id']
-                    print(ids)
-                    print(target)
-                    X, y = svm_format(client, ids, target, stopwords)
-                    learner.teach(X=X, y=y)
-                    ids = []
-                    target = []    
+                    isAI = get_target(entry)
+                    target.append(isAI)
 
-                    print("[INFO]: done with cycle", cycleCount)
+                    # check target has multiple classes(1 and 0)
+                    if entries > MIN_TRAINING_SIZE and not (any(target) and all(target)):
+                        continue_after = change['_id']
+                        print(ids)
+                        print(target)
+                        X, y = svm_format(client, ids, target, stopwords)
+                        learner.teach(X=X, y=y)
+                        ids = []
+                        target = []    
 
-                    if cycleCount % MIN_AUTO_SAVE_CYCLES == 0:
-                        print(f'[AUTO-SAVE {time():0.0f}]: saved latest model and continue_token')
-                        dump(learner.estimator, f'models/Final/auto-save_latest.joblib')
-                        dump(continue_after,'continue_token.joblib')
-                    
-                    cycleCount += 1
+                        print("[INFO]: done with cycle", cycleCount)
+
+                        if cycleCount % MIN_AUTO_SAVE_CYCLES == 0:
+                            print(f'[AUTO-SAVE {time():0.0f}]: saved latest model and continue_token')
+                            dump(learner.estimator, f'models/Final/auto-save_latest.joblib')
+                            dump(continue_after,'continue_token.joblib')
+                        
+                        cycleCount += 1
 except KeyboardInterrupt:
     print("[Interrupted]")
 

@@ -185,6 +185,17 @@ def update_svm_metrics(client, values):
         "$set": values
     })
 
+def handle_command(client, learner, change):
+    command = change['updateDescription']['updatedFields']['command']
+
+    if command == 'calc_f1_score':
+        currentDateTime = datetime.utcnow()
+        update_svm_metrics(client, {
+            "current_F1_score": calc_f1_score(learner, client),
+            "updatedAt": currentDateTime
+        })
+
+
 # def calc_f1_score(learner, client, collection='labels'):
 #     """
 #     Calculates f1_score based on labels the model has not been trained on.
