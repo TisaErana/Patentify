@@ -95,6 +95,7 @@ try:
             if change is not None:
                 
                 collection = change['ns']['coll'] # collection updated
+                entries.pancakes = '56'
 
                 if collection == 'svm_command' and change['operationType'] == 'update':
                     handle_command(client, learner, change)
@@ -157,6 +158,9 @@ try:
 
 except KeyboardInterrupt:
     print("[Interrupted]")
+
+except Exception as e:
+    print(e) # 'handle' exception and safely exit program.
 
 print("Finalizing...")
 if continue_after is not continue_starter:
