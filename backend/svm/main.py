@@ -138,3 +138,8 @@ if continue_after is not continue_starter:
     print("[INFO]: dumped continue_after and model.")
 else:
     print("No successful iterations... No changes will be made.")
+
+# let the admin know the service is offline:
+update_svm_metrics(client, {
+    "model_filename": 'offline'
+})
