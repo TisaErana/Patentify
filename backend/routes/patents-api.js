@@ -13,6 +13,7 @@ const DisagreedLabel = require("../models/disagreed_labels_model");
 const UncertainPatent = require("../models/uncertain_patent");
 const PatentAssignment = require("../models/patent_assignments_model");
 const SVM_Metrics = require("../models/svm_metrics_model");
+const SVM_Command = require("../models/svm_command_model");
 
 // Import queue model
 const Queue = require("../models/queue_model");
@@ -773,6 +774,18 @@ router.get("/chart", async function (req, res, next) {
         res.status(500).json({ error: error });
       })
     });
+})
+
+router.get("/svm/calc_f1_score", async function (req, res, next) {
+  await SVM_Command.findOneAndUpdate({}, { 
+    command: "calc_f1_score"
+   }, { upsert: true, useFindAndModify: true }).lean()
+
+  await SVM_Command.findOneAndUpdate({}, { 
+    command: ""
+   }).lean()
+
+   res.status(200).json({ status: 'executed' });
 })
 
 module.exports = router;
