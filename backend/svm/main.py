@@ -132,14 +132,28 @@ try:
                 # process labels which have been agreed by two annotators:
                 if collection == 'agreed_labels':
                     if change['operationType'] == 'insert':
-                        entry = change['fullDocument'] # the agreed labels entry
+                        entry = change['fullDocument']['consensus'] # the agreed labels entry
                         
                         # check if patent is from uncertain documents list:
                         removal = db.uncertain_patents.find_one_and_delete({ 'documentId': entry['document'] })
                         if removal != None:
-                            print('[Active_Learning]: uncertain patent annotated:', removal.documentId)
+                            print('[Active_Learning]: uncertain document annotated:', removal['documentId'])
+
+                        # train model on consensus:          
+                
+                # process labels which have been disagreed upon by two annotators (decided by 3rd):
+                if collection == 'disagreed_labels':
+                    if change['operationType'] == 'update':
+                        documentId = db.disagreed_labels.find_one({ "_id": change['documentKey']['_id'] })['document']
+
+                        # check if patent is from uncertain documents list:
+                        removal = db.uncertain_patents.find_one_and_delete({ 'documentId': documentId })
+                        if removal != None:
+                            print('[Active_Learning]: uncertain document annotated:', removal['documentId'])
 
                         # train model on consensus:
+                        entry = change['updateDescription']['updatedFields']['consensus']
+
 
 except KeyboardInterrupt:
     print("[Interrupted]")
