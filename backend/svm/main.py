@@ -128,6 +128,19 @@ try:
                             dump(continue_after,'continue_token.joblib')
                         
                         cycleCount += 1
+
+                # process labels which have been agreed by two annotators:
+                if collection == 'agreed_labels':
+                    if change['operationType'] == 'insert':
+                        entry = change['fullDocument'] # the agreed labels entry
+                        
+                        # check if patent is from uncertain documents list:
+                        removal = db.uncertain_patents.find_one_and_delete({ 'documentId': entry['document'] })
+                        if removal != None:
+                            print('[Active_Learning]: uncertain patent annotated:', removal.documentId)
+
+                        # train model on consensus:
+
 except KeyboardInterrupt:
     print("[Interrupted]")
 
