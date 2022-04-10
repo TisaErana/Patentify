@@ -18,8 +18,12 @@ import pandas as pd
 import numpy as np
 
 from time import sleep
+from datetime import datetime
 
 from pymongo import InsertOne
+
+# GLOBALS:
+model_filename = None
 
 # Create base model and save into file
 def base_model_creator(client, stopwords, data='data/AI_train_df.pkl'):
@@ -52,11 +56,17 @@ def base_model_creator(client, stopwords, data='data/AI_train_df.pkl'):
     )
     
     # save new model:
+    global model_filename 
+    model_filename = 'base_model_{sklearn.__version__}.joblib'
+
     dump(learner.estimator,f'models/Final/base_model_{sklearn.__version__}.joblib')
     dump(vectorizer, f'vectorizer_{sklearn.__version__}.joblib')
 
 def model_loader(model = f'base_model_{sklearn.__version__}'):
-    estimator = load(f'models/Final/{model}.joblib')
+    global model_filename 
+    model_filename = f'{model}.joblib'
+
+    estimator = load(f'models/Final/{model_filename}')
     return estimator
 
 def get_target(entry):
@@ -119,37 +129,89 @@ def vectorize(df, vectorizer = None, target='target', training=False):
     
     return x, y
 
-def calc_f1_score(learner, client, collection='labels'):
+def svm_metrics_init(learner, client):
     """
-    Calculates f1_score based on labels the model has not been trained on.
-    collection must be a collection with schema of type ../models/label_model.
+    Saves the boot time of active learning service, the model name, 
     """
     db = client['PatentData']
-    test_labels = db[collection].find() # labels which the model has not been trained on.
+    svm_metrics = db.svm_metrics.find_one()
+    f1_score = calc_f1_score(learner, client)
 
-    ids = [] #               document ids of newly annotated documents.
-    target = [] #            classification of newly annotated documents.
+    if svm_metrics == None:
+        db.svm_metrics.insert_one({ 
+            "model_filename": model_filename,
+            "init_F1_score": f1_score,
+            "current_F1_score": f1_score,
+
+            "updatedAt": datetime.now(),
+            "initializedAt": datetime.now()
+         })
+    else:
+        db.svm_metrics.update_one(
+        {
+            "_id": svm_metrics["_id"]
+        }, 
+        {
+            "$set": {
+                "model_filename": model_filename,
+                "init_F1_score": f1_score,
+                "current_F1_score": f1_score,
+                
+                "updatedAt": datetime.now(),
+                "initializedAt": datetime.now()
+            }
+        })
+    print('[INFO]: svm metrics initialized')
+
+def update_svm_metrics(learner, client):
+    """
+    Updates the svm metrics in the database.
+    """
+    db = client['PatentData']
+    svm_metrics = db.svm_metrics.find_one()
+    f1_score = calc_f1_score(learner, client)
+
+    db.svm_metrics.update_one({
+        "_id": svm_metrics["_id"]
+    }, 
+    {
+        "$set": {
+            "current_F1_score": f1_score,
+            "updatedAt": datetime.now()
+        }
+    })
+
+# def calc_f1_score(learner, client, collection='labels'):
+#     """
+#     Calculates f1_score based on labels the model has not been trained on.
+#     collection must be a collection with schema of type ../models/label_model.
+#     """
+#     db = client['PatentData']
+#     test_labels = db[collection].find() # labels which the model has not been trained on.
+
+#     ids = [] #               document ids of newly annotated documents.
+#     target = [] #            classification of newly annotated documents.
     
-    for label in test_labels:
-        ids.append(label['document'])
-        target.append(get_target(label))
+#     for label in test_labels:
+#         ids.append(label['document'])
+#         target.append(get_target(label))
     
-    print(ids)
-    print(target)
+#     print(ids)
+#     print(target)
 
-    x, y = svm_format(client, ids, target)
-    y_predictions = learner.predict(x)
+#     x, y = svm_format(client, ids, target)
+#     y_predictions = learner.predict(x)
 
-    return f1_score(target, y_predictions, average='weighted')
+#     return f1_score(target, y_predictions, average='weighted')
 
-def calc_f1_score(learner, client, file):
+def calc_f1_score(learner, client, file='data/decision_boundary-462.pkl'):
     """
     Calculates f1_score based on annotations saved in pickled dataframe file.
     """
     # import training data from pickle file:
     pickledDataFile = open(file, 'rb')
     data = pickle.load(pickledDataFile)
-    print(data)
+    #print(data)
 
     x, y_true = svm_format(client, data['doc_id'].values.tolist(), data['Annotated_value'].values.tolist())
     y_predictions = learner.predict(x)

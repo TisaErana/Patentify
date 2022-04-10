@@ -4,7 +4,6 @@ from itertools import cycle
 from functions import *
 from time import time
 
-
 # Configuration:
 MIN_TRAINING_SIZE = 3
 MIN_AUTO_SAVE_CYCLES = 10
@@ -49,6 +48,8 @@ if learner is None:
 if (uncertain_patents.count_documents({}) == 0):
     print('[INFO]: looking for new uncertain patents...')
     find_uncertain_patents(learner, client)
+
+svm_metrics_init(learner, client) # init svm_metrics in database
 
 # main logic loop: opens the stream and looks for updates to labels database, once it finds two distinct classes in target array (1 and 0),
 # the svm model will train. Finally, it will dump the latest databse and resume token. Once the script is started up again, it will continue where
