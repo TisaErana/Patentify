@@ -85,7 +85,7 @@ try:
     except FileNotFoundError:
         db_stream = db.watch(match_pipeline)  
         continue_after = db_stream._resume_token
-        print('[INFO]: no resume token found, using latest resume token:', continue_starter)
+        print('[INFO]: no resume token found, using latest resume token:', continue_after)
 
     # begin training model loop:  
     with db_stream as stream:
