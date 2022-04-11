@@ -26,7 +26,7 @@ from pymongo import InsertOne
 model_filename = None
 
 # Create base model and save into file
-def base_model_creator(client, stopwords, data='data/AI_train_df.pkl'):
+def base_model_creator(client, stopwords, data='data/seed_antiseed_476.pkl'):
     """
     Creates a new base model from seed and antiseed data.
     """
@@ -35,6 +35,9 @@ def base_model_creator(client, stopwords, data='data/AI_train_df.pkl'):
     pickledDataFile = open(data, 'rb')
     data = pickle.load(pickledDataFile)
     #print(data)
+    #print(data[data['AI'] == 'seed'])
+    #print(data[data['AI'] == 'antiseed'])
+    #print(len(set(data['id'].values)))
     
     # format training data for new model:
     data.rename(columns={'AI': 'target'}, inplace=True)
@@ -119,14 +122,16 @@ def vectorize(df, vectorizer = None, target='target', training=False):
     if training:
         x = vectorizer.fit_transform(df['text'].values) # fit model and then transform shape of array
     else:
-        x = vectorizer.transform(df['text'].values).toarray() # only transform the data do not fit it
-    
+        x = vectorizer.transform(df['text'].values) # only transform the data do not fit it
     
     # reduce dimension:
-    svd = TruncatedSVD(n_components=100,random_state=42)
+    svd = TruncatedSVD(random_state=42)
     x = svd.fit_transform(x)
     y = df[target].values
-    
+
+    #print(x)
+    #print(y)
+
     return x, y
 
 def svm_metrics_init(learner, client):

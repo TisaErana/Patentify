@@ -150,9 +150,10 @@ try:
                     print(ids)
                     print(target)
 
-                    X, y = svm_format(client, ids, target, training=True)
+                    X, y = svm_format(client, ids, target)
                     learner.teach(X=X, y=y)
 
+                    entries = 0
                     annotations = {} # done with these annotations  
 
                     print("[INFO]: done with cycle", cycleCount)
@@ -173,11 +174,7 @@ except KeyboardInterrupt:
 #     print(e) # 'handle' exception and safely exit program.
 
 print("Finalizing...")
-if continue_starter == None:
-    dump(continue_after,'continue_token.joblib')
-    print("[INFO]: dumped continue_after.")
-
-if not(continue_after == continue_starter) and not(continue_starter == None):
+if continue_after is not continue_starter:
     dump(learner.estimator, f'models/Final/model_at_{time():0.0f}.joblib')
     dump(continue_after,'continue_token.joblib')
     print("[INFO]: dumped continue_after and model.")
