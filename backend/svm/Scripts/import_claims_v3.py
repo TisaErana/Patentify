@@ -1,4 +1,4 @@
-# Short-circuit script to import document claims somewhat-efficiently and in order.
+# Multi-threaded, short-circuit, (almost) crash-proof script to import document claims somewhat-efficiently and in order.
 
 from enum import unique
 import pymongo
@@ -22,11 +22,11 @@ def process_USPATs():
   matched_count_total = 0
   modified_count_total = 0
 
-  USPATs = [element['documentId'] for element in list(dbPatents.find({"patentCorpus": "USPAT"}, {"_id": False, "documentId": 1}))]
+  USPATs = [element['documentId'] for element in list(dbPatents.find({"patentCorpus": "USPAT", "claims": { "$size": 0 }}, {"_id": False, "documentId": 1}))]
 
   total_patents_in_db += len(USPATs)
 
-  print('Total USPATs in database:', total_patents_in_db)
+  print('Total USPATs in database that need claims metadata:', total_patents_in_db)
 
   cycle = 0
   for patent in USPATs:
@@ -90,10 +90,10 @@ def process_PGPUBs():
   matched_count_total = 0
   modified_count_total = 0
 
-  PGPUBs = [element['documentId'] for element in list(dbPatents.find({"patentCorpus": "PGPUB"}, {"_id": False, "documentId": 1})) if int(element['documentId'][0:4]) >= 2005]
+  PGPUBs = [element['documentId'] for element in list(dbPatents.find({"patentCorpus": "PGPUB", "claims": { "$size": 0 }}, {"_id": False, "documentId": 1})) if int(element['documentId'][0:4]) >= 2005]
   PGPUBs.sort(key=int)
 
-  print('Total PGPUBs 2005+ in database:', len(PGPUBs))
+  print('Total PGPUBs 2005+ in database that need claims metadata:', len(PGPUBs))
 
   cycle = 0
   for patent in PGPUBs:
