@@ -170,7 +170,7 @@ def process_Missing():
             } 
         })
     )
-    if count % 10 == 0:
+    if count % 10 == 0 or count == total:
       print('Missing USPAT claims', f'{count}/{total}', 'metadata found.')
     count += 1
 
@@ -205,7 +205,7 @@ def process_Missing():
             } 
         })
     )
-    if count % 2000 == 0:
+    if count % 2000 == 0 or count == total:
       print('Missing PGPUB claims', f'{count}/{total}', 'metadata found.')
     count += 1
 
@@ -231,7 +231,6 @@ pgpubs_thread.start()
 print()
 
 pgpubs_thread.join()
-
 print('Started processing missing claims...')
 missing_thread.start()
 
