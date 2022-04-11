@@ -55,8 +55,11 @@ def process_USPATs():
       for claim in filtered.itertuples():
           claims.append(claim.text.strip())
 
-      # sort based on number in text (ex: '1 .' or '12.')
-      claims.sort(key=lambda x : int(x[0:2].replace('.','').strip()))
+      try:
+        # sort based on number in text (ex: '1 .' or '12.')
+        claims.sort(key=lambda x : int(x[0:2].replace('.','').strip()))
+      except:
+        print('/--> Unable to sort USPAT', patent, 'claim is not properly numbered <--\\')
 
       if len(claims) > 0:
         result = dbPatents.update_one({ "documentId": patent}, 
@@ -111,8 +114,11 @@ def process_PGPUBs():
     for claim in filtered.itertuples():
         claims.append(claim.text.strip())
 
-    # sort based on number in text (ex: '1 .' or '12.')
-    claims.sort(key=lambda x : int(x[0:2].replace('.','').strip()))
+    try:
+      # sort based on number in text (ex: '1 .' or '12.')
+      claims.sort(key=lambda x : int(x[0:2].replace('.','').strip()))
+    except:
+      print('/--> Unable to sort PGPUB', patent, 'claim is not properly numbered <--\\')
     
     if len(claims) > 0:
       result = dbPatents.update_one({ "documentId": patent}, 
