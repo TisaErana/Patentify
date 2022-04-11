@@ -144,7 +144,7 @@ try:
                 ids = list(annotations.keys()) #               document ids of newly annotated documents.
                 target = list(annotations.values()) #            classification of newly annotated documents.
 
-                if entries > (MIN_TRAINING_SIZE - 1) and not (any(target) and all(target)):
+                if entries >= MIN_TRAINING_SIZE and not (any(target) and all(target)):
                     print(ids)
                     print(target)
 
