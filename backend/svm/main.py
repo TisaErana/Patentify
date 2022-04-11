@@ -3,12 +3,10 @@
 from pymongo import MongoClient
 
 from itertools import cycle
-from functions import *
 from time import time
+from functions import *
 
-# Configuration:
-MIN_TRAINING_SIZE = 3
-MIN_AUTO_SAVE_CYCLES = 10
+from configuration import *
 
 # establish connection to the database
 client = MongoClient("mongodb://localhost:27017/PatentData")
@@ -146,7 +144,7 @@ try:
                 ids = list(annotations.keys()) #               document ids of newly annotated documents.
                 target = list(annotations.values()) #            classification of newly annotated documents.
 
-                if entries > MIN_TRAINING_SIZE and not (any(target) and all(target)):
+                if entries > (MIN_TRAINING_SIZE - 1) and not (any(target) and all(target)):
                     print(ids)
                     print(target)
 

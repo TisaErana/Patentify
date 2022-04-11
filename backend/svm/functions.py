@@ -22,6 +22,8 @@ from datetime import datetime
 
 from pymongo import InsertOne
 
+from configuration import *
+
 # GLOBALS:
 model_filename = None
 
@@ -119,13 +121,19 @@ def vectorize(df, vectorizer = None, target='target', training=False):
     if vectorizer == None:
         vectorizer = load(f'vectorizer_{sklearn.__version__}.joblib')
 
+    #print(df['text'])
+    #print(df['text'].to_numpy())
+    
     if training:
-        x = vectorizer.fit_transform(df['text'].values) # fit model and then transform shape of array
+        x = vectorizer.fit_transform(df['text'].to_numpy()) # fit model and then transform shape of array
     else:
-        x = vectorizer.transform(df['text'].values) # only transform the data do not fit it
+        x = vectorizer.transform(df['text'].to_numpy()) # only transform the data do not fit it
+
+    #print(x.todense())
+    #print(vectorizer.get_feature_names())
     
     # reduce dimension:
-    svd = TruncatedSVD(random_state=42)
+    svd = TruncatedSVD(n_components=N_COMPONENTS, random_state=42)
     x = svd.fit_transform(x)
     y = df[target].values
 
