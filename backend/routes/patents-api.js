@@ -183,10 +183,9 @@ async function removeFromAssignedPatents(res, userId, docId) {
   });
 
   // check if there are assingments for the user:
-  if(dbAssignments !== null)
+  if(dbAssignments !== null && dbAssignments.assignments.length > 0)
   {
     dbAssignments.assignments = dbAssignments.assignments.filter(({ documentId }) => !documentId.includes(docId))
-    console.log(dbAssignments.assignments)
 
     await dbAssignments.save().catch((error) => {
       res.status(500).json({ error: error })
@@ -779,7 +778,7 @@ router.get("/chart", async function (req, res, next) {
 router.get("/svm/calc_f1_score", async function (req, res, next) {
   await SVM_Command.findOneAndUpdate({}, { 
     command: "calc_f1_score"
-   }, { upsert: true, useFindAndModify: true }).lean()
+   }, { upsert: true, useFindAndModify: false }).lean()
 
   res.status(200).json({ status: 'executed' });
 })
