@@ -46,7 +46,7 @@ async function getNextPatent(req, res, transaction = { "mode": "new", "documentI
   
   assignedPatents = await PatentAssignment.findOne({
     user: req.user._id
-  }).catch((error) => {
+  }).lean().catch((error) => {
     res.status(500).json({ error: error });
   });
 
@@ -60,12 +60,12 @@ async function getNextPatent(req, res, transaction = { "mode": "new", "documentI
     // find patents the user has already labeled:
     var alreadyLabeled = await Label.find({
       user: req.user._id
-    }).select(['-_id', 'document']).distinct('document');
+    }).lean().select(['-_id', 'document']).distinct('document');
 
     // find patents in someone else's queue:
     var inQueues = await Queue.find({
       userId: req.user._id
-    }).select(['-_id', 'documentId']).distinct('documentId')
+    }).lean().select(['-_id', 'documentId']).distinct('documentId')
     
     var candidates = await Patent.aggregate([
       { $sample: { size: QUEUE_CANDIDATE_LOOKUP_SIZE } }
@@ -356,8 +356,6 @@ router.post("/labels", async function (req, res, next) {
     }).catch((error) => {
       res.status(500).json({ error: error });
     });
-
-    console.log(disagreedLabel)
     
     // check if this patent is being decided on by 3rd annotator:
     if(disagreedLabel !== null) {
