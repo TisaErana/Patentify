@@ -18,11 +18,15 @@ import pandas as pd
 import numpy as np
 
 from time import sleep
+from datetime import datetime
 
 from pymongo import InsertOne
 
+# GLOBALS:
+model_filename = None
+
 # Create base model and save into file
-def base_model_creator(client, stopwords, data='data/AI_train_df.pkl'):
+def base_model_creator(client, stopwords, data='data/seed_antiseed_476.pkl'):
     """
     Creates a new base model from seed and antiseed data.
     """
@@ -31,6 +35,9 @@ def base_model_creator(client, stopwords, data='data/AI_train_df.pkl'):
     pickledDataFile = open(data, 'rb')
     data = pickle.load(pickledDataFile)
     #print(data)
+    #print(data[data['AI'] == 'seed'])
+    #print(data[data['AI'] == 'antiseed'])
+    #print(len(set(data['id'].values)))
     
     # format training data for new model:
     data.rename(columns={'AI': 'target'}, inplace=True)
@@ -52,11 +59,17 @@ def base_model_creator(client, stopwords, data='data/AI_train_df.pkl'):
     )
     
     # save new model:
+    global model_filename 
+    model_filename = 'base_model_{sklearn.__version__}.joblib'
+
     dump(learner.estimator,f'models/Final/base_model_{sklearn.__version__}.joblib')
     dump(vectorizer, f'vectorizer_{sklearn.__version__}.joblib')
 
 def model_loader(model = f'base_model_{sklearn.__version__}'):
-    estimator = load(f'models/Final/{model}.joblib')
+    global model_filename 
+    model_filename = f'{model}.joblib'
+
+    estimator = load(f'models/Final/{model_filename}')
     return estimator
 
 def get_target(entry):
@@ -109,47 +122,144 @@ def vectorize(df, vectorizer = None, target='target', training=False):
     if training:
         x = vectorizer.fit_transform(df['text'].values) # fit model and then transform shape of array
     else:
-        x = vectorizer.transform(df['text'].values).toarray() # only transform the data do not fit it
-    
+        x = vectorizer.transform(df['text'].values) # only transform the data do not fit it
     
     # reduce dimension:
-    svd = TruncatedSVD(n_components=100,random_state=42)
+    svd = TruncatedSVD(random_state=42)
     x = svd.fit_transform(x)
     y = df[target].values
-    
+
+    #print(x)
+    #print(y)
+
     return x, y
 
-def calc_f1_score(learner, client, collection='labels'):
+def svm_metrics_init(learner, client):
     """
-    Calculates f1_score based on labels the model has not been trained on.
-    collection must be a collection with schema of type ../models/label_model.
+    Saves the model filename, the boot time, and current f1_score.
     """
     db = client['PatentData']
-    test_labels = db[collection].find() # labels which the model has not been trained on.
+    svm_metrics = db.svm_metrics.find_one()
+    svm_command = db.svm_command.find_one()
 
-    ids = [] #               document ids of newly annotated documents.
-    target = [] #            classification of newly annotated documents.
+    f1_score = calc_f1_score(learner, client)
+    currentDateTime = datetime.utcnow()
+
+    # check if there is already a metrics entry:
+    if svm_metrics == None:
+        db.svm_metrics.insert_one({ 
+            "model_filename": model_filename,
+
+            "init_F1_score": f1_score,
+            "uncertain_F1_score": -1,
+            "current_F1_score": f1_score,
+
+            "updatedAt": currentDateTime,
+            "initializedAt": currentDateTime,
+            "uncertainUpdatedAt": datetime.utcnow()
+        })
+    else: # let's update it:
+        db.svm_metrics.update_one(
+        {
+            "_id": svm_metrics["_id"]
+        }, 
+        {
+            "$set": {
+                "model_filename": model_filename,
+
+                "init_F1_score": f1_score,
+                "current_F1_score": f1_score,
+                
+                "updatedAt": currentDateTime,
+                "initializedAt": currentDateTime
+            }
+        })
+
+    # insert command entry if it does not alreay exist:
+    if svm_command == None:
+        db.svm_command.insert_one({ 
+            "command": 'ready'
+        })
     
-    for label in test_labels:
-        ids.append(label['document'])
-        target.append(get_target(label))
+    print('[INFO]: svm metrics initialized')
+
+def update_svm_metrics(client, values):
+    """
+    Updates the svm metrics in the database.
+    @param client: the db client connection.
+    @param values: an object of values to update in collection.
+    """
+    db = client['PatentData']
+    svm_metrics = db.svm_metrics.find_one()
+
+    db.svm_metrics.update_one({
+        "_id": svm_metrics["_id"]
+    }, 
+    {
+        "$set": values
+    })
+
+def acknowledge_svm_command(client):
+    """
+    Acknowledge the last command was successfully executed.
+    @param client: the db client connection.
+    """
+    client['PatentData'].svm_command.find_one_and_update({}, {
+        "$set": {
+            "command": 'acknowledged'
+        }
+    })
+
+def handle_command(client, learner, change):
+    """
+    Process commands sent from frontend.
+    @param client: the db client connection.
+    @param learner: the active learner object.
+    @param the change object from the watch stream.
+    """
+    command = change['updateDescription']['updatedFields']['command']
+
+    if command == 'calc_f1_score':
+        currentDateTime = datetime.utcnow()
+        
+        update_svm_metrics(client, {
+            "current_F1_score": calc_f1_score(learner, client),
+            "updatedAt": currentDateTime
+        })
+
+        acknowledge_svm_command(client)
+
+# def calc_f1_score(learner, client, collection='labels'):
+#     """
+#     Calculates f1_score based on labels the model has not been trained on.
+#     collection must be a collection with schema of type ../models/label_model.
+#     """
+#     db = client['PatentData']
+#     test_labels = db[collection].find() # labels which the model has not been trained on.
+
+#     ids = [] #               document ids of newly annotated documents.
+#     target = [] #            classification of newly annotated documents.
     
-    print(ids)
-    print(target)
+#     for label in test_labels:
+#         ids.append(label['document'])
+#         target.append(get_target(label))
+    
+#     print(ids)
+#     print(target)
 
-    x, y = svm_format(client, ids, target)
-    y_predictions = learner.predict(x)
+#     x, y = svm_format(client, ids, target)
+#     y_predictions = learner.predict(x)
 
-    return f1_score(target, y_predictions, average='weighted')
+#     return f1_score(target, y_predictions, average='weighted')
 
-def calc_f1_score(learner, client, file):
+def calc_f1_score(learner, client, file='data/decision_boundary-462.pkl'):
     """
     Calculates f1_score based on annotations saved in pickled dataframe file.
     """
     # import training data from pickle file:
     pickledDataFile = open(file, 'rb')
     data = pickle.load(pickledDataFile)
-    print(data)
+    #print(data)
 
     x, y_true = svm_format(client, data['doc_id'].values.tolist(), data['Annotated_value'].values.tolist())
     y_predictions = learner.predict(x)
@@ -203,3 +313,11 @@ def find_uncertain_patents(learner, client, file='data/decision_boundary-462.pkl
 
     result = db['uncertain_patents'].bulk_write(operations, ordered=False)
     print(result.bulk_api_result)
+
+    # update uncertain f1_score
+    currentDateTime = datetime.utcnow()
+    update_svm_metrics(client, {
+            "uncertain_F1_score": calc_f1_score(learner, client),
+            "updatedAt": currentDateTime,
+            "uncertainUpdatedAt": currentDateTime
+    })

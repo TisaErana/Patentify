@@ -11,6 +11,9 @@ const Label = require("../models/label_model");
 const AgreedLabel = require("../models/agreed_labels_model");
 const DisagreedLabel = require("../models/disagreed_labels_model");
 const UncertainPatent = require("../models/uncertain_patent");
+const PatentAssignment = require("../models/patent_assignments_model");
+const SVM_Metrics = require("../models/svm_metrics_model");
+const SVM_Command = require("../models/svm_command_model");
 
 // Import queue model
 const Queue = require("../models/queue_model");
@@ -31,42 +34,59 @@ const QUEUE_CANDIDATE_LOOKUP_SIZE = 3;
 /**
  * Finds the next best patent to show the user.
  * @param {*} req the api request to the server.
+ * @param {*} res response object.
  * @param {Object} transaction update existing entry or make a new one.
  *    transaction: 
  *      mode: new | update
  *      documentId: the documentId of the patent currently in the queue.
  * @return an Object with patent information.
  */
-async function getNextPatent(req, transaction = { "mode": "new", "documentId": undefined }) {
-  // find patents the user has already labeled:
-  var alreadyLabeled = await Label.find({
-    user: req.user._id
-  }).select(['-_id', 'document']).distinct('document');
-
-  // find patents in someone else's queue:
-  var inQueues = await Queue.find({
-    userId: req.user._id
-  }).select(['-_id', 'documentId']).distinct('documentId')
+async function getNextPatent(req, res, transaction = { "mode": "new", "documentId": undefined }) {
+  var patent = undefined; // the patent to insert into the queue
   
-  var candidates = await Patent.aggregate([
-    { $sample: { size: QUEUE_CANDIDATE_LOOKUP_SIZE } }
-  ]); // find some random patent candidates
+  assignedPatents = await PatentAssignment.findOne({
+    user: req.user._id
+  }).lean().catch((error) => {
+    res.status(500).json({ error: error });
+  });
 
-  var i = 0; // current index
-  var patent = candidates[i]; // current patent
-  const patentIdsToExclude = alreadyLabeled.concat(inQueues);
-
-  // this is a lot faster than excluding them in the MongoDB aggregate function:
-  while(patentIdsToExclude.includes(patent.documentId))
+  // check if the user has assigned patents:
+  if(assignedPatents !== null && assignedPatents.assignments.length > 0)
   {
-    if(i == (QUEUE_CANDIDATE_LOOKUP_SIZE - 1)) {
-      candidates = await Patent.aggregate([
-        { $sample: { size: QUEUE_CANDIDATE_LOOKUP_SIZE } }
-      ]); // find some random patent candidates
+    patent = assignedPatents.assignments[0]; // pick first patent in list
+  }
+  else // let's find the user a random patent to annotate:
+  {
+    // find patents the user has already labeled:
+    var alreadyLabeled = await Label.find({
+      user: req.user._id
+    }).lean().select(['-_id', 'document']).distinct('document');
 
-      i = 0;
+    // find patents in someone else's queue:
+    var inQueues = await Queue.find({
+      userId: req.user._id
+    }).lean().select(['-_id', 'documentId']).distinct('documentId')
+    
+    var candidates = await Patent.aggregate([
+      { $sample: { size: QUEUE_CANDIDATE_LOOKUP_SIZE } }
+    ]); // find some random patent candidates
+
+    var i = 0; // current index
+    patent = candidates[i]; // current patent
+    const patentIdsToExclude = alreadyLabeled.concat(inQueues);
+
+    // this is a lot faster than excluding them in the MongoDB aggregate function:
+    while(patentIdsToExclude.includes(patent.documentId))
+    {
+      if(i == (QUEUE_CANDIDATE_LOOKUP_SIZE - 1)) {
+        candidates = await Patent.aggregate([
+          { $sample: { size: QUEUE_CANDIDATE_LOOKUP_SIZE } }
+        ]); // find some random patent candidates
+
+        i = 0;
+      }
+      patent = candidates[++i];
     }
-    patent = candidates[++i];
   }
   
   if(transaction.mode === "update")
@@ -76,7 +96,7 @@ async function getNextPatent(req, transaction = { "mode": "new", "documentId": u
       documentId: transaction.documentId
     })
     .catch((error) => {
-      throw error;
+      res.status(500).json({ error: error });
     });
 
     if(queueItem !== null)
@@ -89,11 +109,11 @@ async function getNextPatent(req, transaction = { "mode": "new", "documentId": u
       queueItem.updatedAt = Date.now();
 
       await queueItem.save().catch((error) => {
-        throw error;
+        res.status(500).json({ error: error });
       });
     }
     else { 
-      throw "invalid queue: check user and documentId"; 
+      res.status(500).json({ error: 'invalid queue: check user and documentId' }); 
     }
   }
   else
@@ -108,7 +128,7 @@ async function getNextPatent(req, transaction = { "mode": "new", "documentId": u
     }))
     .save()
     .catch((error) => {
-      console.log(error);
+      res.status(500).json({ error: error });
     });
   }
 
@@ -144,12 +164,35 @@ router.get("/", async function (req, res, next) {
   else // let's find a new patent for the user:
   {
     res.json(
-      await getNextPatent(req).catch((error) => {
+      await getNextPatent(req, res).catch((error) => {
         res.status(500).json({ error: error });
     }));
   }
 
 });
+
+/***
+ * Removes a patent from a user's assigned patent list.
+ * @param res the response object.
+ * @param userId the user id of the user who's assignments to modify.
+ * @param docId the document id to remove from the list.
+ */
+async function removeFromAssignedPatents(res, userId, docId) { 
+  dbAssignments = await PatentAssignment.findOne({ user: userId }).catch((error) => {
+    res.status(500).json({ error: error })
+  });
+
+  // check if there are assingments for the user:
+  if(dbAssignments !== null && dbAssignments.assignments.length > 0)
+  {
+    dbAssignments.assignments = dbAssignments.assignments.filter(({ documentId }) => !documentId.includes(docId))
+
+    await dbAssignments.save().catch((error) => {
+      res.status(500).json({ error: error })
+    });
+  }
+  else { } // user does not have any patent assignments: do nothing 
+}
 
 /**
  * ADDs or UPDATEs an annotation in the database.
@@ -191,6 +234,8 @@ router.post("/labels", async function (req, res, next) {
     }
     else // check if the annotations agree or disagree with each other:
     {
+      var newLabel = undefined; // new label to be inserted into database
+
       // map new annotation values to true or false for each category:
       newAnnotation = [
         req.body.mal === "Yes",
@@ -222,7 +267,7 @@ router.post("/labels", async function (req, res, next) {
       // find consensus amongst annotations:
       if (newIsAI == storedIsAI)
       {
-         const agreedLabel = new AgreedLabel({
+         newLabel = new AgreedLabel({
            document: req.body.documentId,
            individual: [
              {
@@ -261,14 +306,10 @@ router.post("/labels", async function (req, res, next) {
          });
 
         annotation.deleteOne();
-
-        res.json(await agreedLabel.save().catch((error) => {
-           res.status(500).json({ error: error });
-        }));
       }
       else // they disagree, let's store them for a 3rd party to decide:
       {
-        const disagreedLabel = new DisagreedLabel({
+        newLabel = new DisagreedLabel({
           document: req.body.documentId,
           disagreement: [
             {
@@ -296,33 +337,70 @@ router.post("/labels", async function (req, res, next) {
           ]
         });
 
-      annotation.deleteOne();
-       
-      res.json(await disagreedLabel.save().catch((error) => {
-         res.status(500).json({ error: error });
-       }));
+      annotation.deleteOne();      
       }
+      
+      // if this patent was assigned, let's update the user's list of assignments:
+      await removeFromAssignedPatents(res, req.user._id, req.body.documentId);
 
+      // save the new annotation:
+      res.json(await newLabel.save().catch((error) => {
+        res.status(500).json({ error: error });
+     }));
     }
   }
   else // new entry:
   {
-    const label = new Label({
-      user:req.user._id,
-      document: req.body.documentId,
-      mal:req.body.mal, // Machine Learning
-      hdw:req.body.hdw, // Hardware
-      evo:req.body.evo, // Evolution
-      spc:req.body.spc, // Speech
-      vis:req.body.vis, // Vision
-      nlp:req.body.nlp, // Natural Language Processing 
-      pln:req.body.pln, // Planning 
-      kpr:req.body.kpr, // Knowledge Processing
-    });
-
-    res.json(await label.save().catch((error) => {
+    disagreedLabel = await DisagreedLabel.findOne({
+      document: req.body.documentId
+    }).catch((error) => {
       res.status(500).json({ error: error });
-    }));
+    });
+    
+    // check if this patent is being decided on by 3rd annotator:
+    if(disagreedLabel !== null) {
+      disagreedLabel.consensus = {
+        user:req.user._id,
+        document: req.body.documentId,
+        mal:req.body.mal, // Machine Learning
+        hdw:req.body.hdw, // Hardware
+        evo:req.body.evo, // Evolution
+        spc:req.body.spc, // Speech
+        vis:req.body.vis, // Vision
+        nlp:req.body.nlp, // Natural Language Processing 
+        pln:req.body.pln, // Planning 
+        kpr:req.body.kpr, // Knowledge Processing
+      }
+
+       // if this patent was assigned, let's update the user's list of assignments:
+       await removeFromAssignedPatents(res, req.user._id, req.body.documentId);
+
+      res.json(await disagreedLabel.save().catch((error) => {
+        res.status(500).json({ error: error });
+      }));
+    }
+    else // new entry: 
+    {
+      const label = new Label({
+        user:req.user._id,
+        document: req.body.documentId,
+        mal:req.body.mal, // Machine Learning
+        hdw:req.body.hdw, // Hardware
+        evo:req.body.evo, // Evolution
+        spc:req.body.spc, // Speech
+        vis:req.body.vis, // Vision
+        nlp:req.body.nlp, // Natural Language Processing 
+        pln:req.body.pln, // Planning 
+        kpr:req.body.kpr, // Knowledge Processing
+      });
+  
+      // if this patent was assigned, let's update the user's list of assignments:
+      await removeFromAssignedPatents(res, req.user._id, req.body.documentId);
+  
+      res.json(await label.save().catch((error) => {
+        res.status(500).json({ error: error });
+      }));
+    }
   }
 });
 
@@ -359,7 +437,7 @@ router.post("/search", async function (req, res, next) {
 
     if(annotation !== null)
     {
-      res.json(Object.assign(patent.toObject(), annotation.toObject()));
+      res.json(Object.assign(patent, annotation));
     }
     else
     {
@@ -374,10 +452,7 @@ router.post("/search", async function (req, res, next) {
 
 // Remove a patent from the current user's queue:
 router.post("/queue/remove", async function (req, res, next) {
-res.json(
-  await getNextPatent(req, {"mode": "update", "documentId": req.body.documentId}).catch((error) => {
-    res.status(400).json({ error: error });
-}));
+  res.json(await getNextPatent(req, res, {"mode": "update", "documentId": req.body.documentId}));
 });
 
 // clears the cookie on the backend side:
@@ -431,6 +506,9 @@ router.get("/labels", async function (req, res, next) {
       }),
       uncertain: await UncertainPatent.find().lean().catch((error) => {
         res.status(500).json({ error: error });
+      }),
+      assigned: await PatentAssignment.find().lean().catch((error) => {
+        res.status(500).json({ error: error });
       })
     });
 });
@@ -444,6 +522,135 @@ router.get("/labels", async function (req, res, next) {
       res.status(500).json({ error: error });
     })
   );
+});
+
+/**
+ * Assigns a patent/s to a user's patent assignments.
+ */
+router.post("/assignments/assign", async function (req, res, next) {
+  const documents = req.body.documents;
+
+  user = await User.findOne({
+    email: req.body.user
+  })
+  .select('_id') // we only need the id
+  .lean()
+  .catch((error) => {
+    res.status(500).json({ error: error })
+  });
+
+  // check if user exists:
+  if(user !== null) {
+    assignment = await PatentAssignment.findOne({
+      user: user._id
+    })
+    .catch((error) => {
+      res.status(500).json({ error: error })
+    });
+
+    // check if the user already has assignments:
+    if (assignment !== null) {
+
+      for (document of documents) {
+         // check if user has already been assigned that patent:
+         if (!assignment.assignments.some(e => e.documentId === document)) {
+          data = await Patent.findOne({
+            documentId: document
+          })
+          .lean()
+          .catch((error) => {
+            res.status(500).json({ error: error })
+          });
+
+          // check if we have metadata on that patent:
+          if(data !== null) {
+            assignment.assignments.push(data);
+          }
+          else { // we don't have metadata for that patent:
+            res.status(400).json({ error: document + ' is not in our database' })
+          }
+        }
+        else { // user already has that patent assigned:
+          // nothing to do for this patent...
+        }
+      }
+
+      await assignment.save().catch((error) => {
+        res.status(500).json({ error: error })
+      });
+
+      res.json({
+        assigned: await PatentAssignment.find().lean().catch((error) => {
+          res.status(500).json({ error: error })
+      })});
+    }
+    else { // let's make a new entry for this user:
+      
+      data = await Patent.find({
+        documentId: documents
+      })
+      .lean()
+      .catch((error) => {
+        res.status(500).json({ error: error })
+      });
+      
+      // check if we have metadata on that patent:
+      if(data.length > 0) {
+        assignment = new PatentAssignment({
+          user:user._id,
+          assignments: data
+        });
+  
+        await assignment.save().catch((error) => {
+          res.status(500).json({ error: error })
+        });
+
+        res.json({
+          assigned: await PatentAssignment.find().lean().catch((error) => {
+            res.status(500).json({ error: error })
+        })});
+      }
+      else { // we don't have metadata for that patent:
+        res.status(400).json({ error: 'one or more documents are not in our database' })
+      }
+    }
+  }
+  else { // user does not exist:
+    res.status(400).json({ error: 'invalid user' });
+  }
+
+});
+
+/**
+ * Removes a patent/s from a user's patent assignements.
+ */
+ router.post("/assignments/remove", async function (req, res, next) {
+
+  // loop through 'assignment' to remove:
+  for (const assignment of req.body.assignments) {
+    user = await User.findOne({
+      email: assignment.user.email
+    })
+    .select('_id') // we only need the id
+    .lean()
+    .catch((error) => {
+      res.status(500).json({ error: error })
+    });
+  
+    // check if user exists:
+    if(user !== null) {
+      await removeFromAssignedPatents(res, user._id, assignment.documentId);
+    }
+    else { // user does not exist:
+      res.status(400).json({ error: 'invalid user' });
+    }
+  }
+
+  res.json({
+    assigned: await PatentAssignment.find().lean().catch((error) => {
+      res.status(500).json({ error: error })
+  })});
+
 });
 
 /**
@@ -480,6 +687,19 @@ router.get("/labels", async function (req, res, next) {
   res.header("Content-Type",'application/json');
   res.send(
     JSON.stringify(await DisagreedLabel.find().lean().catch((error) => {
+      res.status(500).json({ error: error });
+    }), null, 2)
+  );
+});
+
+/**
+ * EXPORTs uncertain patents to JSON file.
+ */
+ router.get("/export/uncertainPatents", async function (req, res, next) {
+  res.setHeader('Content-disposition', 'attachment; filename=uncertain-patents.json');
+  res.header("Content-Type",'application/json');
+  res.send(
+    JSON.stringify(await UncertainPatent.find().lean().catch((error) => {
       res.status(500).json({ error: error });
     }), null, 2)
   );
@@ -533,7 +753,32 @@ router.get("/chart", async function (req, res, next) {
   knowAgreed = await AgreedLabel.countDocuments({kpr:{$eq:"Yes"}});
   know += knowAgreed
 
-  res.status(200).json({total: total, unique: unique, agreed: agreed, disagreed: disagreed, ml: ml, hard: hard, evol: evol, spee: spee, vision: vision, natural: natural, plan: plan, know: know});
+  res.status(200).json(
+    {
+      total: total, 
+      unique: unique, 
+      agreed: agreed, 
+      disagreed: disagreed, 
+      ml: ml, 
+      hard: hard, 
+      evol: evol, 
+      spee: spee, 
+      vision: vision, 
+      natural: natural, 
+      plan: plan, 
+      know: know,
+      svm_metrics: await SVM_Metrics.findOne().lean().catch((error) => {
+        res.status(500).json({ error: error });
+      })
+    });
+})
+
+router.get("/svm/calc_f1_score", async function (req, res, next) {
+  await SVM_Command.findOneAndUpdate({}, { 
+    command: "calc_f1_score"
+   }, { upsert: true, useFindAndModify: false }).lean()
+
+  res.status(200).json({ status: 'executed' });
 })
 
 module.exports = router;

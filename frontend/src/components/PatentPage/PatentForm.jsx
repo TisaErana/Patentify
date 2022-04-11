@@ -10,6 +10,8 @@ const PatentForm = (props) => {
   const history = useHistory();
   const { register, handleSubmit, formState: {isDirty} } = useForm();
 
+  const weAreSearching = history.location.state ? history.location.state['weAreSearching'] : false;
+
   const [mal, setMal] = useState("No");
   const [hdw, setHdw] = useState("No");
   const [evo, setEvo] = useState("No");
@@ -57,7 +59,9 @@ const PatentForm = (props) => {
       },
     })
       .then((response) => {
-        dequeue();
+        if(!weAreSearching) {
+          dequeue();
+        }
       })
       .catch((error) => {
         console.log("error: ", error.data);
@@ -237,7 +241,7 @@ const PatentForm = (props) => {
 
         <div className="justify-content-around mt-5">
           <Button 
-            disabled={!isDirty} 
+            disabled={!isDirty || weAreSearching} 
             type="submit" 
             variant="primary" 
             size="lg" 

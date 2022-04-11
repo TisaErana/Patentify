@@ -1,9 +1,10 @@
+# Requires: Python 3.7+ (dictionaries must maintain order)
+
 from pymongo import MongoClient
 
 from itertools import cycle
 from functions import *
 from time import time
-
 
 # Configuration:
 MIN_TRAINING_SIZE = 3
@@ -11,8 +12,19 @@ MIN_AUTO_SAVE_CYCLES = 10
 
 # establish connection to the database
 client = MongoClient("mongodb://localhost:27017/PatentData")
-db = client['PatentData']       
-cluster = db['labels']
+db = client['PatentData']
+
+collectionsToWatch = [
+    { 'db': 'PatentData', 'coll': 'labels' },
+    { 'db': 'PatentData', 'coll': 'svm_command' },
+    { 'db': 'PatentData', 'coll': 'agreed_labels' },
+    { 'db': 'PatentData', 'coll': 'disagreed_labels' }
+]
+
+match_pipeline = [
+    { '$match': { 'ns': { '$in': collectionsToWatch } } },
+    { '$match': { 'operationType': { '$in': ['insert', 'update', '**replace**'] } } }
+]
 
 uncertain_patents = db['uncertain_patents']
 
@@ -45,6 +57,8 @@ if learner is None:
         query_strategy=uncertainty_sampling
     )
 
+svm_metrics_init(learner, client) # init svm_metrics in database
+
 # check if we need to find new uncertain patents:
 if (uncertain_patents.count_documents({}) == 0):
     print('[INFO]: looking for new uncertain patents...')
@@ -54,12 +68,10 @@ if (uncertain_patents.count_documents({}) == 0):
 # the svm model will train. Finally, it will dump the latest databse and resume token. Once the script is started up again, it will continue where
 # it left off and not skip any patents that it missed while it was not running.
 
-ids = [] #               document ids of newly annotated documents.
-target = [] #            classification of newly annotated documents.
 cycleCount = 1 #         number of training cycles completed by svm since launch.
+annotations = {} #       dictionary to store all annotations until they are trained on (this will keep only the latest).
 
 entries = 0 #            stores the number of entries the model is going to be trained on.
-
 try:
     db_stream = None
     continue_starter = None
@@ -68,11 +80,11 @@ try:
     # load saved model into memory:
     try:
         continue_after = continue_starter = load('continue_token.joblib')
-        db_stream = cluster.watch(resume_after=continue_starter)
+        db_stream = db.watch(match_pipeline, resume_after=continue_starter)
         print('[INFO]: found resume token:', continue_starter)
     except FileNotFoundError:
-        db_stream = cluster.watch()  
-        continue_after = continue_starter = db_stream._resume_token
+        db_stream = db.watch(match_pipeline)  
+        continue_after = db_stream._resume_token
         print('[INFO]: no resume token found, using latest resume token:', continue_starter)
 
     # begin training model loop:  
@@ -80,27 +92,72 @@ try:
         print("Listening...")
         while stream.alive:
             change = stream.next()
-            if change is not None:
-                entries += 1
+            if change is not None:               
+                collection = change['ns']['coll'] # collection updated
 
-                entry = change['fullDocument']
-                ids.append(entry['document'])
-                print(f'Entry:{entry}')
+                if collection == 'svm_command' and change['operationType'] == 'update':
+                    handle_command(client, learner, change)
+                
+                if collection == 'labels':
+                    entries += 1
+                    entry = change['fullDocument']
 
-                isAI = get_target(entry)
-                target.append(isAI)
+                    isAI = get_target(entry)
+                    annotations[entry['document']] = isAI
+
+                # process labels which have been agreed by two annotators:
+                if collection == 'agreed_labels':
+                    if change['operationType'] == 'insert':
+                        entry = change['fullDocument'] # the agreed labels entry
+                        consensus = entry['consensus'] # the agreed upon label for the document
+                        
+                        # check if patent is from uncertain documents list:
+                        removal = db.uncertain_patents.find_one_and_delete({ 'documentId': entry['document'] })
+                        if removal != None:
+                            print('[Active_Learning]: uncertain document annotated:', removal['documentId'])
+
+                        # add to list of items to train on:
+                        entries += 1
+
+                        isAI = get_target(consensus)
+                        annotations[entry['document']] = isAI
+                                  
+                
+                # process labels which have been disagreed upon by two annotators (decided by 3rd):
+                if collection == 'disagreed_labels':
+                    if change['operationType'] == 'update':
+                        documentId = db.disagreed_labels.find_one({ "_id": change['documentKey']['_id'] })['document']
+
+                        # check if patent is from uncertain documents list:
+                        removal = db.uncertain_patents.find_one_and_delete({ 'documentId': documentId })
+                        if removal != None:
+                            print('[Active_Learning]: uncertain document annotated:', removal['documentId'])
+
+                        # train model on consensus:
+                        consensus = change['updateDescription']['updatedFields']['consensus']
+
+                        # add to list of items to train on:
+                        entries += 1
+
+                        isAI = get_target(consensus)
+                        annotations[documentId] = isAI
 
                 # check target has multiple classes(1 and 0)
+                ids = list(annotations.keys()) #               document ids of newly annotated documents.
+                target = list(annotations.values()) #            classification of newly annotated documents.
+
                 if entries > MIN_TRAINING_SIZE and not (any(target) and all(target)):
-                    continue_after = change['_id']
                     print(ids)
                     print(target)
-                    X, y = svm_format(client, ids, target, stopwords)
+
+                    X, y = svm_format(client, ids, target)
                     learner.teach(X=X, y=y)
-                    ids = []
-                    target = []    
+
+                    entries = 0
+                    annotations = {} # done with these annotations  
 
                     print("[INFO]: done with cycle", cycleCount)
+                    continue_after = change['_id']
 
                     if cycleCount % MIN_AUTO_SAVE_CYCLES == 0:
                         print(f'[AUTO-SAVE {time():0.0f}]: saved latest model and continue_token')
@@ -108,8 +165,13 @@ try:
                         dump(continue_after,'continue_token.joblib')
                     
                     cycleCount += 1
+
+
 except KeyboardInterrupt:
     print("[Interrupted]")
+
+# except Exception as e:
+#     print(e) # 'handle' exception and safely exit program.
 
 print("Finalizing...")
 if continue_after is not continue_starter:
@@ -118,3 +180,8 @@ if continue_after is not continue_starter:
     print("[INFO]: dumped continue_after and model.")
 else:
     print("No successful iterations... No changes will be made.")
+
+# let the admin know the service is offline:
+update_svm_metrics(client, {
+    "model_filename": 'offline'
+})
