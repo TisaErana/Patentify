@@ -23,7 +23,7 @@ collectionsToWatch = [
 
 match_pipeline = [
     { '$match': { 'ns': { '$in': collectionsToWatch } } },
-    { '$match': { 'operationType': { '$in': ['insert', 'update'] } } }
+    { '$match': { 'operationType': { '$in': ['insert', 'update', '**replace**'] } } }
 ]
 
 uncertain_patents = db['uncertain_patents']
@@ -92,7 +92,7 @@ try:
         print("Listening...")
         while stream.alive:
             change = stream.next()
-            if change is not None:                
+            if change is not None:               
                 collection = change['ns']['coll'] # collection updated
 
                 if collection == 'svm_command' and change['operationType'] == 'update':
