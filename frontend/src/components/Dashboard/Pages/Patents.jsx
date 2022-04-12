@@ -29,6 +29,7 @@ const ViewPatent = () => {
     })
     .then((response) => {
       if (response.status === 200) {
+        alert('Patents have been assigned.');
         data.assigned = response.data.assigned
         setAssignedPatents([]); // trigger table refresh
       }

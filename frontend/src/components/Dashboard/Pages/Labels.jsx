@@ -73,7 +73,7 @@ const Table = () => {
       })
       .then((response) => {
         if (response.status === 200) {
-          alert('patents have been assigned')
+          alert('Patents have been assigned.');
         }
       })
       .catch((error) => {
