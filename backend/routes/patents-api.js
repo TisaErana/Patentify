@@ -723,35 +723,51 @@ router.get("/chart", async function (req, res, next) {
 
   ml = await Label.countDocuments({mal:{$eq:"Yes"}});
   mlAgreed = await AgreedLabel.countDocuments({"consensus.mal":{"$eq":"Yes"}});
+  mlDisagreed = await DisagreedLabel.countDocuments({"consensus.mal":{"$eq":"Yes"}});
   ml += mlAgreed;
+  ml += mlDisagreed;
 
   hard = await Label.countDocuments({hdw:{$eq:"Yes"}});
   hardAgreed = await AgreedLabel.countDocuments({"consensus.hdw":{"$eq":"Yes"}});
+  hardDisagreed = await DisagreedLabel.countDocuments({"consensus.hdw":{"$eq":"Yes"}});
   hard += hardAgreed;
+  hard += hardDisagreed;
 
   evol = await Label.countDocuments({evo:{$eq:"Yes"}});
   evolAgreed = await AgreedLabel.countDocuments({"consensus.evo":{"$eq":"Yes"}});
+  evolDisagreed = await DisagreedLabel.countDocuments({"consensus.evo":{"$eq":"Yes"}});
   evol += evolAgreed;
+  evol += evolDisagreed;
 
   spee = await Label.countDocuments({spc:{$eq:"Yes"}});
   speeAgreed = await AgreedLabel.countDocuments({"consensus.spc":{"$eq":"Yes"}});
+  speeDisagreed = await DisagreedLabel.countDocuments({"consensus.spc":{"$eq":"Yes"}});
   spee += speeAgreed;
+  spee += speeDisagreed;
 
   vision = await Label.countDocuments({vis:{$eq:"Yes"}});
   visionAgreed = await AgreedLabel.countDocuments({"consensus.vis":{"$eq":"Yes"}});
+  visionDisagreed = await DisagreedLabel.countDocuments({"consensus.vis":{"$eq":"Yes"}});
   vision += visionAgreed;
+  vision += visionDisagreed;
 
   natural = await Label.countDocuments({nlp:{$eq:"Yes"}});
   naturalAgreed = await AgreedLabel.countDocuments({"consensus.nlp":{"$eq":"Yes"}});
+  naturalDisagreed = await DisagreedLabel.countDocuments({"consensus.nlp":{"$eq":"Yes"}});
   natural += naturalAgreed;
+  natural += naturalDisagreed;
 
   plan = await Label.countDocuments({pln:{$eq:"Yes"}});
   planAgreed = await AgreedLabel.countDocuments({"consensus.pln":{"$eq":"Yes"}});
+  planDisagreed = await DisagreedLabel.countDocuments({"consensus.pln":{"$eq":"Yes"}});
   plan += planAgreed;
+  plan += planDisagreed;
 
   know = await Label.countDocuments({kpr:{$eq:"Yes"}});
   knowAgreed = await AgreedLabel.countDocuments({"consensus.kpr":{"$eq":"Yes"}});
-  know += knowAgreed
+  knowDisagreed = await DisagreedLabel.countDocuments({"consensus.kpr":{"$eq":"Yes"}});
+  know += knowAgreed;
+  know += knowDisagreed;
 
   res.status(200).json(
     {
