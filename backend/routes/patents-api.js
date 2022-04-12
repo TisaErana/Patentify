@@ -722,35 +722,35 @@ router.get("/chart", async function (req, res, next) {
   total = unique + agreed + disagreed;
 
   ml = await Label.countDocuments({mal:{$eq:"Yes"}});
-  mlAgreed = await AgreedLabel.countDocuments({mal:{$eq:"Yes"}});
+  mlAgreed = await AgreedLabel.countDocuments({"consensus.mal":{"$eq":"Yes"}});
   ml += mlAgreed;
 
   hard = await Label.countDocuments({hdw:{$eq:"Yes"}});
-  hardAgreed = await AgreedLabel.countDocuments({hdw:{$eq:"Yes"}});
+  hardAgreed = await AgreedLabel.countDocuments({"consensus.hdw":{"$eq":"Yes"}});
   hard += hardAgreed;
 
   evol = await Label.countDocuments({evo:{$eq:"Yes"}});
-  evolAgreed = await AgreedLabel.countDocuments({evo:{$eq:"Yes"}});
+  evolAgreed = await AgreedLabel.countDocuments({"consensus.evo":{"$eq":"Yes"}});
   evol += evolAgreed;
 
   spee = await Label.countDocuments({spc:{$eq:"Yes"}});
-  speeAgreed = await AgreedLabel.countDocuments({spc:{$eq:"Yes"}});
+  speeAgreed = await AgreedLabel.countDocuments({"consensus.spc":{"$eq":"Yes"}});
   spee += speeAgreed;
 
   vision = await Label.countDocuments({vis:{$eq:"Yes"}});
-  visionAgreed = await AgreedLabel.countDocuments({vis:{$eq:"Yes"}});
+  visionAgreed = await AgreedLabel.countDocuments({"consensus.vis":{"$eq":"Yes"}});
   vision += visionAgreed;
 
   natural = await Label.countDocuments({nlp:{$eq:"Yes"}});
-  naturalAgreed = await AgreedLabel.countDocuments({nlp:{$eq:"Yes"}});
+  naturalAgreed = await AgreedLabel.countDocuments({"consensus.nlp":{"$eq":"Yes"}});
   natural += naturalAgreed;
 
   plan = await Label.countDocuments({pln:{$eq:"Yes"}});
-  planAgreed = await AgreedLabel.countDocuments({pln:{$eq:"Yes"}});
+  planAgreed = await AgreedLabel.countDocuments({"consensus.pln":{"$eq":"Yes"}});
   plan += planAgreed;
 
   know = await Label.countDocuments({kpr:{$eq:"Yes"}});
-  knowAgreed = await AgreedLabel.countDocuments({kpr:{$eq:"Yes"}});
+  knowAgreed = await AgreedLabel.countDocuments({"consensus.kpr":{"$eq":"Yes"}});
   know += knowAgreed
 
   res.status(200).json(
