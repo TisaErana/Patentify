@@ -6,19 +6,15 @@ import Iframe from 'react-iframe';
 const PatentCard = (props) => {
 
   return (
-    <Card>
-        <Card.Body>
-        <Iframe
-            id="patent-pdf"
-            url={checkID(props.patents)}
-            width="100%"
-            height="1000px"
-            className="size"
-            display="initial"
-            postion="relative"
-        />
-      </Card.Body>
-    </Card>
+    <Iframe
+      id="patent-pdf"
+      url={checkID(props.patents)}
+      width="100%"
+      height="1000px"
+      className="size"
+      display="initial"
+      postion="relative"
+    />
   );
 }
 

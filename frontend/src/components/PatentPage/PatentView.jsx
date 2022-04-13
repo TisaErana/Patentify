@@ -93,23 +93,19 @@ const PatentView = (props) => {
         <Fragment>
           <div className="col-sm-8 col-lg-3 col-md-7">
             <div style={{ 
-              backgroundColor: 'rgb(230, 246, 255)', 
               padding: '3%',
-              boxShadow: "0px 3px 1px -2px rgba(0,0,0,0.5), 0px 2px 2px 0px rgba(0,0,0,0.14), 0px 1px 5px 0px rgba(0,0,0,0.50)",
               marginTop: '17%' }}>
               <h3>Abstract</h3>
               <div style={{ fontSize: "14px", color: 'black', weight: "bold" }}>{patentAbstract}</div>
               <br/>
               <h3>Claims</h3>
-              <div style={{ fontSize: "14px", color: 'black', weight: "bold" }}>
-                <ListGroup>
+              <ListGroup style={{ fontSize: "14px", color: 'black', weight: "bold" }}>
                   {
                     patentClaims.map(item => (
-                      <ListGroup.Item key={item}>{item}</ListGroup.Item>
+                      <ListGroup.Item key={item} style={{backgroundColor: 'transparent'}}>{item}</ListGroup.Item>
                     ))
                   }
-                </ListGroup>
-              </div>
+              </ListGroup>
             </div>
           </div>
           <div className="col-sm-10 col-lg-6 col-md-8">
