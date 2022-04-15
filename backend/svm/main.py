@@ -98,12 +98,20 @@ try:
                 if collection == 'svm_command' and change['operationType'] == 'update':
                     handle_command(client, learner, change)
                 
+                # process labels which only have an annotation by one person:
                 if collection == 'labels':
                     entries += 1
                     entry = change['fullDocument']
 
-                    isAI = get_target(entry)
-                    annotations[entry['document']] = isAI
+                    # if patent has been assigned, let's wait for a consensus:
+                    assigned = db.patent_assignments.find_one({ 'assignments.documentId': entry['document'] })
+                    
+                    if(assigned == None):
+                        isAI = get_target(entry)
+                        annotations[entry['document']] = isAI
+                    else:
+                        print('[Active_Learning]: skipped', entry['document'], 'waiting on consensus')
+                    
 
                 # process labels which have been agreed by two annotators:
                 if collection == 'agreed_labels':
