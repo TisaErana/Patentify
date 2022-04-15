@@ -62,16 +62,21 @@ def base_model_creator(client, stopwords, data='data/seed_antiseed_476.pkl'):
     
     # save new model:
     global model_filename 
-    model_filename = 'base_model_{sklearn.__version__}.joblib'
+    model_filename = f'models/Final/base_model_[scikit-learn-{sklearn.__version__}].joblib'
 
-    dump(learner.estimator,f'models/Final/base_model_{sklearn.__version__}.joblib')
-    dump(vectorizer, f'vectorizer_{sklearn.__version__}.joblib')
+    dump(learner.estimator, model_filename)
+    dump(vectorizer, f'vectorizer_[scikit-learn-{sklearn.__version__}].joblib')
 
-def model_loader(model = f'base_model_{sklearn.__version__}'):
+def model_loader():
     global model_filename 
-    model_filename = f'{model}.joblib'
 
-    estimator = load(f'models/Final/{model_filename}')
+    try: # to load a working model that has been trained on more than see/antiseed data:
+        model_filename = f'models/Final/working_model_[scikit-learn-{sklearn.__version__}].joblib'
+        estimator = load(model_filename)
+    except FileNotFoundError: # try to load the base model:
+        model_filename = f'models/Final/base_model_[scikit-learn-{sklearn.__version__}].joblib'
+        estimator = load(model_filename)
+
     return estimator
 
 def get_target(entry):
@@ -119,7 +124,7 @@ def svm_format(client, ids, target, training=False):
 
 def vectorize(df, vectorizer = None, target='target', training=False):
     if vectorizer == None:
-        vectorizer = load(f'vectorizer_{sklearn.__version__}.joblib')
+        vectorizer = load(f'vectorizer_[scikit-learn-{sklearn.__version__}].joblib')
 
     #print(df['text'])
     #print(df['text'].to_numpy())
@@ -299,7 +304,7 @@ def find_uncertain_patents(learner, client, file='data/decision_boundary-462.pkl
     # print(sorted_proba)
 
     operations = []
-    uncertain_indexes = uncertainty_sampling(learner, x, 110)
+    uncertain_indexes = uncertainty_sampling(learner, x, 100)
 
     for index in uncertain_indexes:
         documentId = data['doc_id'].values[index] 

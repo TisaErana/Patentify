@@ -6,6 +6,8 @@ from itertools import cycle
 from time import time
 from functions import *
 
+import traceback
+
 from configuration import *
 
 # establish connection to the database
@@ -37,7 +39,7 @@ except FileNotFoundError:
     print('stopwords.txt not found, seeting stopwords="english"')
     stopwords= "english"                                                    #this adds all the stop words from a stopwords text file
 
-#create learner and check for base_learner
+#create learner and check for base_learner:
 learner = None
 try:
     print("Checking for base model...")
@@ -82,7 +84,7 @@ try:
         print('[INFO]: found resume token:', continue_starter)
     except FileNotFoundError:
         db_stream = db.watch(match_pipeline)  
-        continue_after = db_stream._resume_token
+        continue_after = continue_starter = db_stream._resume_token
         print('[INFO]: no resume token found, using latest resume token:', continue_after)
 
     # begin training model loop:  
@@ -168,16 +170,22 @@ try:
 except KeyboardInterrupt:
     print("[Interrupted]")
 
-# except Exception as e:
-#     print(e) # 'handle' exception and safely exit program.
+# 'handle' exception and safely exit program:
+except Exception as e:
+    print(repr(e))
+    print(traceback.format_exc())
 
 print("Finalizing...")
 if continue_after is not continue_starter:
-    dump(learner.estimator, f'models/Final/model_at_{time():0.0f}.joblib')
+    if 'base_model' in model_filename:
+        model_filename = f'models/Final/working_model_[scikit-learn-{sklearn.__version__}].joblib'
+    
+    dump(learner.estimator, model_filename)
     dump(continue_after,'continue_token.joblib')
     print("[INFO]: dumped continue_after and model.")
 else:
     print("No successful iterations... No changes will be made.")
+    dump(continue_after,'continue_token.joblib')
 
 # let the admin know the service is offline:
 update_svm_metrics(client, {
