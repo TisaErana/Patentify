@@ -23,7 +23,8 @@ const PatentView = (props) => {
   const [patentDate, setPatentDate] = useState(); //          stores the date of the current patent.
   const [patentTitle, setPatentTitle] = useState(); //        stores the title of the current patent.
   const [patentAbstract, setPatentAbstract] = useState(); //  stores the abstract of the current patent.
-  const [patentClaims, setPatentClaims] = useState([]); //      stores the claims of the current patent.
+  const [patentClaims, setPatentClaims] = useState([]); //    stores the claims of the current patent.
+  const [patentCorpus, setPatentCorpus] = useState(); //      stores the patentCorpus of the current patent.
 
   useEffect(() => {
     const weAreSearching = history.location.state ? history.location.state['weAreSearching'] : false;
@@ -84,6 +85,7 @@ const PatentView = (props) => {
       setPatentClaims(patents.claims);
       setPatentAbstract(patents.abstract);
       setPatentDate(patents.date);
+      setPatentCorpus(patents.patentCorpus);
     }
   }, [patents]);
   
@@ -100,8 +102,8 @@ const PatentView = (props) => {
               <h3>Abstract</h3>
               <div style={{ fontSize: "14px", color: 'black', weight: "bold" }}>{patentAbstract}</div>
               <br/>
-              <h3>Date</h3>
-              <div style={{ fontSize: "14px", color: 'black', weight: "bold" }}>{patentDate}</div>
+              <h3>{(patentCorpus == 'USPAT') ? 'Patent Publication Date' : 'Application Filing Date'}</h3>
+              <div style={{ fontSize: "14px", color: 'black', weight: "bold", textAlign: "center" }}>{patentDate}</div>
               <br/>
               <h3>Claims</h3>
               <ListGroup style={{ fontSize: "14px", color: 'black', weight: "bold" }}>
@@ -114,7 +116,7 @@ const PatentView = (props) => {
             </div>
           </div>
           <div className="col-sm-10 col-lg-6 col-md-8">
-            <h3>Patent ID: {patentId}</h3>
+            <h3>Document ID: {patentId}</h3>
             <h4>{patentTitle}</h4>
             <PatentCard patents={patents} />
           </div>
