@@ -169,7 +169,7 @@ try:
 
                     if cycleCount % MIN_AUTO_SAVE_CYCLES == 0:
                         print(f'[AUTO-SAVE {time():0.0f}]: saved latest model and continue_token')
-                        dump(learner.estimator, f'models/Final/auto-save_latest.joblib')
+                        dump(learner.estimator, f'models/working_model_[scikit-learn-{sklearn.__version__}].joblib')
                         dump(continue_after,'continue_token.joblib')
                     
                     cycleCount += 1
@@ -185,10 +185,7 @@ except Exception as e:
 
 print("Finalizing...")
 if continue_after is not continue_starter:
-    if 'base_model' in model_filename:
-        model_filename = f'models/Final/working_model_[scikit-learn-{sklearn.__version__}].joblib'
-    
-    dump(learner.estimator, model_filename)
+    dump(learner.estimator, f'models/working_model_[scikit-learn-{sklearn.__version__}].joblib')
     dump(continue_after,'continue_token.joblib')
     print("[INFO]: dumped continue_after and model.")
 else:
