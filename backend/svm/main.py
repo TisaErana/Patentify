@@ -39,23 +39,17 @@ except FileNotFoundError:
     print('stopwords.txt not found, seeting stopwords="english"')
     stopwords= "english"                                                    #this adds all the stop words from a stopwords text file
 
-#create learner and check for base_learner:
+# load the working model from a file or create a new base model:
 learner = None
 try:
     print("Checking for base model...")
-    base_estimator = model_loader()
+    learner = model_loader()
     print("Base model successfully loaded.")
 except FileNotFoundError:
     print("Base model not found, creating a new base model...")
     base_model_creator(client, stopwords)
-    base_estimator = model_loader()
+    learner = model_loader()
     print('Base model successfully created.')
-
-if learner is None:
-    learner = ActiveLearner(
-        estimator=base_estimator,
-        query_strategy=uncertainty_sampling
-    )
 
 svm_metrics_init(learner, client) # init svm_metrics in database
 
@@ -169,8 +163,22 @@ try:
 
                     if cycleCount % MIN_AUTO_SAVE_CYCLES == 0:
                         print(f'[AUTO-SAVE {time():0.0f}]: saved latest model and continue_token')
-                        dump(learner.estimator, f'models/working_model_[scikit-learn-{sklearn.__version__}].joblib')
+                        dump(learner, f'models/working_model_[scikit-learn-{sklearn.__version__}].joblib')
                         dump(continue_after,'continue_token.joblib')
+
+                    if cycleCount % F1_SCORE_INTERVAL == 0:
+                        print('[SVM_Metrics]: new f1_score', )
+                        # update uncertain f1_score
+                        currentDateTime = datetime.utcnow()
+                        
+                        update_svm_metrics(client, {
+                            "$push": {
+                                "f1_scores": {
+                                    "$each": [ { "score": calc_f1_score(learner, client), "date": currentDateTime } ],
+                                    "$slice": -F1_SCORE_MAX # negative value returns last n elements
+                                }
+                            }
+                        })
                     
                     cycleCount += 1
 
@@ -185,7 +193,7 @@ except Exception as e:
 
 print("Finalizing...")
 if continue_after is not continue_starter:
-    dump(learner.estimator, f'models/working_model_[scikit-learn-{sklearn.__version__}].joblib')
+    dump(learner, f'models/working_model_[scikit-learn-{sklearn.__version__}].joblib')
     dump(continue_after,'continue_token.joblib')
     print("[INFO]: dumped continue_after and model.")
 else:
@@ -194,5 +202,7 @@ else:
 
 # let the admin know the service is offline:
 update_svm_metrics(client, {
-    "model_filename": 'offline'
+    "$set": {
+        "model_filename": 'offline'
+    }
 })

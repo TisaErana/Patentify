@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { useState } from "react";
-import { Bar, Pie } from "react-chartjs-2";
+import { Bar, Pie, Line } from "react-chartjs-2";
 import axios from "axios";
 
 import Card from "react-bootstrap/Card";
@@ -8,14 +8,18 @@ import Button from "react-bootstrap/Button";
 
 const Chart = (props) => {
 
-  const [data, setData] = useState({ svm_metrics: { 
+  const initialDataState = { svm_metrics: {
+    f1_scores: [ { score: -1, date: "" } ], 
     model_filename: 'Loading...',
     initializedAt: 'Loading...'  
-  }});  
+  }}
+  
+  const [data, setData] = useState(initialDataState);  
 
   const [chartData, setChartData] = useState({});
   const [chartData2, setChartData2] = useState({});
   const [svmMetrics, setSvmMetrics] = useState({});
+  const [svmF1Scores, setSvmF1Scores] = useState({});
 
   const [isExecuting, setIsExecuting] = useState(false);
 
@@ -26,8 +30,8 @@ const Chart = (props) => {
     })
     .then((response) => {
       if (response.status === 200) {
-        console.log(response.data)
-        setData(response.data)
+        console.log(response.data);
+        setData(response.data);
       }
     })
     .catch((error) => {
@@ -47,10 +51,7 @@ const Chart = (props) => {
         await new Promise(resolve => setTimeout(resolve, 5000));
         
         // update charts:
-        setData({ svm_metrics: { 
-          model_filename: 'Loading...',
-          initializedAt: 'Loading...'  
-        }}); // trigger table refresh
+        setData(initialDataState); // trigger table refresh
         chart()
 
         setIsExecuting(false);
@@ -78,11 +79,21 @@ const Chart = (props) => {
       borderWidth: 0,
     });
     setSvmMetrics({
-      labels:['Uncertain Patents Sampled', 'Service Start', 'Current Score'], // name of category
+      labels:['Uncertain Patents Sampled', 'Current Score'], // name of category
       datasets: [{
           label: 'F1 Score',
-          data: [data.svm_metrics.uncertain_F1_score, data.svm_metrics.init_F1_score, data.svm_metrics.current_F1_score],
+          data: [data.svm_metrics.uncertain_F1_score, data.svm_metrics.f1_scores[data.svm_metrics.f1_scores.length - 1].score],
           backgroundColor:'rgba(121, 173, 220,1)'         
+        }],
+      borderWidth: 0,
+    });
+    setSvmF1Scores({
+      labels: data.svm_metrics.f1_scores.map((x) => (new Date(x.date)).toLocaleString()),
+      datasets: [{
+          label: 'F1 Score',
+          data: data.svm_metrics.f1_scores.map((x) => x.score),
+          backgroundColor:'rgba(95, 173, 220, 0.2)',
+          borderColor:'rgba(121, 173, 220, 1)'          
         }],
       borderWidth: 0,
     });
@@ -141,64 +152,66 @@ const Chart = (props) => {
                   <br/>
                   <br/>
                   <table style={{ width: '100%' }}>
-                    <tr>
-                      <td>
-                        <Card.Subtitle className="mb-4 text-muted">
-                          Model Loaded:
-                        </Card.Subtitle>
-                      </td>
-                      <td style={{textAlign: 'center'}}>
-                        <Card.Subtitle className="mb-2">
-                          {data.svm_metrics.model_filename}
-                        </Card.Subtitle>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <Card.Subtitle className="mb-2 text-muted">
-                          Service {data.svm_metrics.model_filename == 'offline' ? 'Last' : ''} Started:
-                        </Card.Subtitle>
-                      </td>
-                      <td style={{textAlign: 'center'}}>
-                        <Card.Subtitle className="mb-2">
-                          {new Date(data.svm_metrics.initializedAt).toString()}
-                        </Card.Subtitle>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <Card.Subtitle className="mb-2 text-muted">
-                          Current Score Last Updated:
-                        </Card.Subtitle>
-                      </td>
-                      <td style={{textAlign: 'center'}}>
-                        <Card.Subtitle className="mb-2">
-                          {new Date(data.svm_metrics.updatedAt).toString()}
-                        </Card.Subtitle>
-                      </td>
-                      <td>
-                        <Card.Subtitle className="mb-2">
-                          <Button 
-                            variant="success"
-                            onClick={update_f1_score}
-                            disabled={data.svm_metrics.model_filename == 'offline'}>
-                            {isExecuting ? 'Executing Command...' : 'Update F1 Score'}
-                          </Button>
-                        </Card.Subtitle>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <Card.Subtitle className="mb-2 text-muted">
-                          Uncertain Patents were Sampled:
-                        </Card.Subtitle>
-                      </td>
-                      <td style={{textAlign: 'center'}}>
-                        <Card.Subtitle className="mb-2">
-                          {new Date(data.svm_metrics.uncertainUpdatedAt).toString()}
-                        </Card.Subtitle>
-                      </td>
-                    </tr>
+                    <tbody>
+                      <tr>
+                        <td>
+                          <Card.Subtitle className="mb-4 text-muted">
+                            Model Loaded:
+                          </Card.Subtitle>
+                        </td>
+                        <td style={{textAlign: 'center'}}>
+                          <Card.Subtitle className="mb-2">
+                            {data.svm_metrics.model_filename}
+                          </Card.Subtitle>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <Card.Subtitle className="mb-2 text-muted">
+                            Service {data.svm_metrics.model_filename == 'offline' ? 'Last' : ''} Started:
+                          </Card.Subtitle>
+                        </td>
+                        <td style={{textAlign: 'center'}}>
+                          <Card.Subtitle className="mb-2">
+                            {new Date(data.svm_metrics.initializedAt).toString()}
+                          </Card.Subtitle>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <Card.Subtitle className="mb-2 text-muted">
+                            Current Score Last Updated:
+                          </Card.Subtitle>
+                        </td>
+                        <td style={{textAlign: 'center'}}>
+                          <Card.Subtitle className="mb-2">
+                            {new Date(data.svm_metrics.f1_scores[data.svm_metrics.f1_scores.length - 1].date).toString()}
+                          </Card.Subtitle>
+                        </td>
+                        <td>
+                          <Card.Subtitle className="mb-2">
+                            <Button 
+                              variant="success"
+                              onClick={update_f1_score}
+                              disabled={data.svm_metrics.model_filename == 'offline'}>
+                              {isExecuting ? 'Executing Command...' : 'Update F1 Score'}
+                            </Button>
+                          </Card.Subtitle>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <Card.Subtitle className="mb-2 text-muted">
+                            Uncertain Patents were Sampled:
+                          </Card.Subtitle>
+                        </td>
+                        <td style={{textAlign: 'center'}}>
+                          <Card.Subtitle className="mb-2">
+                            {new Date(data.svm_metrics.uncertainUpdatedAt).toString()}
+                          </Card.Subtitle>
+                        </td>
+                      </tr>
+                    </tbody>
                   </table>
                 </Card.Header>
                 <Card.Body>
@@ -213,6 +226,16 @@ const Chart = (props) => {
                           }]
                       }
                 }}/>
+                </Card.Body>
+              </Card>
+            </div>
+            <div className="col-lg-6 col-sm-6">
+              <Card>
+                <Card.Header>
+                  <Card.Title>F1 Scores</Card.Title>
+                </Card.Header>
+                <Card.Body>
+                  <Line data={svmF1Scores}/>
                 </Card.Body>
               </Card>
             </div>

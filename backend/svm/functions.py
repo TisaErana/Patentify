@@ -64,7 +64,7 @@ def base_model_creator(client, stopwords, data='data/seed_antiseed_476.pkl'):
     global model_filename 
     model_filename = f'models/base_model_[scikit-learn-{sklearn.__version__}].joblib'
 
-    dump(learner.estimator, model_filename)
+    dump(learner, model_filename)
     dump(vectorizer, f'vectorizer_[scikit-learn-{sklearn.__version__}].joblib')
 
 def model_loader():
@@ -72,12 +72,12 @@ def model_loader():
 
     try: # to load a working model that has been trained on more than see/antiseed data:
         model_filename = f'models/working_model_[scikit-learn-{sklearn.__version__}].joblib'
-        estimator = load(model_filename)
+        learner = load(model_filename)
     except FileNotFoundError: # try to load the base model:
         model_filename = f'models/base_model_[scikit-learn-{sklearn.__version__}].joblib'
-        estimator = load(model_filename)
+        learner = load(model_filename)
 
-    return estimator
+    return learner
 
 def get_target(entry):
     """
@@ -163,11 +163,9 @@ def svm_metrics_init(learner, client):
         db.svm_metrics.insert_one({ 
             "model_filename": model_filename,
 
-            "init_F1_score": f1_score,
+            "f1_scores": [ { "score": f1_score, "date": currentDateTime } ],
             "uncertain_F1_score": -1,
-            "current_F1_score": f1_score,
 
-            "updatedAt": currentDateTime,
             "initializedAt": currentDateTime,
             "uncertainUpdatedAt": datetime.utcnow()
         })
@@ -179,12 +177,14 @@ def svm_metrics_init(learner, client):
         {
             "$set": {
                 "model_filename": model_filename,
-
-                "init_F1_score": f1_score,
-                "current_F1_score": f1_score,
                 
-                "updatedAt": currentDateTime,
                 "initializedAt": currentDateTime
+            },
+            "$push": {
+                "f1_scores": {
+                    "$each": [ { "score": f1_score, "date": currentDateTime } ],
+                    "$slice": -F1_SCORE_MAX # negative value returns last n elements
+                }
             }
         })
 
@@ -193,24 +193,25 @@ def svm_metrics_init(learner, client):
         db.svm_command.insert_one({ 
             "command": 'ready'
         })
+    elif not(svm_command['command'] == 'acknowledged'):
+        db.svm_command.update_one({ "_id": svm_command["_id"]}, { 
+            "command": 'ready'
+        })
     
     print('[INFO]: svm metrics initialized')
 
-def update_svm_metrics(client, values):
+def update_svm_metrics(client, operations):
     """
     Updates the svm metrics in the database.
     @param client: the db client connection.
-    @param values: an object of values to update in collection.
+    @param operations: a mongoDB compatible object with update operations.
     """
     db = client['PatentData']
     svm_metrics = db.svm_metrics.find_one()
 
     db.svm_metrics.update_one({
         "_id": svm_metrics["_id"]
-    }, 
-    {
-        "$set": values
-    })
+    }, operations)
 
 def acknowledge_svm_command(client):
     """
@@ -236,10 +237,13 @@ def handle_command(client, learner, change):
         currentDateTime = datetime.utcnow()
         
         update_svm_metrics(client, {
-            "current_F1_score": calc_f1_score(learner, client),
-            "updatedAt": currentDateTime
+            "$push": {
+                "f1_scores": {
+                    "$each": [ { "score": calc_f1_score(learner, client), "date": currentDateTime } ],
+                    "$slice": -F1_SCORE_MAX # negative value returns last n elements
+                }
+            }
         })
-
         acknowledge_svm_command(client)
 
 # def calc_f1_score(learner, client, collection='labels'):
@@ -328,9 +332,18 @@ def find_uncertain_patents(learner, client, file='data/decision_boundary-462.pkl
     print(result.bulk_api_result)
 
     # update uncertain f1_score
+    f1_score = calc_f1_score(learner, client)
     currentDateTime = datetime.utcnow()
+
     update_svm_metrics(client, {
-            "uncertain_F1_score": calc_f1_score(learner, client),
-            "updatedAt": currentDateTime,
+        "$set": {              
+            "uncertain_F1_score": f1_score,
             "uncertainUpdatedAt": currentDateTime
+        },
+        "$push": {
+            "f1_scores": {
+                "$each": [ { "score": f1_score, "date": currentDateTime } ],
+                "$slice": -F1_SCORE_MAX # negative value returns last n elements
+            }
+        }
     })

@@ -5,11 +5,12 @@ const svmMetricSchema = new Schema(
   {
     model_filename: { type: String },
 
-    init_F1_score: { type: Number },
+    F1_scores: [ {
+      score: { type: Number },
+      date: { type: Date }
+    } ],
     uncertain_F1_score: { type: Number },
-    current_F1_score: { type: Number },
 
-    updatedAt: { type: Date },
     initializedAt: { type: Date },
     uncertainUpdatedAt: { type: Date }
   }
