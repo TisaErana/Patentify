@@ -7,8 +7,28 @@ from time import time
 from functions import *
 
 import traceback
+import signal
 
 from configuration import *
+
+def gracefully_exit():
+    print("Finalizing...")
+    if continue_after is not continue_starter:
+        dump(learner, f'models/working_model_[scikit-learn-{sklearn.__version__}].joblib')
+        dump(continue_after,'continue_token.joblib')
+        print("[INFO]: dumped continue_after and model.")
+    else:
+        print("No successful iterations... No changes will be made.")
+        dump(continue_after,'continue_token.joblib')
+
+    # let the admin know the service is offline:
+    update_svm_metrics(client, {
+        "$set": {
+            "model_filename": 'offline'
+        }
+    })
+
+signal.signal(signal.SIGTERM, gracefully_exit) # handle SIGTERM from systemctl stop
 
 # establish connection to the database
 client = MongoClient("mongodb://localhost:27017/PatentData")
@@ -191,18 +211,4 @@ except Exception as e:
     print(repr(e))
     print(traceback.format_exc())
 
-print("Finalizing...")
-if continue_after is not continue_starter:
-    dump(learner, f'models/working_model_[scikit-learn-{sklearn.__version__}].joblib')
-    dump(continue_after,'continue_token.joblib')
-    print("[INFO]: dumped continue_after and model.")
-else:
-    print("No successful iterations... No changes will be made.")
-    dump(continue_after,'continue_token.joblib')
-
-# let the admin know the service is offline:
-update_svm_metrics(client, {
-    "$set": {
-        "model_filename": 'offline'
-    }
-})
+gracefully_exit()
