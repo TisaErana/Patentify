@@ -20,6 +20,7 @@ const PatentView = (props) => {
   const [patents, setPatents] = useState(); //                object with patents assigned to user.
 
   const [patentId, setPatentId] = useState(); //              stores the documentId of the current patent.
+  const [patentDate, setPatentDate] = useState(); //          stores the date of the current patent.
   const [patentTitle, setPatentTitle] = useState(); //        stores the title of the current patent.
   const [patentAbstract, setPatentAbstract] = useState(); //  stores the abstract of the current patent.
   const [patentClaims, setPatentClaims] = useState([]); //      stores the claims of the current patent.
@@ -82,6 +83,7 @@ const PatentView = (props) => {
       setPatentId(patents.documentId);
       setPatentClaims(patents.claims);
       setPatentAbstract(patents.abstract);
+      setPatentDate(patents.date);
     }
   }, [patents]);
   
@@ -97,6 +99,9 @@ const PatentView = (props) => {
               marginTop: '17%' }}>
               <h3>Abstract</h3>
               <div style={{ fontSize: "14px", color: 'black', weight: "bold" }}>{patentAbstract}</div>
+              <br/>
+              <h3>Date</h3>
+              <div style={{ fontSize: "14px", color: 'black', weight: "bold" }}>{patentDate}</div>
               <br/>
               <h3>Claims</h3>
               <ListGroup style={{ fontSize: "14px", color: 'black', weight: "bold" }}>
