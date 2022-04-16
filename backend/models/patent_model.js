@@ -7,6 +7,7 @@ const patentSchema = new Schema(
     title:{type:String},
     claims:{ type: [String] },
     abstract:{type:String},
+    date:{type:String},
     patentCorpus:{type:String}
   },
 
