@@ -62,7 +62,7 @@ def base_model_creator(client, stopwords, data='data/seed_antiseed_476.pkl'):
     
     # save new model:
     global model_filename 
-    model_filename = f'models/Final/base_model_[scikit-learn-{sklearn.__version__}].joblib'
+    model_filename = f'models/base_model_[scikit-learn-{sklearn.__version__}].joblib'
 
     dump(learner.estimator, model_filename)
     dump(vectorizer, f'vectorizer_[scikit-learn-{sklearn.__version__}].joblib')
@@ -71,10 +71,10 @@ def model_loader():
     global model_filename 
 
     try: # to load a working model that has been trained on more than see/antiseed data:
-        model_filename = f'models/Final/working_model_[scikit-learn-{sklearn.__version__}].joblib'
+        model_filename = f'models/working_model_[scikit-learn-{sklearn.__version__}].joblib'
         estimator = load(model_filename)
     except FileNotFoundError: # try to load the base model:
-        model_filename = f'models/Final/base_model_[scikit-learn-{sklearn.__version__}].joblib'
+        model_filename = f'models/base_model_[scikit-learn-{sklearn.__version__}].joblib'
         estimator = load(model_filename)
 
     return estimator
