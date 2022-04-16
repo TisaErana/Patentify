@@ -203,15 +203,15 @@ const Chart = (props) => {
                 </Card.Header>
                 <Card.Body>
                   <Bar 
-                  data={svmMetrics}
-                  options={{
-                    scales: {
-                        yAxes: [{
-                            ticks: {
-                                beginAtZero: true
-                            }
-                        }]
-                    }
+                    data={svmMetrics}
+                    options={{
+                      scales: {
+                          yAxes: [{
+                              ticks: {
+                                  beginAtZero: true
+                              }
+                          }]
+                      }
                 }}/>
                 </Card.Body>
               </Card>
