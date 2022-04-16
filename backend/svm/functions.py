@@ -194,8 +194,10 @@ def svm_metrics_init(learner, client):
             "command": 'ready'
         })
     elif not(svm_command['command'] == 'acknowledged'):
-        db.svm_command.update_one({ "_id": svm_command["_id"]}, { 
-            "command": 'ready'
+        db.svm_command.update_one({ "_id": svm_command["_id"]}, {
+            "$set": { 
+                "command": 'ready'
+            }
         })
     
     print('[INFO]: svm metrics initialized')
