@@ -516,6 +516,19 @@ router.get("/labels", async function (req, res, next) {
 });
 
 /**
+ * Checks if patents have been annotated in agreed/disagreed categories.
+ */
+async function patentHasBeenAnnotatedAlready(documentIds) {
+  agreedCount = await AgreedLabel.countDocuments({ document: documentIds });
+  disagreedCount = await DisagreedLabel.countDocuments({ document: documentIds, consensus: { $exists: true } });
+  
+  console.log(agreedCount)
+  console.log(disagreedCount)
+
+  return agreedCount > 0 || disagreedCount > 0
+}
+
+/**
  * Assigns a patent/s to a user's patent assignments.
  */
 router.post("/assignments/assign", async function (req, res, next) {
@@ -527,7 +540,7 @@ router.post("/assignments/assign", async function (req, res, next) {
   .select('_id') // we only need the id
   .lean()
   .catch((error) => {
-    res.status(500).json({ error: error })
+    return res.status(500).json({ error: error })
   });
 
   // check if user exists:
@@ -536,7 +549,7 @@ router.post("/assignments/assign", async function (req, res, next) {
       user: user._id
     })
     .catch((error) => {
-      res.status(500).json({ error: error })
+      return res.status(500).json({ error: error })
     });
 
     // check if the user already has assignments:
@@ -545,21 +558,28 @@ router.post("/assignments/assign", async function (req, res, next) {
       for (document of documents) {
          // check if user has already been assigned that patent:
          if (!assignment.assignments.some(e => e.documentId === document)) {
-          data = await Patent.findOne({
-            documentId: document
-          })
-          .lean()
-          .catch((error) => {
-            res.status(500).json({ error: error })
-          });
-
-          // check if we have metadata on that patent:
-          if(data !== null) {
-            assignment.assignments.push(data);
-          }
-          else { // we don't have metadata for that patent:
-            res.status(400).json({ error: document + ' is not in our database' })
-          }
+          alreadyAnnotated = await patentHasBeenAnnotatedAlready(document);  
+          
+          if(!alreadyAnnotated) {
+              data = await Patent.findOne({
+                documentId: document
+              })
+              .lean()
+              .catch((error) => {
+                return res.status(500).json({ error: error })
+              });
+  
+              // check if we have metadata on that patent:
+              if(data !== null) {
+                assignment.assignments.push(data);
+              }
+              else { // we don't have metadata for that patent:
+                return res.status(400).json({ error: document + ' is not in our database' })
+              }
+            }
+            else { // patents have already been annotated:
+              return res.status(400).json({ error: document + ' has already been annotated' })
+            }
         }
         else { // user already has that patent assigned:
           // nothing to do for this patent...
@@ -567,47 +587,54 @@ router.post("/assignments/assign", async function (req, res, next) {
       }
 
       await assignment.save().catch((error) => {
-        res.status(500).json({ error: error })
+        return res.status(500).json({ error: error })
       });
 
-      res.json({
+      return res.json({
         assigned: await PatentAssignment.find().lean().catch((error) => {
           res.status(500).json({ error: error })
       })});
     }
     else { // let's make a new entry for this user:
+      alreadyAnnotated = await patentHasBeenAnnotatedAlready(documents);
       
-      data = await Patent.find({
-        documentId: documents
-      })
-      .lean()
-      .catch((error) => {
-        res.status(500).json({ error: error })
-      });
-      
-      // check if we have metadata on that patent:
-      if(data.length > 0) {
-        assignment = new PatentAssignment({
-          user:user._id,
-          assignments: data
-        });
-  
-        await assignment.save().catch((error) => {
+      // check if patents have already been annotated: 
+      if (!alreadyAnnotated) {
+        data = await Patent.find({
+          documentId: documents
+        })
+        .lean()
+        .catch((error) => {
           res.status(500).json({ error: error })
         });
-
-        res.json({
-          assigned: await PatentAssignment.find().lean().catch((error) => {
+        
+        // check if we have metadata on that patent:
+        if(data.length > 0) {
+          assignment = new PatentAssignment({
+            user:user._id,
+            assignments: data
+          });
+    
+          await assignment.save().catch((error) => {
             res.status(500).json({ error: error })
-        })});
+          });
+  
+          return res.json({
+            assigned: await PatentAssignment.find().lean().catch((error) => {
+              res.status(500).json({ error: error })
+          })});
+        }
+        else { // we don't have metadata for that patent:
+          return res.status(400).json({ error: 'one or more documents are not in our database' })
+        }
       }
-      else { // we don't have metadata for that patent:
-        res.status(400).json({ error: 'one or more documents are not in our database' })
+      else { // patents have already been annotated:
+        return res.status(400).json({ error: 'one or more documents have already been annotated' })
       }
     }
   }
   else { // user does not exist:
-    res.status(400).json({ error: 'invalid user' });
+    return res.status(400).json({ error: 'invalid user' });
   }
 
 });
