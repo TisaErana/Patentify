@@ -625,11 +625,11 @@ router.post("/assignments/assign", async function (req, res, next) {
           })});
         }
         else { // we don't have metadata for that patent:
-          return res.status(400).json({ error: 'one or more documents are not in our database' })
+          return res.status(400).json({ error: 'One or more documents are not in our database' })
         }
       }
       else { // patents have already been annotated:
-        return res.status(400).json({ error: 'one or more documents have already been annotated' })
+        return res.status(400).json({ error: 'One or more documents have already been annotated' })
       }
     }
   }
