@@ -4,6 +4,7 @@ const mongoose = require("mongoose");
 const db = mongoose.connection.db
 // This is the model of the patents
 const Patent = require("../models/patents_model");
+const UnlabeledPatent = require("../models/unlabeled_patents_model");
 
 // Import label model
 const User = require("../models/user_model");
@@ -23,17 +24,14 @@ const { rawListeners } = require("../app");
 // Backend Constants:
 
 /**
- * The sample size of random patents to retrieve from the DB when findind a new patent.
- * 
- * Increase this when most patents in the DB have been labeled/are in queues to be labeled to decrease DB queries.
- * Decrease this when size of patents in DB > size of patents labeled/in user queues.
+ * The sample size of random patents to retrieve from the DB when findind a new unlabeled patent.
  */
-const QUEUE_CANDIDATE_LOOKUP_SIZE = 3;
+const QUEUE_CANDIDATE_LOOKUP_SIZE = 5500;
 
 /**
  * The maximum and minumum number of patents to send to patents tab in dashboard.
  */
-const ALL_PATENTS_MAX = 1500000;
+const ALL_PATENTS_MAX = 1000000;
 const ALL_PATENTS_MIN = 950000;
 
 /**
@@ -62,36 +60,21 @@ async function getNextPatent(req, res, transaction = { "mode": "new", "documentI
   }
   else // let's find the user a random patent to annotate:
   {
-    // find patents the user has already labeled:
-    var alreadyLabeled = await Label.find({
-      user: req.user._id
-    }).lean().select(['-_id', 'document']).distinct('document');
+    // patent's that are in other's queues:
+    const inQueues = (await Queue.find({ }).lean().select(['-_id', 'documentId'])).map((item) => (
+      item.documentId
+    ))
 
-    // find patents in someone else's queue:
-    var inQueues = await Queue.find({
-      userId: req.user._id
-    }).lean().select(['-_id', 'documentId']).distinct('documentId')
-    
-    var candidates = await Patent.aggregate([
-      { $sample: { size: QUEUE_CANDIDATE_LOOKUP_SIZE } }
-    ]); // find some random patent candidates
-
-    var i = 0; // current index
-    patent = candidates[i]; // current patent
-    const patentIdsToExclude = alreadyLabeled.concat(inQueues);
-
-    // this is a lot faster than excluding them in the MongoDB aggregate function:
-    while(patentIdsToExclude.includes(patent.documentId))
-    {
-      if(i == (QUEUE_CANDIDATE_LOOKUP_SIZE - 1)) {
-        candidates = await Patent.aggregate([
-          { $sample: { size: QUEUE_CANDIDATE_LOOKUP_SIZE } }
-        ]); // find some random patent candidates
-
-        i = 0;
+    const candidates = await UnlabeledPatent.find({
+      'documentId': {
+        "$nin": inQueues 
       }
-      patent = candidates[++i];
-    }
+    })//.sort( { documentId: -1 } ) // queries from bottom instead of top, query from top is faster
+    .lean().limit(QUEUE_CANDIDATE_LOOKUP_SIZE); // find some random patent candidates
+
+    patent = await Patent.findOne({ 
+      'documentId': candidates[Math.floor(Math.random() * candidates.length)].documentId
+    }).lean(); // find patent metadata 
   }
   
   if(transaction.mode === "update")
