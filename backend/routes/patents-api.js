@@ -167,9 +167,17 @@ async function removeFromAssignedPatents(res, userId, docId) {
   {
     dbAssignments.assignments = dbAssignments.assignments.filter(({ documentId }) => !documentId.includes(docId))
 
-    await dbAssignments.save().catch((error) => {
-      res.status(500).json({ error: error })
-    });
+    // update the assignments for the user:
+    if (dbAssignments.assignments.length != 0) {
+      await dbAssignments.save().catch((error) => {
+        res.status(500).json({ error: error })
+      });
+    }
+    else { // remove the user from the assigment collection:
+      await dbAssignments.deleteOne().catch((error) => {
+        res.status(500).json({ error: error })
+      });
+    }
   }
   else { } // user does not have any patent assignments: do nothing 
 }
