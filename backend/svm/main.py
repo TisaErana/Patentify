@@ -62,9 +62,9 @@ except FileNotFoundError:
 # load the working model from a file or create a new base model:
 learner = None
 try:
-    print("Checking for base model...")
+    print("Checking for saved model...")
     learner = model_loader()
-    print("Base model successfully loaded.")
+    print("Saved model successfully loaded.")
 except FileNotFoundError:
     print("Base model not found, creating a new base model...")
     base_model_creator(client, stopwords)
@@ -181,24 +181,27 @@ try:
                     print("[INFO]: done with cycle", cycleCount)
                     continue_after = change['_id']
 
-                    if cycleCount % MIN_AUTO_SAVE_CYCLES == 0:
-                        print(f'[AUTO-SAVE {time():0.0f}]: saved latest model and continue_token')
-                        dump(learner, f'models/working_model_[scikit-learn-{sklearn.__version__}].joblib')
-                        dump(continue_after,'continue_token.joblib')
-
+                    # calculate new f1_score:
                     if cycleCount % F1_SCORE_INTERVAL == 0:
-                        print('[SVM_Metrics]: new f1_score', )
-                        # update uncertain f1_score
+                        f1_score = calc_f1_score(learner, client)
                         currentDateTime = datetime.utcnow()
                         
                         update_svm_metrics(client, {
                             "$push": {
                                 "f1_scores": {
-                                    "$each": [ { "score": calc_f1_score(learner, client), "date": currentDateTime } ],
+                                    "$each": [ { "score": f1_score, "date": currentDateTime } ],
                                     "$slice": -F1_SCORE_MAX # negative value returns last n elements
                                 }
                             }
                         })
+
+                        print('[SVM_Metrics]: new f1_score', f1_score)
+                    
+                    # auto-save model to file:
+                    if cycleCount % MIN_AUTO_SAVE_CYCLES == 0:
+                        print(f'[AUTO-SAVE {time():0.0f}]: saved latest model and continue_token')
+                        dump(learner, f'models/working_model_[scikit-learn-{sklearn.__version__}].joblib')
+                        dump(continue_after,'continue_token.joblib')
                     
                     cycleCount += 1
 
