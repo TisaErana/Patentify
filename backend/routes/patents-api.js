@@ -89,12 +89,7 @@ async function getNextPatent(req, res, transaction = { "mode": "new", "documentI
 
     if(queueItem !== null)
     {
-      queueItem.date = patent.date,
-      queueItem.title =  patent.title,
-      queueItem.abstract = patent.abstract,
-      queueItem.claims = patent.claims,
       queueItem.documentId = patent.documentId;
-      queueItem.patentCorpus = patent.patentCorpus;
       queueItem.updatedAt = Date.now();
 
       await queueItem.save().catch((error) => {
@@ -109,12 +104,7 @@ async function getNextPatent(req, res, transaction = { "mode": "new", "documentI
   {
     await (new Queue({
       userId: req.user._id,
-      date: patent.date,
-      title: patent.title,
-      claims: patent.claims,
-      abstract: patent.abstract,
-      documentId: patent.documentId,
-      patentCorpus: patent.patentCorpus
+      documentId: patent.documentId
     }))
     .save()
     .catch((error) => {
@@ -149,7 +139,7 @@ router.get("/", async function (req, res, next) {
       res.status(500);
     });
 
-    res.json(userQueue);
+    res.json(await Patent.findOne({ "documentId": userQueue.documentId }).lean());
   }
   else // let's find a new patent for the user:
   {
