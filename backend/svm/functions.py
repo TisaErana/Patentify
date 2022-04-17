@@ -27,8 +27,19 @@ from configuration import *
 # GLOBALS:
 model_filename = None
 
+# load stopwords
+try:
+    stopwords = []                          
+    with open('stopwords.txt') as f:                
+        lines = f.readlines()
+        for line in lines:
+            stopwords.append(line[:-1])             
+except FileNotFoundError:
+    print('stopwords.txt not found, seeting stopwords="english"')
+    stopwords= "english"                                                    #this adds all the stop words from a stopwords text file
+
 # Create base model and save into file
-def base_model_creator(client, stopwords, data='data/seed_antiseed_476.pkl'):
+def base_model_creator(client, data='data/seed_antiseed_476.pkl'):
     """
     Creates a new base model from seed and antiseed data.
     """
@@ -48,10 +59,7 @@ def base_model_creator(client, stopwords, data='data/seed_antiseed_476.pkl'):
     data = data.reindex(columns=['id', 'text', 'target'])
     #print(data)
 
-    # Transforms a given text into a vector on the basis of the frequency (count) of each word that occurs in the entire text #
-    vectorizer = CountVectorizer(stop_words = stopwords)
-
-    x, y = vectorize(data, vectorizer)
+    x, y = vectorize(data)
 
     # create active learner: 
     learner = ActiveLearner(
@@ -64,20 +72,19 @@ def base_model_creator(client, stopwords, data='data/seed_antiseed_476.pkl'):
     global model_filename 
     model_filename = f'models/base_model_[scikit-learn-{sklearn.__version__}].joblib'
 
-    dump(learner, model_filename)
-    dump(vectorizer, f'vectorizer_[scikit-learn-{sklearn.__version__}].joblib')
+    dump(learner.estimator, model_filename)
 
 def model_loader():
     global model_filename 
 
     try: # to load a working model that has been trained on more than see/antiseed data:
         model_filename = f'models/working_model_[scikit-learn-{sklearn.__version__}].joblib'
-        learner = load(model_filename)
+        estimator = load(model_filename)
     except FileNotFoundError: # try to load the base model:
         model_filename = f'models/base_model_[scikit-learn-{sklearn.__version__}].joblib'
-        learner = load(model_filename)
+        estimator = load(model_filename)
 
-    return learner
+    return estimator
 
 def get_target(entry):
     """
@@ -122,9 +129,9 @@ def svm_format(client, ids, target):
 
     return vectorize(df)                                    
 
-def vectorize(df, vectorizer = None, target='target'):
-    if vectorizer == None:
-        vectorizer = load(f'vectorizer_[scikit-learn-{sklearn.__version__}].joblib')
+def vectorize(df, target='target'):
+    # Transforms a given text into a vector on the basis of the frequency (count) of each word that occurs in the entire text #
+    vectorizer = CountVectorizer(stop_words = stopwords)
 
     #print(df['text'])
     #print(df['text'].to_numpy())

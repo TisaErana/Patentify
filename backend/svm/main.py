@@ -48,28 +48,21 @@ match_pipeline = [
 
 uncertain_patents = db['uncertain_patents']
 
-# load stopwords
-try:
-    stopwords = []                          
-    with open('stopwords.txt') as f:                
-        lines = f.readlines()
-        for line in lines:
-            stopwords.append(line[:-1])             
-except FileNotFoundError:
-    print('stopwords.txt not found, seeting stopwords="english"')
-    stopwords= "english"                                                    #this adds all the stop words from a stopwords text file
-
 # load the working model from a file or create a new base model:
-learner = None
 try:
     print("Checking for saved model...")
-    learner = model_loader()
+    estimator = model_loader()
     print("Saved model successfully loaded.")
 except FileNotFoundError:
     print("Base model not found, creating a new base model...")
-    base_model_creator(client, stopwords)
-    learner = model_loader()
+    base_model_creator(client)
+    estimator = model_loader()
     print('Base model successfully created.')
+
+learner = ActiveLearner(
+    estimator=estimator,
+    query_strategy=uncertainty_sampling
+)
 
 svm_metrics_init(learner, client) # init svm_metrics in database
 
@@ -168,7 +161,7 @@ try:
                 ids = list(annotations.keys()) #               document ids of newly annotated documents.
                 target = list(annotations.values()) #            classification of newly annotated documents.
 
-                if entries >= MIN_TRAINING_SIZE and not (any(target) and all(target)):
+                if entries >= MIN_TRAINING_SIZE and (any(target) and (not all(target))):
                     print(ids)
                     print(target)
 
