@@ -4,8 +4,8 @@ const Home = () => {
     return (
         
 
-        <div className="d-flex justify-content-center" style={{height: '100vh'}}>
-        <div className= "text-center mt-5" >
+        <div className="d-flex justify-content-center align-items-center" style={{height: '40vh'}}>
+        <div className= "text-center mt-5">
           <h5> Welcome to </h5>
           <h1 className='Hero'> Patentify </h1>
           <h4> AI Assisted Patent Labeling </h4>

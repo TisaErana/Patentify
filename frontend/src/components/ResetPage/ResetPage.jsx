@@ -41,7 +41,7 @@ const Reset = (props) => {
   return (
     <div>
       <div className="d-flex justify-content-center ">
-        <div className="login-box">
+        <div className="login-box" style={{ marginTop: "6%" }}>
           <div className="login-logo">
             <b>Password Reset</b>
           </div>
@@ -64,7 +64,8 @@ const Reset = (props) => {
                   />
                      <div className="input-group-append">
                     <div className="input-group-text">
-                      </div>
+                      <span className="fas fa-lock" />
+                    </div>
                       </div>
                       </div>
                  <div className="input-group mb-3">
@@ -80,6 +81,7 @@ const Reset = (props) => {
                   />
                   <div className="input-group-append">
                     <div className="input-group-text">
+                      <span className="fas fa-lock" />
                     </div>
                   </div>
                   </div>
@@ -96,6 +98,7 @@ const Reset = (props) => {
                   />
                   <div className="input-group-append">
                     <div className="input-group-text">
+                      <span className="fas fa-lock" />
                     </div>
                   </div>
                   </div>

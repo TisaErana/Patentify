@@ -50,7 +50,7 @@ const Signup = (props) => {
     <div>
       {isAuthedRedirect()} 
       <div className="d-flex justify-content-center ">
-        <div className="login-box">
+        <div className="login-box" style={{ marginTop: "6%" }}>
           <div className="login-logo">
             <b>SignUp</b>
           </div>

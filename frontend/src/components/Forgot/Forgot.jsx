@@ -35,13 +35,13 @@ const Forgot = (props) => {
   return (
     <div>
       <div className="d-flex justify-content-center ">
-        <div className="login-box">
+        <div className="login-box" style={{ marginTop: "6%" }}>
           <div className="login-logo">
             <b>Reset Password</b>
           </div>
           <div className="card">
             <div className="card-body login-card-body">
-              <p className="login-box-msg">Enter Email to Rest Password</p>
+              <p className="login-box-msg">Enter Email to Reset Password</p>
               <Form
                 action="/routes/passwordReset"
                 method="POST"

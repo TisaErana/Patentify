@@ -54,7 +54,7 @@ const Login = (props) => {
   return (
     <div>
       <div className="d-flex justify-content-center ">
-        <div className="login-box">
+        <div className="login-box" style={{ marginTop: "6%" }}>
           <div className="login-logo">
             <b>Login</b>
           </div>
