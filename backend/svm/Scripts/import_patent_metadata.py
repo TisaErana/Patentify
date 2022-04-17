@@ -361,8 +361,9 @@ print('[Claims_Import]: elapsed time:', (time.time()) - start, 'seconds')
 missingDate = [element['documentId'] for element in list(dbPatents.find({ 'date': '' }, {"_id": False, "documentId": 1}))]
 missingTitle = [element['documentId'] for element in list(dbPatents.find({ 'title': '' }, {"_id": False, "documentId": 1}))]
 missingAbstract = [element['documentId'] for element in list(dbPatents.find({ 'abstract': '' }, {"_id": False, "documentId": 1}))]
-#missingClaims = [element['documentId'] for element in list(dbPatents.find({ 'claims': [] }, {"_id": False, "documentId": 1}))]
+missingClaims = [element['documentId'] for element in list(dbPatents.find({ 'claims': [] }, {"_id": False, "documentId": 1}))]
 
 print('Missing Date:', missingDate)
 print('Missing Title:', missingTitle)
 print('Missing Abstract:', missingAbstract)
+print('Missing Claims:', missingClaims)
