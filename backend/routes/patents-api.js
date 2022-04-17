@@ -3,14 +3,14 @@ const router = express.Router();
 const mongoose = require("mongoose");
 const db = mongoose.connection.db
 // This is the model of the patents
-const Patent = require("../models/patent_model");
+const Patent = require("../models/patents_model");
 
 // Import label model
-const User = require("../models/User_model");
+const User = require("../models/user_model");
 const Label = require("../models/label_model");
 const AgreedLabel = require("../models/agreed_labels_model");
 const DisagreedLabel = require("../models/disagreed_labels_model");
-const UncertainPatent = require("../models/uncertain_patent");
+const UncertainPatent = require("../models/uncertain_patents_model");
 const PatentAssignment = require("../models/patent_assignments_model");
 const SVM_Metrics = require("../models/svm_metrics_model");
 const SVM_Command = require("../models/svm_command_model");
@@ -19,7 +19,6 @@ const SVM_Command = require("../models/svm_command_model");
 const Queue = require("../models/queue_model");
 const e = require("express");
 const { rawListeners } = require("../app");
-const disagreed_labels_model = require("../models/disagreed_labels_model");
 
 // Backend Constants:
 

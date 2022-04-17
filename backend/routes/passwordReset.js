@@ -4,10 +4,10 @@ const router = express.Router();
 const mongoose = require("mongoose");
 const db = mongoose.connection.db
 const crypto = require("crypto");
-const User = require("../models/User_model");
+const User = require("../models/user_model");
 const Token = require("../models/token");
 const sendEmail = require("../utils/sendEmail").sendEmail;
-const { UserSchema } = require("../models/User_model");
+const { UserSchema } = require("../models/user_model");
 const bcrypt = require('bcryptjs');
 const salt = bcrypt.genSaltSync(10);
 

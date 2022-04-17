@@ -2,7 +2,7 @@
 const passport = require('passport');
 
 // Import models
-const User = require("../../models/User_model");
+const User = require("../../models/user_model");
 
 passport.serializeUser(function(user, done) {
     done(null, user.email);

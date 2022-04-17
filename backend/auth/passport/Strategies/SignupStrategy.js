@@ -7,7 +7,7 @@ const salt = bcrypt.genSaltSync(10);
 
 const sendVerificationEmail = require('../../../utils/sendEmail').sendVerificationEmail;
 // Import models
-const User = require("../../../models/User_model");
+const User = require("../../../models/user_model");
 
 const userconfirmed = require("../../../models/user_confirmed_model");
 

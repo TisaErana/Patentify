@@ -7,7 +7,7 @@ const bcrypt = require('bcryptjs');
 const emailHelpers = require('../../../utils/sendEmail');
 
 // Import models
-const User = require("../../../models/User_model");
+const User = require("../../../models/user_model");
 
 const LoginStrategy = new Strategy({ usernameField: 'email' },
 
