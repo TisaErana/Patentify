@@ -32,6 +32,12 @@ const disagreed_labels_model = require("../models/disagreed_labels_model");
 const QUEUE_CANDIDATE_LOOKUP_SIZE = 3;
 
 /**
+ * The maximum and minumum number of patents to send to patents tab in dashboard.
+ */
+const ALL_PATENTS_MAX = 1500000;
+const ALL_PATENTS_MIN = 950000;
+
+/**
  * Finds the next best patent to show the user.
  * @param {*} req the api request to the server.
  * @param {*} res response object.
@@ -520,7 +526,10 @@ router.get("/labels", async function (req, res, next) {
  */
  router.get("/patents/slow", async function (req, res, next) {
   res.json(
-    await Patent.find().select({ _id: false, documentId: true, title: true }).lean().catch((error) => {
+    await Patent.find()
+    .select({ _id: false, documentId: true, title: true })
+    .limit(Math.floor(Math.random() * (ALL_PATENTS_MAX - ALL_PATENTS_MIN + 1) + ALL_PATENTS_MIN))
+    .lean().catch((error) => {
       res.status(500).json({ error: error });
     })
   );
