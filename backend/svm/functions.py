@@ -51,7 +51,7 @@ def base_model_creator(client, stopwords, data='data/seed_antiseed_476.pkl'):
     # Transforms a given text into a vector on the basis of the frequency (count) of each word that occurs in the entire text #
     vectorizer = CountVectorizer(stop_words = stopwords)
 
-    x, y = vectorize(data, vectorizer, training=True)
+    x, y = vectorize(data, vectorizer)
 
     # create active learner: 
     learner = ActiveLearner(
@@ -98,7 +98,7 @@ def get_target(entry):
 
     return int(any(values))
 
-def svm_format(client, ids, target, training=False):
+def svm_format(client, ids, target):
     """
     Transforms annotations into something the svm model understands.
     Returns a tuple with the x and y vectorization of the annotations.
@@ -120,19 +120,16 @@ def svm_format(client, ids, target, training=False):
     df = pd.DataFrame(data = {'id':ids,'text':txt,'target':target})      # this will put the id, text{abstract and title}, and target into a dataframe
     #print(df)
 
-    return vectorize(df, training=training)                                    
+    return vectorize(df)                                    
 
-def vectorize(df, vectorizer = None, target='target', training=False):
+def vectorize(df, vectorizer = None, target='target'):
     if vectorizer == None:
         vectorizer = load(f'vectorizer_[scikit-learn-{sklearn.__version__}].joblib')
 
     #print(df['text'])
     #print(df['text'].to_numpy())
     
-    if training:
-        x = vectorizer.fit_transform(df['text'].to_numpy()) # fit model and then transform shape of array
-    else:
-        x = vectorizer.transform(df['text'].to_numpy()) # only transform the data do not fit it
+    x = vectorizer.fit_transform(df['text'].to_numpy()) # build vocabulary and transform data
 
     #print(x.todense())
     #print(vectorizer.get_feature_names())
