@@ -44,7 +44,7 @@ def process_USPATs():
         usecols = ['id', 'date', 'abstract', 'title', 'type'],
         dtype = { 'id': str, 'date': str, 'abstract': str }
     )
-    patents = patents[~patents['type'].isin(['defensive publication'])] # exclude defensive publications
+    patents = patents[~patents['type'].isin(['defensive publication', 'design'])] # exclude defensive publications and design documents
 
     patentCount = len(patents.index)
     print('[USPATs_Thread]: total USPATs to be imported:', patentCount)
