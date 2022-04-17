@@ -337,7 +337,7 @@ router.post("/labels", async function (req, res, next) {
      }));
     }
   }
-  else // new entry:
+  else
   {
     disagreedLabel = await DisagreedLabel.findOne({
       document: req.body.documentId
@@ -384,6 +384,9 @@ router.post("/labels", async function (req, res, next) {
   
       // if this patent was assigned, let's update the user's list of assignments:
       await removeFromAssignedPatents(res, req.user._id, req.body.documentId);
+
+      // remove document from unlabeled pool:
+      await UnlabeledPatent.deleteOne({ documentId: req.body.documentId });
   
       res.json(await label.save().catch((error) => {
         res.status(500).json({ error: error });
