@@ -7,6 +7,7 @@ const patentAssignmentSchema = new Schema(
     assignments: [
       {
         documentId:{type:String},
+        date:{type:String},
         title:{type:String},
         claims:{ type: [String] },
         abstract:{type:String},
