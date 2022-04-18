@@ -107,8 +107,8 @@ def get_target(entry):
 
 def svm_format(client, ids, target):
     """
-    Transforms annotations into something the svm model understands.
-    Returns a tuple with the x and y vectorization of the annotations.
+    Finds document metadata and formats it into a dataframe.
+    @returns a dataframe compatible with the vectorize() function.
     """
     db = client['PatentData']
     collection = db['patents']
@@ -127,12 +127,19 @@ def svm_format(client, ids, target):
     df = pd.DataFrame(data = {'id':ids,'text':txt,'target':target})      # this will put the id, text{abstract and title}, and target into a dataframe
     #print(df)
 
-    return vectorize(df)                                    
+    return df                                    
 
 def vectorize(df, target='target'):
+    """
+    Transforms annotations into something the svm model understands.
+    @param df: a dataframe generated with the svm_format() function.
+    @returns a tuple with the x and y vectorization of the annotations.
+    """
+    
     # Transforms a given text into a vector on the basis of the frequency (count) of each word that occurs in the entire text #
     vectorizer = CountVectorizer(stop_words = stopwords)
 
+    #print(df)
     #print(df['text'])
     #print(df['text'].to_numpy())
     
@@ -284,27 +291,35 @@ def calc_f1_score(learner, client, file='data/decision_boundary-462.pkl'):
     data = pickle.load(pickledDataFile)
     #print(data)
 
-    x, y_true = svm_format(client, data['doc_id'].values.tolist(), data['Annotated_value'].values.tolist())
+    x, y_true = vectorize(svm_format(client, data['doc_id'].values.tolist(), data['Annotated_value'].values.tolist()))
     y_predictions = learner.predict(x)
 
     return f1_score(y_true, y_predictions, average='weighted')
 
-def find_uncertain_patents(learner, client, file='data/decision_boundary-462.pkl'):
+def find_uncertain_patents(learner, client):
     """
     Predicts on data from pickle file, finds patents it is uncertain of, and updates database.
     """
     db = client['PatentData']
 
-    # import data from pickle file:
-    pickledDataFile = open(file, 'rb')
-    data = pickle.load(pickledDataFile)
-    #print(data)
+    if 'base_model' in model_filename:
+        # import data from pickle file:
+        pickledDataFile = open('data/decision_boundary-462.pkl', 'rb')
+        data = pickle.load(pickledDataFile)
+        #print(data)
+        
+        data.rename(columns={'doc_id': 'id'}, inplace=True)
+        x, y_true = vectorize(svm_format(client, data['id'].values.tolist(), data['Annotated_value'].values.tolist()))
+    else:
+        # sample from unlabeled patents:
+        ids = [element['documentId'] for element in list(db.unlabeled_patents.aggregate([ { "$sample": { "size": UNCERTAIN_SAMPLE_SIZE } } ]))]
+        data = svm_format(client, ids, [None] * len(ids))
+        x, _ = vectorize(data)
+        
 
-    x, y_true = svm_format(client, data['doc_id'].values.tolist(), data['Annotated_value'].values.tolist())
-    
     # # get average certainties:
     # proba = learner.predict_proba(x)
-    # # find the hgihest probability per document:
+    # # find the highest probability per document:
     # max_proba_idx = np.amax(proba, axis=1)
     # # sort probabilities ascending:
     # sorted_proba = np.sort(max_proba_idx)
@@ -314,15 +329,16 @@ def find_uncertain_patents(learner, client, file='data/decision_boundary-462.pkl
     # print(sorted_proba)
 
     operations = []
-    uncertain_indexes = uncertainty_sampling(learner, x, 100)
+    uncertain_indexes = uncertainty_sampling(learner, x, int((UNCERTAIN_SAMPLE_SIZE * UNCERTAIN_SAMPLE_PERCENT)))
 
     for index in uncertain_indexes:
-        documentId = data['doc_id'].values[index] 
+        documentId = data['id'].values[index] 
         document = db['patents'].find_one({ 'documentId': documentId  })
 
         operations.append(
             InsertOne({ 
                 "documentId": documentId,
+                'date': document['date'],
                 'title': document['title'],
                 'abstract': document['abstract'],
                 'claims': document['claims'],

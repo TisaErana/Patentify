@@ -5,3 +5,6 @@ N_COMPONENTS = 2 # minimum number of features for the truncated svm. N_COMPONENT
 F1_SCORE_MAX = 10 # the number of f1 scores to save in the database.
 F1_SCORE_INTERVAL = 10 # the number of training cycles before a new f1_score is calculated and stored.
 MIN_AUTO_SAVE_CYCLES = 10 # the minimum number of training cycles before the model is auto-saved to a file.
+
+UNCERTAIN_SAMPLE_SIZE = 500 # number of patents to predict on when performing uncertainty sampling.
+UNCERTAIN_SAMPLE_PERCENT = 0.25 # the percent to pick from of the ones sampled.

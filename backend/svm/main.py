@@ -136,6 +136,10 @@ try:
 
                         isAI = get_target(consensus)
                         annotations[entry['document']] = isAI
+
+                        # check if there are no more uncertain patents:
+                        if db.uncertain_patents.count_documents({ }) == 0:
+                            find_uncertain_patents(learner, client)
                                   
                 
                 # process labels which have been disagreed upon by two annotators (decided by 3rd):
@@ -157,6 +161,10 @@ try:
                         isAI = get_target(consensus)
                         annotations[documentId] = isAI
 
+                        # check if there are no more uncertain patents:
+                        if db.uncertain_patents.count_documents({ }) == 0:
+                            find_uncertain_patents(learner, client)
+
                 # check target has multiple classes(1 and 0)
                 ids = list(annotations.keys()) #               document ids of newly annotated documents.
                 target = list(annotations.values()) #            classification of newly annotated documents.
@@ -165,7 +173,7 @@ try:
                     print(ids)
                     print(target)
 
-                    X, y = svm_format(client, ids, target)
+                    X, y = vectorize(svm_format(client, ids, target))
                     learner.teach(X=X, y=y)
 
                     entries = 0
