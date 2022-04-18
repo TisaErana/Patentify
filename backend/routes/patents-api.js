@@ -183,6 +183,41 @@ async function removeFromAssignedPatents(res, userId, docId) {
 }
 
 /**
+ * Automatically assigns up to 5 new patents to two top users in assignment list.
+ */
+async function autoAssignUncertainPatents(currentDocument) {
+  annotators = await PatentAssignment.find({ }).limit(2); // get only top 2 annotators
+
+  // go through top 2 annotatators:
+  for (annotator of annotators) {
+
+    // give them new patents:
+    if (annotator.assignments.length == 1) {
+      newAssignments = []
+      
+      labeled = (await Label.find({ }).lean()).map(item => (item.document))
+      labeled.push(currentDocument); // prevent the currently annotated document from being selected again
+
+      // exclude those labeled by only 1 annotator, once labeled by 2 they are removed by the svm
+      // from the uncertain patents list, but before then we have to filter them out:
+      uncertainPatents = await UncertainPatent.find({ documentId: { $nin: labeled } }).limit(5).lean()
+
+      uncertainPatents.forEach(patent => {
+        newAssignments.push(patent)
+      });
+
+      await PatentAssignment.updateMany({ user: [annotators[0].user, annotators[1].user] }, {
+        $push: {
+          assignments: {
+            $each: newAssignments
+          }
+        }
+      })
+    }
+  }
+}
+
+/**
  * ADDs or UPDATEs an annotation in the database.
  * 
  * @returns the newly added or updated annotation from the database.  
@@ -328,6 +363,8 @@ router.post("/labels", async function (req, res, next) {
       annotation.deleteOne();      
       }
       
+      await autoAssignUncertainPatents(req.body.documentId);
+      
       // if this patent was assigned, let's update the user's list of assignments:
       await removeFromAssignedPatents(res, req.user._id, req.body.documentId);
 
@@ -360,7 +397,9 @@ router.post("/labels", async function (req, res, next) {
         kpr:req.body.kpr, // Knowledge Processing
       }
 
-       // if this patent was assigned, let's update the user's list of assignments:
+      await autoAssignUncertainPatents(req.body.documentId); 
+      
+      // if this patent was assigned, let's update the user's list of assignments:
        await removeFromAssignedPatents(res, req.user._id, req.body.documentId);
 
       res.json(await disagreedLabel.save().catch((error) => {
@@ -382,6 +421,8 @@ router.post("/labels", async function (req, res, next) {
         kpr:req.body.kpr, // Knowledge Processing
       });
   
+      await autoAssignUncertainPatents(req.body.documentId);
+      
       // if this patent was assigned, let's update the user's list of assignments:
       await removeFromAssignedPatents(res, req.user._id, req.body.documentId);
 
@@ -525,8 +566,8 @@ async function patentHasBeenAnnotatedAlready(documentIds) {
   agreedCount = await AgreedLabel.countDocuments({ document: documentIds });
   disagreedCount = await DisagreedLabel.countDocuments({ document: documentIds, consensus: { $exists: true } });
   
-  console.log(agreedCount)
-  console.log(disagreedCount)
+  // console.log(agreedCount)
+  // console.log(disagreedCount)
 
   return agreedCount > 0 || disagreedCount > 0
 }
