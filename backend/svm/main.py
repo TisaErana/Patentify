@@ -110,10 +110,13 @@ try:
                     entries += 1
                     entry = change['fullDocument']
 
-                    # if patent has been assigned, let's wait for a consensus:
+                    # if patent has been assigned to more than 2 people, let's wait for a consensus:
                     assigned = db.patent_assignments.find_one({ 'assignments.documentId': entry['document'] })
                     
-                    if(assigned == None):
+                    # at this point, the assignment for the first user has been removed,
+                    # but we can check if the user submitting this annotation is not the same as a user assigned the same document
+
+                    if(assigned == None or (assigned['user'] == entry['user'])):
                         isAI = get_target(entry)
                         annotations[entry['document']] = isAI
                     else:
