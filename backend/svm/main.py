@@ -13,7 +13,7 @@ from configuration import *
 
 def gracefully_exit():
     print("Finalizing...")
-    if continue_after is not continue_starter:
+    if (continue_after is not continue_starter) or SAVE_WORKING_MODEL_AT_SHUTDOWN:
         dump(learner, f'models/working_model_[scikit-learn-{sklearn.__version__}].joblib')
         dump(continue_after,'continue_token.joblib')
         print("[INFO]: dumped continue_after and model.")
