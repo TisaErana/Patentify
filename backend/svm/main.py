@@ -139,6 +139,7 @@ try:
 
                         # check if there are no more uncertain patents:
                         if db.uncertain_patents.count_documents({ }) == 0:
+                            print('[INFO]: looking for new uncertain patents...')
                             find_uncertain_patents(learner, client)
                                   
                 
@@ -163,6 +164,7 @@ try:
 
                         # check if there are no more uncertain patents:
                         if db.uncertain_patents.count_documents({ }) == 0:
+                            print('[INFO]: looking for new uncertain patents...')
                             find_uncertain_patents(learner, client)
 
                 # check target has multiple classes(1 and 0)
