@@ -242,7 +242,8 @@ const ViewPatent = () => {
           options={{
               selection: true, 
               exportButton: true, 
-              exportAllData: true
+              exportAllData: true,
+              filtering: true
           }}
           localization={{
             toolbar: {
@@ -286,7 +287,8 @@ const ViewPatent = () => {
             }
           ]}
           options={{
-              selection: true
+              selection: true,
+              filtering: true
             }}
         />
       </div>
