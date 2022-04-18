@@ -130,7 +130,7 @@ const ViewPatent = () => {
         <MaterialTable
           title="Assigned Patents"
           columns={[
-            { title: "User", field: "user.email", defaultGroupOrder:0},
+            { title: "User", field: "user.email", defaultGroupOrder:0, customSort: (a, b) => 0},
             { title: "DocumentId", field: "documentId" },
             { title: "title", field: "title" },
             { title: "abstract", field: "abstract" }
