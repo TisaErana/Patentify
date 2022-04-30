@@ -185,38 +185,32 @@ async function removeFromAssignedPatents(res, userId, docId) {
 /**
  * Automatically assigns up to 5 new patents to two top users in assignment list.
  */
-async function autoAssignUncertainPatents(currentDocument) {
+async function autoAssignUncertainPatents(req) {
+  currentDocument = req.body.documentId;
+  console.log(currentDocument)
   annotators = await PatentAssignment.find({ }).limit(2); // get only top 2 annotators
 
   // only if there are 2 or more annotators to assign to:
   if(annotators.length >= 2) {
-    // go through top 2 annotatators:
-    for (annotator of annotators) {
-
-      // give them new patents:
-      if (annotator.assignments.length == 1) {
-        newAssignments = []
+    newAssignments = []
         
-        labeled = (await Label.find({ }).lean()).map(item => (item.document))
-        labeled.push(currentDocument); // prevent the currently annotated document from being selected again
+    labeled = (await Label.find({ }).lean()).map(item => (item.document))
+    labeled.push(currentDocument); // prevent the currently annotated document from being selected again
 
-        // exclude those labeled by only 1 annotator, once labeled by 2 they are removed by the svm
-        // from the uncertain patents list, but before then we have to filter them out:
-        uncertainPatents = await UncertainPatent.find({ documentId: { $nin: labeled } }).limit(5).lean()
+    // exclude those labeled by only 1 annotator, once labeled by 2 they are removed by the svm
+    uncertainPatents = await UncertainPatent.find({ documentId: { $nin: labeled } }).limit(5).lean();
 
-        uncertainPatents.forEach(patent => {
-          newAssignments.push(patent)
-        });
+    uncertainPatents.forEach(patent => {
+      newAssignments.push(patent)
+    });
 
-        await PatentAssignment.updateMany({ user: [annotators[0].user, annotators[1].user] }, {
-          $push: {
-            assignments: {
-              $each: newAssignments
-            }
-          }
-        })
+    await PatentAssignment.updateMany({ user: [annotators[0].user, annotators[1].user] }, {
+      $push: {
+        assignments: {
+          $each: newAssignments
+        }
       }
-    }
+    });
   }
 }
 
@@ -366,7 +360,7 @@ router.post("/labels", async function (req, res, next) {
       annotation.deleteOne();      
       }
       
-      await autoAssignUncertainPatents(req.body.documentId);
+      await autoAssignUncertainPatents(req);
       
       // if this patent was assigned, let's update the user's list of assignments:
       await removeFromAssignedPatents(res, req.user._id, req.body.documentId);
@@ -400,7 +394,7 @@ router.post("/labels", async function (req, res, next) {
         kpr:req.body.kpr, // Knowledge Processing
       }
 
-      await autoAssignUncertainPatents(req.body.documentId); 
+      await autoAssignUncertainPatents(req); 
       
       // if this patent was assigned, let's update the user's list of assignments:
        await removeFromAssignedPatents(res, req.user._id, req.body.documentId);
@@ -424,7 +418,7 @@ router.post("/labels", async function (req, res, next) {
         kpr:req.body.kpr, // Knowledge Processing
       });
   
-      await autoAssignUncertainPatents(req.body.documentId);
+      await autoAssignUncertainPatents(req);
       
       // if this patent was assigned, let's update the user's list of assignments:
       await removeFromAssignedPatents(res, req.user._id, req.body.documentId);
