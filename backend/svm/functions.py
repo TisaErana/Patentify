@@ -161,7 +161,7 @@ def svm_format(client, ids, target):
     collection = db['patents']
     entries = list(collection.find(filter = {'documentId':{'$in':ids}})) # find patents by patent id
     #print(entries)
-    print("length of entries array:", len(entries))
+    #print("length of entries array:", len(entries))
     
     txt = [p['abstract']+''+p['title'] for p in entries]                 # text holds: {abstract + title}
     #print(txt)
@@ -169,7 +169,7 @@ def svm_format(client, ids, target):
     #target = list(map(lambda x: 1 if x=='Yes' else 0, target))          # target maps the label -> to a 0 or 1.
     
     #print(target)
-    print("length of target array",len(target))
+    #print("length of target array",len(target))
     
     df = pd.DataFrame(data = {'id':ids,'text':txt,'target':target})      # this will put the id, text{abstract and title}, and target into a dataframe
     #print(df)
