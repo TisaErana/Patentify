@@ -11,3 +11,5 @@ UNCERTAIN_SAMPLE_PERCENT = 0.25 # the percent to pick from of the ones sampled.
 
 SAVE_WORKING_MODEL_AT_SHUTDOWN = False # this saves the current model at shutdown regardless of how many training cycles have passed.
 # this is useful for switching from the base model to the working model even if MIN_AUTO_SAVE_CYCLES has not been met.
+
+TRAIN_BASE_MODEL = True # this will train the base model with annotations from the database and switch to the working model.

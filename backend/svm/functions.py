@@ -38,6 +38,53 @@ except FileNotFoundError:
     print('stopwords.txt not found, seeting stopwords="english"')
     stopwords= "english"                                                    #this adds all the stop words from a stopwords text file
 
+# Train base model with annotations in database:
+def train_base_model(client, learner):
+    """
+    If set in the configuration, 
+
+    this will train the base model from all annotations in db, save as working model,
+    and switch to the working model.
+    """
+    if TRAIN_BASE_MODEL:
+        db = client['PatentData']
+
+        oneAnnotator = db.labels.find({ })
+        agreedLabels = db.agreed_labels.find({ })
+        disagredLabels = db.disagreed_labels.find({ "consensus": { "$exists": True } })
+
+        ids = [] #               document ids of newly annotated documents.
+        target = [] #            classification of newly annotated documents.
+        
+        for annotation in oneAnnotator:
+            ids.append(annotation['document'])
+            target.append(get_target(annotation))
+
+        for annotation in agreedLabels:
+            ids.append(annotation['document'])
+            target.append(get_target(annotation['consensus']))
+
+        for annotation in disagredLabels:
+            ids.append(annotation['document'])
+            target.append(get_target(annotation['consensus']))
+
+        print('[TRAIN_BASE_MODEL]: found', len(ids), 'documents, training...')
+        
+        #print(len(set(ids)))
+        #print(len(target))
+        #print(svm_format(client, ids, target))
+        
+        x, y = vectorize(svm_format(client, ids, target))
+        learner.teach(X=x, y=y)
+
+        # switch to working model:
+        global model_filename
+
+        model_filename = f'models/working_model_[scikit-learn-{sklearn.__version__}].joblib'
+        dump(learner.estimator, model_filename)
+
+        print('[TRAIN_BASE_MODEL]: training successful, switched to working_model')
+
 # Create base model and save into file
 def base_model_creator(client, data='data/seed_antiseed_476.pkl'):
     """
@@ -68,10 +115,10 @@ def base_model_creator(client, data='data/seed_antiseed_476.pkl'):
         X_training=x, y_training=y                                                  # this just makes x and y the training values
     )
     
-    # save new model:
+    # save base model:
     global model_filename 
     model_filename = f'models/base_model_[scikit-learn-{sklearn.__version__}].joblib'
-
+    
     dump(learner.estimator, model_filename)
 
 def model_loader():
@@ -114,7 +161,7 @@ def svm_format(client, ids, target):
     collection = db['patents']
     entries = list(collection.find(filter = {'documentId':{'$in':ids}})) # find patents by patent id
     #print(entries)
-    #print("length of entries array:", len(entries))
+    print("length of entries array:", len(entries))
     
     txt = [p['abstract']+''+p['title'] for p in entries]                 # text holds: {abstract + title}
     #print(txt)
@@ -122,7 +169,7 @@ def svm_format(client, ids, target):
     #target = list(map(lambda x: 1 if x=='Yes' else 0, target))          # target maps the label -> to a 0 or 1.
     
     #print(target)
-    #print("length of target array",len(target))
+    print("length of target array",len(target))
     
     df = pd.DataFrame(data = {'id':ids,'text':txt,'target':target})      # this will put the id, text{abstract and title}, and target into a dataframe
     #print(df)

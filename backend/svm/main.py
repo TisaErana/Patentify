@@ -14,7 +14,7 @@ from configuration import *
 def gracefully_exit():
     print("Finalizing...")
     if (continue_after is not continue_starter) or SAVE_WORKING_MODEL_AT_SHUTDOWN:
-        dump(learner, f'models/working_model_[scikit-learn-{sklearn.__version__}].joblib')
+        dump(learner.estimator, f'models/working_model_[scikit-learn-{sklearn.__version__}].joblib')
         dump(continue_after,'continue_token.joblib')
         print("[INFO]: dumped continue_after and model.")
     else:
@@ -52,18 +52,19 @@ uncertain_patents = db['uncertain_patents']
 try:
     print("Checking for saved model...")
     estimator = model_loader()
-    print("Saved model successfully loaded.")
+    print("Saved model successfully loaded:", estimator)
 except FileNotFoundError:
     print("Base model not found, creating a new base model...")
     base_model_creator(client)
     estimator = model_loader()
-    print('Base model successfully created.')
+    print('Base model successfully created:', estimator)
 
 learner = ActiveLearner(
     estimator=estimator,
     query_strategy=uncertainty_sampling
 )
 
+train_base_model(client, learner) # only if set in configuration
 svm_metrics_init(learner, client) # init svm_metrics in database
 
 # check if we need to find new uncertain patents:
@@ -206,7 +207,7 @@ try:
                     # auto-save model to file:
                     if cycleCount % MIN_AUTO_SAVE_CYCLES == 0:
                         print(f'[AUTO-SAVE {time():0.0f}]: saved latest model and continue_token')
-                        dump(learner, f'models/working_model_[scikit-learn-{sklearn.__version__}].joblib')
+                        dump(learner.estimator, f'models/working_model_[scikit-learn-{sklearn.__version__}].joblib')
                         dump(continue_after,'continue_token.joblib')
                     
                     cycleCount += 1
