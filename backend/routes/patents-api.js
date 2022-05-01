@@ -29,10 +29,9 @@ const { rawListeners } = require("../app");
 const QUEUE_CANDIDATE_LOOKUP_SIZE = 5500;
 
 /**
- * The maximum and minumum number of patents to send to patents tab in dashboard.
+ * The maximum number of patents per page to send to patents tab in dashboard.
  */
-const ALL_PATENTS_MAX = 1000000;
-const ALL_PATENTS_MIN = 950000;
+const ALL_PATENTS_MAX = 1200000;
 
 /**
  * Finds the next best patent to show the user.
@@ -545,15 +544,29 @@ router.get("/labels", async function (req, res, next) {
 /**
  * GETs list of all patents in database.
  */
- router.get("/patents/slow", async function (req, res, next) {
-  res.json(
-    await Patent.find()
+ router.get("/patents/slow/:page", async function (req, res, next) {
+  page = req.params.page;
+  
+  documents = await Patent.find()
     .select({ _id: false, documentId: true, title: true })
-    .limit(Math.floor(Math.random() * (ALL_PATENTS_MAX - ALL_PATENTS_MIN + 1) + ALL_PATENTS_MIN))
+    .skip(page * ALL_PATENTS_MAX)
+    .limit(ALL_PATENTS_MAX)
     .lean().catch((error) => {
       res.status(500).json({ error: error });
-    })
-  );
+  });
+
+  count = documents.length;
+  totalCount = await Patent.estimatedDocumentCount();
+  
+  // console.log(page)
+  // console.log(page * ALL_PATENTS_MAX)
+  // console.log(ALL_PATENTS_MAX * page >= totalCount)
+  // console.log(totalCount)
+  
+    res.json({
+    "done": (ALL_PATENTS_MAX * page) >= totalCount,
+    "documents": documents
+  });
 });
 
 /**

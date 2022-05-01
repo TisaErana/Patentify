@@ -7,9 +7,13 @@ import { Form } from "react-bootstrap";
 
 import axios from "axios";
 
+import { MdOutlineChevronLeft, MdOutlineChevronRight } from "react-icons/md";
+
 const ViewPatent = () => {
   const history = useHistory();
 
+  const [endOfAllPatents, setEndOfAllPatents] = useState(false);
+  const [allPatentsPage, setAllPatentsPage] = useState(0);
   const [selectedUser, setSelectedUser] = useState();
 
   const [data, setData] = useState({ users: [], preventDefault: true });
@@ -87,19 +91,22 @@ const ViewPatent = () => {
     fetchData();
   }, []);
 
+  async function fetchAllPatents(page) {
+    try {
+      setAllPatents(); // let the user know the table is loading...
+      
+      // fetch all patents in the database:
+      const allPatents = await fetch("/patents-api/patents/slow/" + page);
+      const result = await allPatents.json();
+
+      setEndOfAllPatents(result.done);
+      setAllPatents(result.documents);
+    } catch (error) {}
+  }
+
   useEffect(() => {
-    async function fetchAllPatents() {
-      try {
-        // fetch all patents in the database:
-        const allPatents = await fetch("/patents-api/patents/slow");
-        const patentIds = await allPatents.json();
-
-        setAllPatents(patentIds);
-      } catch (error) {}
-    }
-
-    fetchAllPatents();
-  }, []);
+    fetchAllPatents(allPatentsPage);
+  }, [allPatentsPage]);
 
   // save selected user and set uncertain patent list: 
   useEffect(() => {
@@ -284,6 +291,23 @@ const ViewPatent = () => {
                     })
                     history.go(0);
                 }
+            },
+            {
+              icon: MdOutlineChevronLeft,
+              tooltip: 'Load Previous Page of Patents',
+              isFreeAction: true,
+              disabled: allPatentsPage === 0,
+              onClick: (event, rowData) => {
+                setAllPatentsPage(allPatentsPage - 1);
+              }
+            },
+            {
+              icon: MdOutlineChevronRight,
+              tooltip: 'Load Next Page of Patents',
+              isFreeAction: true,
+              onClick: (event, rowData) => {
+                setAllPatentsPage(allPatentsPage + 1);
+              }
             }
           ]}
           options={{
