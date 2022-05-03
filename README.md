@@ -1,6 +1,5 @@
 # PATENTIFY
-Data Labeling by Active Learning \
-A tool to train a machine learning model using active learning in an effort to categorize patents and patent applications effortlessly in the future. 
+Data Labeling by Active Learning
 
 ![image](https://drive.google.com/uc?export=view&id=1CoShKjYYYLIZikTTeZymdjyz9HW5xe6b)
 ![image](https://drive.google.com/uc?export=view&id=13DXDrB4bs_eIvXqCSE97RPr6KGEnLOzB)
