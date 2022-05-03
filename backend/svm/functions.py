@@ -46,7 +46,9 @@ def train_base_model(client, learner):
     this will train the base model from all annotations in db, save as working model,
     and switch to the working model.
     """
-    if TRAIN_BASE_MODEL:
+    global model_filename
+
+    if TRAIN_BASE_MODEL and ('base_model' in model_filename):
         db = client['PatentData']
 
         oneAnnotator = db.labels.find({ })
@@ -78,8 +80,6 @@ def train_base_model(client, learner):
         learner.teach(X=x, y=y)
 
         # switch to working model:
-        global model_filename
-
         model_filename = f'models/working_model_[scikit-learn-{sklearn.__version__}].joblib'
         dump(learner.estimator, model_filename)
 
