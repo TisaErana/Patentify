@@ -1,5 +1,9 @@
 # PATENTIFY
-Data Labeling by Active Learning
+Data Labeling by Active Learning \
+A tool to train a machine learning model using active learning in an effort to categorize patents and patent applications effortlessly in the future. 
+
+![image](https://drive.google.com/uc?export=view&id=1CoShKjYYYLIZikTTeZymdjyz9HW5xe6b)
+![image](https://drive.google.com/uc?export=view&id=13DXDrB4bs_eIvXqCSE97RPr6KGEnLOzB)
 
 Get Started:
 * Install [Node](https://nodejs.org/en/download/)
@@ -13,13 +17,24 @@ Get Started:
   * import data from live database
   * add an environment variable 'MONGO_URL' with value: 
     * ```mongodb://localhost:27017/[database-name]```
+    * There are a number of ways to add this: \
+      the easiest way is to add it to the .env file in the backend folder
     * MongoDB does not bind to the IPv6 address (::1) by default, \
     if you get ECONNREFUSED errors, localhost might be resolving to ::1 \
     instead use:
     ```mongodb://127.0.0.1:27017/[database-name]```
 * Install [Nodemon](https://www.npmjs.com/package/nodemon) 
    - ```npm install -g nodemon```
-
+* Add missing files: \
+   .env file: 
+   ```
+   AUTH_EMAIL=""
+   AUTH_PASS=""
+   DOMAIN_NAME="https://localhost:3000"
+   ```
+  backend/svm/data/decision_boundary-462.pkl \
+  backend/svm/data/seed_antiseed_476.pkl
+  
 On the Terminal:
 * cd /Patentify/frontend
   * ```npm install```
@@ -29,6 +44,8 @@ On the Terminal:
 
 Node-gyp Errors:
 * make sure Python is in your PATH
+* if you have Python 2, uninstall it! \
+  Python 3 is required for this project to work correctly
 * try setting the version of the build tools you have (only on Windows): 
   ```
   npm config set msvs_version 2019
