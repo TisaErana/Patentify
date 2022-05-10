@@ -203,7 +203,8 @@ def process_claims(year, thread, dir, id_col):
         #print(filtered)
 
         for claim in filtered.itertuples():
-            claims.append(claim.text.strip())
+            if not(pd.isna(claim.text)):
+                claims.append(claim.text.strip())
         
         try:
             # sort based on number in text (ex: '1 .' or '12.')
