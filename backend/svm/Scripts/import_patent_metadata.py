@@ -364,7 +364,24 @@ missingTitle = [element['documentId'] for element in list(dbPatents.find({ 'titl
 missingAbstract = [element['documentId'] for element in list(dbPatents.find({ 'abstract': '' }, {"_id": False, "documentId": 1}))]
 missingClaims = [element['documentId'] for element in list(dbPatents.find({ 'claims': [] }, {"_id": False, "documentId": 1}))]
 
-print('Missing Date:', missingDate)
-print('Missing Title:', missingTitle)
-print('Missing Abstract:', missingAbstract)
-print('Missing Claims:', missingClaims)
+#print('Missing Date:', missingDate)
+#print('Missing Title:', missingTitle)
+#print('Missing Abstract:', missingAbstract)
+#print('Missing Claims:', missingClaims)
+
+if len(missingDate) > 0:
+    with open('missing.date.txt', 'w') as f:
+        for item in missingDate:
+            f.write("%s\n" % item)
+if len(missingTitle) > 0:
+    with open('missing.title.txt', 'w') as f:
+        for item in missingTitle:
+            f.write("%s\n" % item)
+if len(missingAbstract) > 0:
+    with open('missing.abstract.txt', 'w') as f:
+        for item in missingAbstract:
+            f.write("%s\n" % item)
+if len(missingClaims) > 0:
+    with open('missing.claims.txt', 'w') as f:
+        for item in missingClaims:
+            f.write("%s\n" % item)
