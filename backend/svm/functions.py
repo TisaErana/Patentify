@@ -385,10 +385,10 @@ def find_uncertain_patents(learner, client):
         operations.append(
             InsertOne({ 
                 "documentId": documentId,
-                'date': document['date'],
-                'title': document['title'],
-                'abstract': document['abstract'],
-                'claims': document['claims'],
+                'date': document['date'] if "date" in document else '',
+                'title': document['title'] if "title" in document else '',
+                'abstract': document['abstract'] if "abstract" in document else '',
+                'claims': document['claims'] if "claims" in document else [],
                 'patentCorpus': document['patentCorpus']
             })
         )
