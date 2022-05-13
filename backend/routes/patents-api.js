@@ -64,12 +64,22 @@ async function getNextPatent(req, res, transaction = { "mode": "new", "documentI
       item.documentId
     ))
 
-    const candidates = await UnlabeledPatent.find({
+    var candidates = await UncertainPatent.find({
       'documentId': {
         "$nin": inQueues 
       }
     })//.sort( { documentId: -1 } ) // queries from bottom instead of top, query from top is faster
     .lean().limit(QUEUE_CANDIDATE_LOOKUP_SIZE); // find some random patent candidates
+
+    // if for some reason there is no uncertain patents, let's find some patents that have not been labeled:
+    if (candidates.length === 0) {
+      candidates = await UnlabeledPatent.find({ 
+        'documentId': {
+          "$nin": inQueues 
+        }
+      })
+      .lean().limit(QUEUE_CANDIDATE_LOOKUP_SIZE); // find some random patent candidates
+    }
 
     patent = await Patent.findOne({ 
       'documentId': candidates[Math.floor(Math.random() * candidates.length)].documentId
