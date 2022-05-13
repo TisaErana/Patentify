@@ -120,6 +120,11 @@ try:
                     if(assigned == None or (assigned['user'] == entry['user'])):
                         isAI = get_target(entry)
                         annotations[entry['document']] = isAI
+
+                        # check if there are no more uncertain patents:
+                        if db.uncertain_patents.count_documents({ }) == 0:
+                            print('[INFO]: looking for new uncertain patents...')
+                            find_uncertain_patents(learner, client)
                     else:
                         print('[Active_Learning]: skipped', entry['document'], 'waiting on consensus')
                     
