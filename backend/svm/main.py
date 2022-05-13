@@ -121,6 +121,11 @@ try:
                         isAI = get_target(entry)
                         annotations[entry['document']] = isAI
 
+                        # check if patent is from uncertain documents list:
+                        removal = db.uncertain_patents.find_one_and_delete({ 'documentId': entry['document'] })
+                        if removal != None:
+                            print('[Active_Learning]: uncertain document annotated:', removal['documentId'])
+
                         # check if there are no more uncertain patents:
                         if db.uncertain_patents.count_documents({ }) == 0:
                             print('[INFO]: looking for new uncertain patents...')
