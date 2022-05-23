@@ -315,6 +315,52 @@ def process_missing_claims(thread, file, id_col, text_col):
         sys.stdout.write(f'\n[{thread}_Missing_Claims_Thread]: bulk claims update operation: \n\n{result.bulk_api_result}\n')
         sys.stdout.write(f'\n[{thread}_Missing_Claims_Thread]: total {thread} imported: {total}/{nDocuments}\n')
 
+def process_missing_abstracts(thread, file, id_col, text_col):
+    total = 0
+    nDocuments = 0
+    
+    patents = pd.read_csv(
+        file,
+        header = 0,
+        usecols = [ id_col, text_col ],
+        dtype = { id_col: str, text_col: str }
+    )
+
+    documents = set(patents[id_col].values) # find all unique document ids
+    nDocuments = len(documents) # number of documents we need to import abstarcts for
+    sys.stdout.write(f'\n\n[{thread}_Missing_Abstracts_Thread]: documents to import: {nDocuments}\n')
+
+    operations = []
+    for patent in documents:
+        #print(patent)
+        #print(getattr(patents[patents[id_col] == patent], text_col))
+        #print(pd.isna(getattr(patents[patents[id_col] == patent], text_col)))
+        
+        abstract = getattr(patents[patents[id_col] == patent], text_col).values[0]
+
+        if not(pd.isna(abstract)):
+            operations.append(
+                UpdateOne({ "documentId": patent }, { 
+                    "$set": {
+                        'abstract': abstract
+                    } 
+                })
+            )
+
+        # limit size of bulk operations:
+        if len(operations) >= MAX_CLAIM_BULK_OPERATIONS:
+            total += len(operations)
+            result = dbPatents.bulk_write(operations, ordered=False)
+            sys.stdout.write(f'\n[{thread}_Missing_Abstracts_Thread]: bulk abstract update operation: \n\n{result.bulk_api_result}\ntotal so far: {total}/{nDocuments}\n')
+            operations = []
+    
+    # perform left over bulk operations:
+    if len(operations) > 0:
+        total += len(operations)
+        result = dbPatents.bulk_write(operations, ordered=False)
+        sys.stdout.write(f'\n[{thread}_Missing_Abstracts_Thread]: bulk abstracts update operation: \n\n{result.bulk_api_result}\n')
+        sys.stdout.write(f'\n[{thread}_Missing_Abstracts_Thread]: total {thread} imported: {total}/{nDocuments}\n')
+
 
 uspats_thread = Thread(target=process_USPATs)
 pgpubs_thread = Thread(target=process_PGPUBs)
@@ -349,6 +395,9 @@ with ThreadPoolExecutor(max_workers=2) as executor:
     future = executor.submit(process_missing_claims, 'PGPUB', PGPUB_MISSING_CLAIMS_CSV, 'pub_no', 'claim_text')
     threads.append(future)
 
+    # future = executor.submit(process_missing_abstracts, 'USPAT', MISSING_USPAT_ABSTRACTS, 'pat_no', 'abstract')
+    # threads.append(future)
+
 wait(threads)
 
 # print any thread exceptions:
@@ -364,10 +413,10 @@ missingTitle = [element['documentId'] for element in list(dbPatents.find({ 'titl
 missingAbstract = [element['documentId'] for element in list(dbPatents.find({ 'abstract': '' }, {"_id": False, "documentId": 1}))]
 missingClaims = [element['documentId'] for element in list(dbPatents.find({ 'claims': [] }, {"_id": False, "documentId": 1}))]
 
-#print('Missing Date:', missingDate)
-#print('Missing Title:', missingTitle)
-#print('Missing Abstract:', missingAbstract)
-#print('Missing Claims:', missingClaims)
+print('Missing Date:', missingDate)
+print('Missing Title:', missingTitle)
+print('Missing Abstract:', missingAbstract)
+print('Missing Claims:', missingClaims)
 
 if len(missingDate) > 0:
     with open('missing.date.txt', 'w') as f:
