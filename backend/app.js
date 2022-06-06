@@ -21,7 +21,13 @@ app.listen(4000, 'localhost'); // SECURITY: only bind to localhost, should not b
 
 // Here we are connecting to our MongoDB database that is hosted on Compute1 at FIU
 mongoose
-  .connect(process.env.MONGO_URL, { useNewUrlParser: true, useUnifiedTopology: false })
+  .connect(process.env.MONGO_URL, 
+    { 
+      reconnectTries: 60,
+      reconnectInterval: 3000, // wait 3 seconds before attempting again
+      useNewUrlParser: true, 
+      useUnifiedTopology: true 
+    })
   .then((x) =>
     console.log(`Connected to Mongo! Database name: "${x.connections[0].name}"`)
   )
