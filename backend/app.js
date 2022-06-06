@@ -17,6 +17,7 @@ const passwordRouter = require('./routes/passwordReset');
 
 
 const app = express();
+app.listen(4000, 'localhost'); // SECURITY: only bind to localhost, should not be exposed to internet.
 
 // Here we are connecting to our MongoDB database that is hosted on Compute1 at FIU
 mongoose
