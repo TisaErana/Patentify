@@ -28,22 +28,24 @@ function checkID(patents){
 
        // pdfpiw.uspto.gov: expects 'RE' is converted -> '00' for API call
        var id = patents.documentId.toString()
-       id = id.replace('RE', '00');
+       //id = id.replace('RE', '00');
 
        if(patents.patentCorpus === "USPAT") // ex: 04021701 
        {
 
-         while(id.length < 8) // pad the patent number to 8 characters.
-         {
-           id = "0" + id;
-         }
+         // while(id.length < 8) // pad the patent number to 8 characters.
+         // {
+         //   id = "0" + id;
+         // }
 
-         return ("https://pimg-fpiw.uspto.gov/fdd/"+id.substring(6, 8)+"/"+id.substring(3, 6)+"/"+id.substring(0, 3)+"/0.pdf")
-       
+         //return ("https://pimg-fpiw.uspto.gov/fdd/"+id.substring(6, 8)+"/"+id.substring(3, 6)+"/"+id.substring(0, 3)+"/0.pdf")
+         return ("https://image-ppubs.uspto.gov/dirsearch-public/print/downloadPdf/" + id)
+
        }
        else if (patents.patentCorpus === "PGPUB") // ex: 20170205789
        {
-         return ("https://pdfaiw.uspto.gov/fdd/"+id.substring(9,11)+"/"+id.substring(0,4)+"/"+id.substring(7,9)+"/"+id.substring(4,7)+"/0.pdf")
+         //return ("https://pdfaiw.uspto.gov/fdd/"+id.substring(9,11)+"/"+id.substring(0,4)+"/"+id.substring(7,9)+"/"+id.substring(4,7)+"/0.pdf")
+         return ("https://image-ppubs.uspto.gov/dirsearch-public/print/downloadPdf/" + id)
        }
   } 
 }
