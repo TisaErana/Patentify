@@ -1,6 +1,4 @@
-# PATENTIFY
-# Updates by Tisa, Sept 17, 2023
-# More Update blah blah 
+# PATENTIFY 
 Data Labeling by Active Learning
 
 ![image](https://drive.google.com/uc?export=view&id=1CoShKjYYYLIZikTTeZymdjyz9HW5xe6b)
